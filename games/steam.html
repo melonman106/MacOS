@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steam Library</title>
+<style>
+body{
+margin:0;
+font-family:-apple-system,sans-serif;
+background:#121212;
+color:white;
+}
+.header{
+background:#1b1b1b;
+padding:10px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+}
+.header input{
+padding:4px 8px;
+border-radius:6px;
+border:none;
+outline:none;
+}
+.library{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:15px;
+padding:10px;
+overflow-y:auto;
+height:calc(100vh - 50px);
+}
+.game{
+background:#1b1b1b;
+border-radius:12px;
+padding:10px;
+text-align:center;
+cursor:pointer;
+}
+.game img{
+width:100%;
+border-radius:8px;
+margin-bottom:5px;
+}
+.play-button{
+margin-top:5px;
+padding:5px 10px;
+border:none;
+border-radius:6px;
+background:#007aff;
+color:white;
+cursor:pointer;
+}
+</style>
+</head>
+<body>
+<div class="header">
+<div style="font-weight:bold;font-size:16px;">Steam Library</div>
+<input type="text" placeholder="Search...">
+</div>
+<div class="library">
+<div class="game" onclick="openGame('Game 1')">
+<img src="https://via.placeholder.com/150x80.png?text=Game+1">
+<div>Game 1</div>
+<button class="play-button">Play</button>
+</div>
+<div class="game" onclick="openGame('Game 2')">
+<img src="https://via.placeholder.com/150x80.png?text=Game+2">
+<div>Game 2</div>
+<button class="play-button">Play</button>
+</div>
+<div class="game" onclick="openGame('Game 3')">
+<img src="https://via.placeholder.com/150x80.png?text=Game+3">
+<div>Game 3</div>
+<button class="play-button">Play</button>
+</div>
+</div>
+
+<script>
+function openGame(name){
+window.parent.openApp(name,"https://melonman106.github.io/AmplerLauncher/");
+}
+</script>
+</body>
+</html>
