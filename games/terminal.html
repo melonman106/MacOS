@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terminal</title>
+<style>
+body,html{
+margin:0;
+height:100%;
+font-family:monospace;
+background:black;
+color:#0f0;
+display:flex;
+flex-direction:column;
+}
+#terminal-output{
+flex:1;
+overflow:auto;
+white-space:pre-wrap;
+padding:10px;
+}
+#terminal-input{
+border:none;
+outline:none;
+background:black;
+color:#0f0;
+padding:10px;
+font-family:monospace;
+width:100%;
+}
+</style>
+</head>
+<body>
+<div id="terminal-output">MacOS Web Terminal\nType "help"</div>
+<input id="terminal-input" autofocus/>
+
+<script>
+const output=document.getElementById("terminal-output");
+const input=document.getElementById("terminal-input");
+
+input.addEventListener("keydown",e=>{
+if(e.key!=="Enter") return;
+const cmd=input.value.trim();
+output.innerHTML+="\n> "+cmd;
+handleCommand(cmd);
+input.value="";
+output.scrollTop=output.scrollHeight;
+});
+
+function handleCommand(cmd){
+const args=cmd.split(" ");
+switch(args[0]){
+case "help":
+output.innerHTML+="\nhelp\nclear\ndate\necho\nopen safari\nopen finder\nopen music\nopen steam\nopen ampler";
+break;
+case "clear":
+output.innerHTML="";
+break;
+case "date":
+output.innerHTML+="\n"+new Date();
+break;
+case "echo":
+output.innerHTML+="\n"+args.slice(1).join(" ");
+break;
+case "open":
+if(args[1]==="safari") window.parent.openApp("Safari","https://browser.rammerhead.org/");
+if(args[1]==="finder") window.parent.openApp("Finder","internal_finder");
+if(args[1]==="music") window.parent.openApp("Music","https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM3M");
+if(args[1]==="steam") window.parent.openApp("Steam","steam.html");
+if(args[1]==="ampler") window.parent.openApp("Ampler Launcher","https://melonman106.github.io/AmplerLauncher/");
+break;
+default: output.innerHTML+="\ncommand not found";
+}
+}
+</script>
+</body>
+</html>
