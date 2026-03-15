@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>macOS Creator</title>
+
+<style>
+:root{
+--mac-blur:blur(20px);
+--window-bg:rgba(28,28,30,.9);
+}
+
+body,html{
+margin:0;
+height:100%;
+overflow:hidden;
+font-family:-apple-system,sans-serif;
+background:url("https://4kwallpapers.com/images/walls/thumbs_3t/5585.jpg") center/cover no-repeat fixed;
+}
+
+/* TOP BAR */
+.top-bar{
+height:28px;
+background:rgba(0,0,0,.3);
+backdrop-filter:var(--mac-blur);
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:0 15px;
+font-size:12px;
+color:white;
+z-index:10000;
+}
+
+/* WINDOW */
+.window{
+position:absolute;
+width:450px;
+height:400px;
+background:var(--window-bg);
+border-radius:12px;
+box-shadow:0 20px 60px rgba(0,0,0,.5);
+display:flex;
+flex-direction:column;
+border:.5px solid rgba(255,255,255,.2);
+backdrop-filter:var(--mac-blur);
+resize:both;
+overflow:auto;
+min-width:260px;
+min-height:160px;
+}
+
+.window.maximized{
+width:100%!important;
+height:calc(100% - 28px)!important;
+top:28px!important;
+left:0!important;
+border-radius:0;
+resize:none;
+}
+
+.window-header{
+height:38px;
+background:rgba(255,255,255,.05);
+display:flex;
+align-items:center;
+padding:0 10px;
+border-bottom:.5px solid rgba(255,255,255,.1);
+cursor:grab;
+}
+
+.dots{display:flex;gap:6px}
+
+.dot{
+width:12px;
+height:12px;
+border-radius:50%;
+cursor:pointer;
+}
+
+.red{background:#ff5f56}
+.yellow{background:#ffbd2e}
+.green{background:#27c93f}
+
+.window-title{
+flex:1;
+text-align:center;
+color:white;
+font-size:13px;
+font-weight:600;
+}
+
+.window-content{
+flex:1;
+background:#000;
+overflow:auto;
+}
+
+iframe{
+width:100%;
+height:100%;
+border:none;
+background:white;
+}
+
+/* DOCK */
+.dock{
+position:fixed;
+bottom:15px;
+left:50%;
+transform:translateX(-50%);
+background:rgba(255,255,255,.2);
+backdrop-filter:var(--mac-blur);
+padding:8px;
+border-radius:20px;
+display:flex;
+gap:12px;
+border:.5px solid rgba(255,255,255,.3);
+z-index:10001;
+}
+
+.dock-icon{
+width:50px;
+height:50px;
+background:white;
+border-radius:12px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:28px;
+cursor:pointer;
+transition:.2s;
+}
+
+.dock-icon:hover{
+transform:scale(1.1);
+}
+
+/* BUILD */
+.build-ui{
+padding:15px;
+display:flex;
+flex-direction:column;
+gap:10px;
+height:100%;
+color:white;
+}
+
+textarea{
+flex:1;
+background:#111;
+color:#0f0;
+border:1px solid #333;
+border-radius:8px;
+padding:10px;
+font-family:monospace;
+}
+
+button{
+background:#007aff;
+border:none;
+padding:10px;
+border-radius:8px;
+color:white;
+font-weight:bold;
+}
+
+/* TERMINAL */
+.terminal{
+background:black;
+color:#0f0;
+font-family:monospace;
+padding:10px;
+height:100%;
+display:flex;
+flex-direction:column;
+}
+
+#terminal-output{
+flex:1;
+overflow:auto;
+white-space:pre-wrap;
+}
+
+#terminal-input{
+border:none;
+outline:none;
+background:black;
+color:#0f0;
+font-family:monospace;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top-bar">
+<div><strong> Finder</strong></div>
+<div id="clock"></div>
+</div>
+
+<div id="desktop"></div>
+
+<div class="dock">
+<div class="dock-icon" onclick="openApp('Safari','https://browser.rammerhead.org/')">🧭</div>
+<div class="dock-icon" onclick="openBuild()">🛠️</div>
+<div class="dock-icon" onclick="openApp('Terminal','games/terminal.html')">💻</div>
+<div class="dock-icon" onclick="openApp('Music','https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM3M')">🎵</div>
+<div class="dock-icon" onclick="openApp('Finder','internal_finder')">📂</div>
+<div class="dock-icon" onclick="openApp('Steam','games/steam.html')">🎮</div>
+<div class="dock-icon" onclick="openApp('Ampler Launcher','games/ampleLauncher.html')">📦</div>
+</div>
+
+<script>
+let windowZ=100;
+
+/* WINDOW SYSTEM */
+function createWindow(title,html){
+windowZ++;
+const win=document.createElement("div");
+win.className="window";
+win.style.zIndex=windowZ;
+win.style.left=(80+Math.random()*200)+"px";
+win.style.top=(80+Math.random()*150)+"px";
+
+win.innerHTML=`
+<div class="window-header">
+<div class="dots">
+<div class="dot red"></div>
+<div class="dot yellow"></div>
+<div class="dot green"></div>
+</div>
+<div class="window-title">${title}</div>
+</div>
+<div class="window-content">${html}</div>
+`;
+
+document.getElementById("desktop").appendChild(win);
+
+/* buttons */
+win.querySelector(".red").onclick=()=>win.remove();
+win.querySelector(".green").onclick=()=>win.classList.toggle("maximized");
+
+/* focus */
+win.addEventListener("mousedown",()=>{
+windowZ++;
+win.style.zIndex=windowZ;
+});
+
+/* drag */
+initDrag(win);
+return win;
+}
+
+/* SMOOTH DRAG */
+function initDrag(win){
+const header=win.querySelector(".window-header");
+let dragging=false;
+let offsetX=0;
+let offsetY=0;
+let x=win.offsetLeft;
+let y=win.offsetTop;
+
+header.addEventListener("pointerdown",(e)=>{
+dragging=true;
+offsetX=e.clientX-x;
+offsetY=e.clientY-y;
+header.setPointerCapture(e.pointerId);
+});
+
+header.addEventListener("pointermove",(e)=>{
+if(!dragging) return;
+x=e.clientX-offsetX;
+y=e.clientY-offsetY;
+requestAnimationFrame(()=>{win.style.left=x+"px"; win.style.top=y+"px";});
+});
+
+header.addEventListener("pointerup",()=>{dragging=false;});
+}
+
+/* APPS */
+function openApp(title,url){
+let content=`<iframe src="${url}"></iframe>`;
+if(url==="internal_finder"){
+content=`
+<div style="padding:20px;color:white;display:grid;grid-template-columns:1fr 1fr;gap:20px;text-align:center">
+<div onclick="openBuild()">🛠️<br>Builder</div>
+<div onclick="openApp('Terminal','games/terminal.html')">💻<br>Terminal</div>
+<div onclick="openApp('Safari','https://browser.rammerhead.org/')">🧭<br>Safari</div>
+<div onclick="openApp('Steam','games/steam.html')">🎮<br>Steam</div>
+<div onclick="openApp('Ampler Launcher','games/ampleLauncher.html')">📦<br>Ampler</div>
+</div>
+`;
+}
+createWindow(title,content);
+}
+
+/* BUILDER */
+function openBuild(){
+const html=`
+<div class="build-ui">
+<h3>App Builder</h3>
+<textarea id="builder-code"></textarea>
+<button onclick="runUserCode()">Launch App</button>
+</div>
+`;
+createWindow("Build",html);
+}
+function runUserCode(){
+const code=document.getElementById("builder-code").value;
+const win=createWindow("My App","");
+const frame=document.createElement("iframe");
+win.querySelector(".window-content").appendChild(frame);
+frame.contentDocument.open();
+frame.contentDocument.write(code);
+frame.contentDocument.close();
+}
+
+/* CLOCK */
+setInterval(()=>{
+document.getElementById("clock").innerText=
+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+},1000);
+
+/* boot */
+openApp("Finder","internal_finder");
+</script>
+
+</body>
+</html>
