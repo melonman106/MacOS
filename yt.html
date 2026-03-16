@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youtube Viewer</title>
+
+    <!-- Add favicons -->
+    <link rel="icon" href="https://f.playcode.io/p-2672631/v-1/019cb62e-a21a-716c-a040-5dbff76aea0f/youtube.png" type="image/png">
+    <link rel="icon" href="./assets/YouTube.png" type="image/png">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f0f0f;
+            color: white;
+            text-align: center;
+        }
+        header {
+            padding: 20px;
+            font-size: 22px;
+            background: #181818;
+        }
+        input {
+            width: 50%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-top: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background: #cc0000;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #ff0000;
+        }
+        #player {
+            margin-top: 30px;
+        }
+        iframe {
+            width: 80%;
+            height: 500px;
+            border-radius: 12px;
+            border: none;
+        }
+        #results {
+            margin-top: 30px;
+        }
+        .videoCard {
+            display: inline-block;
+            width: 250px;
+            margin: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .videoCard:hover {
+            transform: scale(1.05);
+        }
+        .videoCard img {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .videoTitle {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        #loadMoreBtn {
+            display: block;
+            margin: 20px auto;
+        }
+        #loginForm {
+            display: block;
+            margin-top: 20px;
+        }
+        #mainMenu {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<header>Embed Viewer</header>
+
+<!-- Password Lock -->
+<div id="loginForm">
+    <input id="password" type="password" placeholder="Enter Password">
+    <button onclick="checkPassword()">Login</button>
+</div>
+
+<!-- Main Menu (Initially hidden) -->
+<div id="mainMenu">
+    <!-- Load by video/playlist link -->
+    <input id="input" placeholder="Paste YouTube video or playlist link">
+    <button onclick="load()">Load</button>
+
+    <br><br>
+
+    <!-- Search -->
+    <input id="searchQuery" placeholder="Search YouTube">
+    <button onclick="searchYouTube()">Search</button>
+
+    <div id="player"></div>
+    <div id="results"></div>
+</div>
+
+<script>
+// API Keys (hidden from user after login)
+const API_KEYS = [
+    "AIzaSyBpElKUXLE826EblN4osqKi42UJepu2QbI", // Primary API Key
+    "YOUR_SECOND_API_KEY_HERE" // Fallback API Key
+];
+
+let currentAPIKeyIndex = 0; // Tracks which API key to use
+let nextPageToken = "";
+let currentQuery = "";
+let isLoggedIn = false;
+
+// Function to check the password
+function checkPassword() {
+    const password = document.getElementById("password").value.trim();
+    const correctPassword = "DonkeyKongBananza";
+
+    if (password === correctPassword) {
+        // Hide login form and show the main menu
+        document.getElementById("loginForm").style.display = "none";
+        document.getElementById("mainMenu").style.display = "block";
+        isLoggedIn = true;
+    } else {
+        alert("Incorrect password"); // Alert if password is incorrect
+    }
+}
+
+// Function to switch to the next API key if the current one fails
+async function fetchWithAPIKey(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error("API Key failure");
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error with API Key:", error);
+        currentAPIKeyIndex = (currentAPIKeyIndex + 1) % API_KEYS.length;
+        alert("Switching to the next API Key.");
+        return fetchWithAPIKey(url); // Retry with the next API key
+    }
+}
+
+/* ---- Load video/playlist by link ---- */
+function extractVideoID(url) {
+    const match = url.match(/(?:v=|youtu\.be\/)([^&]+)/);
+    return match ? match[1] : null;
+}
+
+function extractPlaylistID(url) {
+    const match = url.match(/[?&]list=([^&]+)/);
+    return match ? match[1] : null;
+}
+
+function load() {
+    const input = document.getElementById("input").value.trim();
+    if (!input) return;
+
+    const videoID = extractVideoID(input);
+    const playlistID = extractPlaylistID(input);
+
+    let embedURL = "";
+
+    if (playlistID && !videoID) {
+        embedURL = `https://www.youtube.com/embed/videoseries?list=${playlistID}`;
+    } else if (videoID) {
+        embedURL = playlistID
+            ? `https://www.youtube.com/embed/${videoID}?list=${playlistID}`
+            : `https://www.youtube.com/embed/${videoID}`;
+    } else {
+        alert("Invalid link");
+        return;
+    }
+
+    document.getElementById("player").innerHTML =
+        `<iframe src="${embedURL}" allowfullscreen></iframe>`;
+}
+
+/* ---- YouTube Search ---- */
+async function searchYouTube(reset = true) {
+    const query = document.getElementById("searchQuery").value.trim();
+    if (!query) return;
+
+    if (reset) {
+        document.getElementById("results").innerHTML = "";
+        nextPageToken = "";
+        currentQuery = query;
+    }
+
+    const searchURL =
+        `https://www.googleapis.com/youtube/v3/search?part=snippet` +
+        `&type=video` +
+        `&safeSearch=strict` +
+        `&maxResults=25` +
+        `&order=relevance` +
+        `&q=${encodeURIComponent(currentQuery)}` +
+        `&pageToken=${nextPageToken}` +
+        `&key=${API_KEYS[currentAPIKeyIndex]}`;
+
+    try {
+        const res = await fetchWithAPIKey(searchURL);
+        const data = res;
+
+        nextPageToken = data.nextPageToken || "";
+
+        const ids = data.items.map(item => item.id.videoId).join(",");
+
+        // Check embeddable + age restriction
+        const checkURL =
+            `https://www.googleapis.com/youtube/v3/videos?part=status,contentDetails` +
+            `&id=${ids}&key=${API_KEYS[currentAPIKeyIndex]}`;
+
+        const statusRes = await fetchWithAPIKey(checkURL);
+        const statusData = statusRes;
+
+        const allowedIDs = statusData.items
+            .filter(video =>
+                video.status.embeddable &&
+                video.contentDetails?.contentRating?.ytRating !== "ytAgeRestricted"
+            )
+            .map(video => video.id);
+
+        // Filter out live streams
+        const filteredVideos = data.items.filter(item =>
+            allowedIDs.includes(item.id.videoId) &&
+            item.snippet.liveBroadcastContent !== "live"
+        );
+
+        displayResults(filteredVideos);
+
+        if (nextPageToken) showLoadMore();
+        else removeLoadMore();
+
+    } catch (err) {
+        alert("Search failed");
+        console.error(err);
+    }
+}
+
+/* ---- Display results ---- */
+function displayResults(videos) {
+    const resultsDiv = document.getElementById("results");
+
+    videos.forEach(video => {
+        const videoId = video.id.videoId;
+        const title = video.snippet.title;
+        const thumbnail = video.snippet.thumbnails.medium.url;
+
+        const videoCard = document.createElement("div");
+        videoCard.className = "videoCard";
+        videoCard.innerHTML = `
+            <img src="${thumbnail}">
+            <div class="videoTitle">${title}</div>
+        `;
+        videoCard.onclick = () => loadFromID(videoId);
+
+        resultsDiv.appendChild(videoCard);
+    });
+}
+
+function loadFromID(videoID) {
+    document.getElementById("player").innerHTML =
+        `<iframe src="https://www.youtube.com/embed/${videoID}" allowfullscreen></iframe>`;
+}
+
+/* ---- Load More ---- */
+function showLoadMore() {
+    if (!document.getElementById("loadMoreBtn")) {
+        const btn = document.createElement("button");
+        btn.id = "loadMoreBtn";
+        btn.innerText = "Load More";
+        btn.onclick = () => searchYouTube(false);
+        document.getElementById("results").appendChild(btn);
+    }
+}
+
+function removeLoadMore() {
+    const btn = document.getElementById("loadMoreBtn");
+    if (btn) btn.remove();
+}
+</script>
+
+</body>
+</html>
