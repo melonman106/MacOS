@@ -1,87 +1,493 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Steam Library</title>
-<style>
-body{
-margin:0;
-font-family:-apple-system,sans-serif;
-background:#121212;
-color:white;
-}
-.header{
-background:#1b1b1b;
-padding:10px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-}
-.header input{
-padding:4px 8px;
-border-radius:6px;
-border:none;
-outline:none;
-}
-.library{
-display:grid;
-grid-template-columns:1fr 1fr 1fr;
-gap:15px;
-padding:10px;
-overflow-y:auto;
-height:calc(100vh - 50px);
-}
-.game{
-background:#1b1b1b;
-border-radius:12px;
-padding:10px;
-text-align:center;
-cursor:pointer;
-}
-.game img{
-width:100%;
-border-radius:8px;
-margin-bottom:5px;
-}
-.play-button{
-margin-top:5px;
-padding:5px 10px;
-border:none;
-border-radius:6px;
-background:#007aff;
-color:white;
-cursor:pointer;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Library</title>
+    <style>
+        :root {
+            --mac-red: #ff5f56; --mac-yellow: #ffbd2e; --mac-green: #27c93f;
+            --accent-blue: #007aff;
+            --bg: #000;
+            --titlebar-height: 42px;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100vh; width: 100vw;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            background: #000; color: #fff; overflow: hidden;
+        }
+
+        .app-shell { display: grid; grid-template-columns: 260px 1fr; height: 100vh; }
+
+        .sidebar {
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(50px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        .traffic-lights { display: flex; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; border: none; cursor: pointer; }
+        .section-label {
+            font-size: 10px; font-weight: 800;
+            color: rgba(255,255,255,0.2);
+            text-transform: uppercase;
+            margin: 25px 0 8px 10px;
+            letter-spacing: 1px;
+        }
+
+        .nav-button {
+            padding: 10px 12px; border-radius: 8px; cursor: pointer;
+            font-size: 13px; color: rgba(255,255,255,0.5);
+            display: flex; align-items: center; gap: 10px;
+            transition: 0.2s; position: relative;
+        }
+        .nav-button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .nav-button.active { background: var(--accent-blue); color: #fff; font-weight: 600; }
+
+        .profile-corner {
+            position: absolute; top: 15px; right: 20px; z-index: 1000;
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(30,30,30,0.6); padding: 5px 15px;
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer; backdrop-filter: blur(10px);
+        }
+        .avatar {
+            width: 24px; height: 24px; background: var(--accent-blue);
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-size: 12px; font-weight: bold;
+        }
+
+        .main-content {
+            position: relative; overflow-y: auto;
+            scroll-behavior: smooth; background: #000; text-align: left;
+        }
+
+        .hero {
+            height: 450px; width: 100%;
+            background-size: cover !important; background-position: center !important;
+            display: flex; align-items: flex-end;
+            padding: 60px; box-sizing: border-box; position: relative;
+        }
+        .hero::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to top, #000 0%, transparent 100%);
+        }
+        .hero-title {
+            position: relative; z-index: 5;
+            font-size: 70px; font-weight: 900; margin: 0; letter-spacing: -3px;
+        }
+
+        .play-bar {
+            position: sticky; top: 0; z-index: 50;
+            padding: 20px 60px;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 30px;
+        }
+        .btn-play {
+            background: var(--accent-blue); color: #fff; border: none;
+            padding: 12px 60px; border-radius: 6px;
+            font-weight: 700; cursor: pointer; font-size: 15px; transition: 0.2s;
+        }
+        .btn-play:hover { background: #3395ff; }
+        .btn-remove {
+            background: rgba(255, 95, 86, 0.1); color: var(--mac-red);
+            border: 1px solid rgba(255, 95, 86, 0.2);
+            padding: 10px 15px; border-radius: 6px;
+            cursor: pointer; font-size: 12px; font-weight: 600;
+            transition: 0.2s; margin-left: auto;
+        }
+        .btn-remove:hover { background: var(--mac-red); color: #fff; }
+
+        .modal {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.85); z-index: 1000;
+            align-items: center; justify-content: center;
+            backdrop-filter: blur(15px);
+        }
+        .modal-card {
+            background: #1c1c1e; width: 420px; padding: 30px;
+            border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        input, textarea {
+            width: 100%; background: #2c2c2e; border: 1px solid #3a3a3c;
+            color: #fff; padding: 12px; border-radius: 10px;
+            margin: 8px 0 15px 0; box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .scroll-area { padding: 40px 60px; max-width: 1000px; }
+        .playtime-display { color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .playtime-val { color: #fff; font-weight: bold; font-size: 14px; }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            padding: 40px 60px;
+        }
+        .game-card {
+            background: #1b1b1b;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        .game-card:hover {
+            transform: scale(1.04);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
+        .game-card img {
+            width: 100%; aspect-ratio: 16/9;
+            object-fit: cover; display: block;
+        }
+        .game-card-info { padding: 10px 12px 12px; }
+        .game-card-name {
+            font-size: 13px; font-weight: 600;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 8px;
+        }
+        .game-card-play {
+            width: 100%; padding: 7px 0;
+            background: var(--accent-blue); color: #fff;
+            border: none; border-radius: 6px;
+            font-size: 12px; font-weight: 700;
+            cursor: pointer; transition: background 0.2s;
+            font-family: inherit;
+        }
+        .game-card-play:hover { background: #3395ff; }
+
+        .search-bar-wrap { padding: 30px 60px 0; }
+        .search-bar-wrap input {
+            max-width: 340px;
+            margin: 0;
+            border-radius: 20px;
+            padding: 10px 18px;
+            font-size: 13px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            outline: none;
+            color: #fff;
+        }
+        .search-bar-wrap input::placeholder { color: rgba(255,255,255,0.3); }
+
+        .empty-state {
+            padding: 80px 60px;
+            color: rgba(255,255,255,0.3);
+            font-size: 18px;
+        }
+
+        /* launching toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(30,30,30,0.95);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            backdrop-filter: blur(20px);
+            z-index: 9999;
+            transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
-<div class="header">
-<div style="font-weight:bold;font-size:16px;">Steam Library</div>
-<input type="text" placeholder="Search...">
-</div>
-<div class="library">
-<div class="game" onclick="openGame('Game 1')">
-<img src="https://via.placeholder.com/150x80.png?text=Game+1">
-<div>Game 1</div>
-<button class="play-button">Play</button>
-</div>
-<div class="game" onclick="openGame('Game 2')">
-<img src="https://via.placeholder.com/150x80.png?text=Game+2">
-<div>Game 2</div>
-<button class="play-button">Play</button>
-</div>
-<div class="game" onclick="openGame('Game 3')">
-<img src="https://via.placeholder.com/150x80.png?text=Game+3">
-<div>Game 3</div>
-<button class="play-button">Play</button>
-</div>
-</div>
 
-<script>
-function openGame(name){
-window.parent.openApp(name,"https://melonman106.github.io/AmplerLauncher/");
-}
-</script>
+    <div class="toast" id="toast">🚀 Launching…</div>
+
+    <div class="profile-corner" onclick="openProfileModal()">
+        <div class="avatar" id="user-initial">G</div>
+        <span id="user-display-name">Guest</span>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="modal-cloud" class="modal">
+        <div class="modal-card">
+            <h2 style="margin-top:0">Account</h2>
+            <label style="font-size:11px;color:#555;">DISPLAY NAME</label>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="gh-user" placeholder="Display Name">
+                <button style="background:#333; color:white; border:none; padding:10px 16px; border-radius:10px; height:40px; margin-top:8px; cursor:pointer; font-family:inherit;" onclick="saveName()">Save</button>
+            </div>
+            <button class="nav-button" style="width:100%; justify-content:center; margin-top:10px" onclick="closeModals()">Close</button>
+        </div>
+    </div>
+
+    <!-- Add Game Modal -->
+    <div id="modal-add" class="modal">
+        <div class="modal-card">
+            <h2 style="margin-top:0">Add Game</h2>
+            <label style="font-size:11px;color:#555;">GAME NAME</label>
+            <input type="text" id="add-name" placeholder="e.g. Minecraft">
+            <label style="font-size:11px;color:#555;">GAME URL</label>
+            <input type="text" id="add-url" placeholder="https://...">
+            <label style="font-size:11px;color:#555;">BANNER IMAGE URL</label>
+            <input type="text" id="add-banner" placeholder="https://...">
+            <label style="font-size:11px;color:#555;">DESCRIPTION</label>
+            <textarea id="add-desc" placeholder="Short description..." rows="3" style="resize:none;"></textarea>
+            <button class="btn-play" style="width:100%; box-sizing:border-box;" onclick="saveGame()">Add Game</button>
+            <button class="nav-button" style="width:100%; justify-content:center; margin-top:10px" onclick="closeModals()">Cancel</button>
+        </div>
+    </div>
+
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="traffic-lights" style="margin-bottom: 25px;">
+                <div class="dot" style="background:var(--mac-red)"></div>
+                <div class="dot" style="background:var(--mac-yellow)"></div>
+                <div class="dot" style="background:var(--mac-green)"></div>
+            </div>
+
+            <span class="section-label">Views</span>
+            <div class="nav-button active" id="nav-all" onclick="setView('all')">🎮 All Games</div>
+            <div class="nav-button" id="nav-recent" onclick="setView('recent')">🕐 Recently Played</div>
+
+            <span class="section-label">Library</span>
+            <div id="nav-lib"></div>
+
+            <div class="nav-button" style="color:var(--accent-blue); margin-top:10px;"
+                onclick="document.getElementById('modal-add').style.display='flex'">
+                + Add Game
+            </div>
+        </aside>
+
+        <main class="main-content" id="view-port"></main>
+    </div>
+
+    <script>
+        const defaultGames = [
+            {
+                name: "Game 1",
+                url: "https://melonman106.github.io/AmplerLauncher/",
+                banner: "https://via.placeholder.com/600x340/1a1a2e/ffffff?text=Game+1",
+                desc: "Play Game 1",
+                playtime: 0
+            },
+            {
+                name: "Game 2",
+                url: "https://melonman106.github.io/AmplerLauncher/",
+                banner: "https://via.placeholder.com/600x340/16213e/ffffff?text=Game+2",
+                desc: "Play Game 2",
+                playtime: 0
+            },
+            {
+                name: "Game 3",
+                url: "https://melonman106.github.io/AmplerLauncher/",
+                banner: "https://via.placeholder.com/600x340/0f3460/ffffff?text=Game+3",
+                desc: "Play Game 3",
+                playtime: 0
+            }
+        ];
+
+        let myGames = JSON.parse(localStorage.getItem('steam_custom_v2')) || defaultGames;
+        let activeIdx = null;
+        let currentView = 'all';
+        let searchQuery = '';
+        let playStartTime = null;
+
+        // ── Toast ──────────────────────────────────────────────
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        // ── Launch: post message to parent MacOS shell ─────────
+        function launchGame(idx) {
+            const g = myGames[idx];
+            activeIdx = idx;
+            playStartTime = Date.now();
+
+            // Tell the parent MacOS window system to open a new window
+            window.parent.postMessage({
+                type: 'openWindow',
+                title: g.name,
+                url: g.url,
+                icon: g.banner   // used as window icon hint (optional)
+            }, '*');
+
+            showToast(`🚀 Launching ${g.name}…`);
+
+            // Track last played & update playtime when we get focus back
+            myGames[idx].lastPlayed = Date.now();
+            localStorage.setItem('steam_custom_v2', JSON.stringify(myGames));
+            refreshUI();
+        }
+
+        // ── Modals ─────────────────────────────────────────────
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        }
+
+        function openProfileModal() {
+            document.getElementById('gh-user').value = localStorage.getItem('gh_user') || "";
+            document.getElementById('modal-cloud').style.display = 'flex';
+        }
+
+        function saveName() {
+            localStorage.setItem('gh_user', document.getElementById('gh-user').value || "Guest");
+            refreshUI();
+            alert("Name saved!");
+        }
+
+        function saveGame() {
+            const name   = document.getElementById('add-name').value.trim();
+            const url    = document.getElementById('add-url').value.trim();
+            const banner = document.getElementById('add-banner').value.trim();
+            const desc   = document.getElementById('add-desc').value.trim();
+            if (!name || !url) { alert("Name and URL are required."); return; }
+            myGames.push({
+                name, url,
+                banner: banner || `https://via.placeholder.com/600x340/1a1a1a/ffffff?text=${encodeURIComponent(name)}`,
+                desc, playtime: 0
+            });
+            localStorage.setItem('steam_custom_v2', JSON.stringify(myGames));
+            refreshUI();
+            closeModals();
+            ['add-name','add-url','add-banner','add-desc'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        function removeGame(idx) {
+            if (confirm("Remove this game?")) {
+                myGames.splice(idx, 1);
+                localStorage.setItem('steam_custom_v2', JSON.stringify(myGames));
+                activeIdx = null;
+                currentView = 'all';
+                refreshUI();
+            }
+        }
+
+        // ── Navigation ────────────────────────────────────────
+        function setView(v) {
+            currentView = v;
+            activeIdx = null;
+            document.getElementById('nav-all').className    = 'nav-button' + (v === 'all'    ? ' active' : '');
+            document.getElementById('nav-recent').className = 'nav-button' + (v === 'recent' ? ' active' : '');
+            document.querySelectorAll('#nav-lib .nav-button').forEach(b => b.classList.remove('active'));
+            renderView();
+        }
+
+        function selectGame(idx) {
+            activeIdx = idx;
+            currentView = 'detail';
+            document.getElementById('nav-all').className    = 'nav-button';
+            document.getElementById('nav-recent').className = 'nav-button';
+            refreshUI();
+        }
+
+        // ── Render ────────────────────────────────────────────
+        function refreshUI() {
+            const userName = localStorage.getItem('gh_user') || "Guest";
+            document.getElementById('user-display-name').innerText = userName;
+            document.getElementById('user-initial').innerText = userName[0].toUpperCase();
+
+            const lib = document.getElementById('nav-lib');
+            lib.innerHTML = "";
+            myGames.forEach((g, i) => {
+                const b = document.createElement('div');
+                b.className = 'nav-button' + (currentView === 'detail' && activeIdx === i ? ' active' : '');
+                b.innerText = g.name;
+                b.onclick = () => selectGame(i);
+                lib.appendChild(b);
+            });
+
+            renderView();
+        }
+
+        function renderView() {
+            const port = document.getElementById('view-port');
+
+            // ── Detail page ──
+            if (currentView === 'detail' && activeIdx !== null) {
+                const g = myGames[activeIdx];
+                port.innerHTML = `
+                    <div class="hero" style="background:url('${g.banner}') center/cover no-repeat">
+                        <h1 class="hero-title">${g.name}</h1>
+                    </div>
+                    <div class="play-bar">
+                        <button class="btn-play" onclick="launchGame(${activeIdx})">▶ PLAY</button>
+                        <div class="playtime-display">
+                            <div>PLAYTIME</div>
+                            <div class="playtime-val">${Math.floor((g.playtime || 0) / 60000)} MINS</div>
+                        </div>
+                        <button class="btn-remove" onclick="removeGame(${activeIdx})">✕ REMOVE</button>
+                    </div>
+                    <div class="scroll-area">
+                        <p style="color:#888; font-size:16px; line-height:1.7;">${g.desc || 'No description.'}</p>
+                    </div>`;
+                return;
+            }
+
+            // ── Grid views ──
+            let games = [...myGames];
+            let title = "All Games";
+
+            if (currentView === 'recent') {
+                games = games.filter(g => g.lastPlayed).sort((a, b) => b.lastPlayed - a.lastPlayed);
+                title = "Recently Played";
+            }
+
+            if (searchQuery) {
+                games = myGames.filter(g => g.name.toLowerCase().includes(searchQuery.toLowerCase()));
+                title = `Results for "${searchQuery}"`;
+            }
+
+            port.innerHTML = `
+                <div class="search-bar-wrap">
+                    <input type="text" placeholder="Search games…" id="search-input"
+                        value="${searchQuery.replace(/"/g,'&quot;')}"
+                        oninput="searchQuery=this.value; renderView();">
+                </div>
+                <div style="padding: 20px 60px 0; font-size: 22px; font-weight: 800;">${title}
+                    <span style="color:rgba(255,255,255,0.3); font-size:14px; font-weight:400; margin-left:10px;">${games.length} game${games.length !== 1 ? 's' : ''}</span>
+                </div>
+                ${games.length === 0
+                    ? `<div class="empty-state">No games found.</div>`
+                    : `<div class="game-grid">
+                        ${games.map(g => {
+                            const realIdx = myGames.indexOf(g);
+                            return `
+                            <div class="game-card" onclick="selectGame(${realIdx})">
+                                <img src="${g.banner}" alt="${g.name}"
+                                    onerror="this.src='https://via.placeholder.com/320x180/1a1a1a/ffffff?text=${encodeURIComponent(g.name)}'">
+                                <div class="game-card-info">
+                                    <div class="game-card-name">${g.name}</div>
+                                    <button class="game-card-play"
+                                        onclick="event.stopPropagation(); launchGame(${realIdx})">▶ Play</button>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>`
+                }`;
+        }
+
+        refreshUI();
+    </script>
 </body>
 </html>
+Now update the MacOS shell to listen for that message — add this inside the <script> tag in your MacOS HTML:
+
+// Listen for Steam (or any iframe) requesting a new window
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'openWindow') {
+        openApp(e.data.title, e.data.url, e.data.icon || finderIcon);
+    }
+});
