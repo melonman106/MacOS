@@ -36,8 +36,6 @@
     }
 
     .top-left { display: flex; align-items: center; gap: 8px; }
-
-    /* Fixed Apple icon - never changes */
     #apple-icon { width: 18px; height: 18px; object-fit: contain; }
 
     /* WINDOW SYSTEM */
@@ -78,17 +76,33 @@
       cursor: default;
       user-select: none;
       background: rgba(255,255,255,0.05);
+      flex-shrink: 0;
     }
 
     .traffic-lights { display: flex; gap: 8px; width: 60px; }
     .dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; border: none; }
-    .red { background: #ff5f56; }
+    .red    { background: #ff5f56; }
     .yellow { background: #ffbd2e; }
-    .green { background: #27c93f; }
+    .green  { background: #27c93f; }
 
-    .window-title { flex: 1; text-align: center; color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 500; margin-right: 60px; }
-    .window-content { flex: 1; background: white; position: relative; }
-    iframe { border: none; width: 100%; height: 100%; border-radius: 0 0 var(--border-radius) var(--border-radius); }
+    .window-title {
+      flex: 1; text-align: center;
+      color: rgba(255,255,255,0.8);
+      font-size: 13px; font-weight: 500;
+      margin-right: 60px;
+    }
+
+    .window-content {
+      flex: 1;
+      background: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    iframe {
+      border: none; width: 100%; height: 100%;
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+    }
 
     /* DOCK */
     .dock {
@@ -115,9 +129,29 @@
       justify-content: center;
       cursor: pointer;
       transition: transform 0.2s;
+      position: relative;
     }
     .dock-icon img { width: 90%; height: 90%; object-fit: contain; }
     .dock-icon:hover { transform: scale(1.3) translateY(-10px); }
+
+    /* Dock tooltips */
+    .dock-icon::after {
+      content: attr(title);
+      position: absolute;
+      bottom: 62px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.75);
+      color: white;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .dock-icon:hover::after { opacity: 1; }
 
     /* FINDER GRID */
     .finder-grid {
@@ -128,7 +162,9 @@
       background: #1e1e1e;
       height: 100%;
       box-sizing: border-box;
+      overflow-y: auto;
     }
+
     .finder-item {
       display: flex;
       flex-direction: column;
@@ -139,17 +175,93 @@
       text-align: center;
       padding: 10px;
       border-radius: 10px;
+      transition: background 0.15s;
     }
     .finder-item:hover { background: rgba(255,255,255,0.1); }
     .finder-item img { width: 48px; height: 48px; margin-bottom: 8px; object-fit: contain; }
 
+    /* APP TESTER */
+    .tester-shell {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 100%;
+      background: #1a1a1a;
+      font-family: -apple-system, sans-serif;
+    }
+    .tester-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #111;
+      border-bottom: 1px solid #333;
+      flex-wrap: wrap;
+    }
+    .tester-toolbar span {
+      font-size: 12px; font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .tester-btn {
+      padding: 6px 16px; border: none; border-radius: 6px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      transition: 0.2s; font-family: inherit;
+    }
+    .tester-btn.run   { background: #27c93f; color: #000; }
+    .tester-btn.run:hover   { background: #2de047; }
+    .tester-btn.clear { background: #ff5f56; color: #fff; }
+    .tester-btn.clear:hover { background: #ff7b73; }
+    .tester-btn.wrap  { background: #333; color: #fff; }
+    .tester-btn.wrap:hover  { background: #444; }
+    .tester-btn.copy  { background: #333; color: #fff; }
+    .tester-btn.copy:hover  { background: #444; }
+
+    .tester-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+    .tester-editor-wrap {
+      display: flex; flex-direction: column;
+      border-right: 1px solid #333; overflow: hidden;
+    }
+    .tester-editor-header, .tester-preview-header {
+      padding: 6px 14px;
+      background: #161616;
+      border-bottom: 1px solid #2a2a2a;
+      font-size: 11px; color: rgba(255,255,255,0.3);
+      font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .tester-editor {
+      flex: 1; background: #0d0d0d; color: #e0e0e0;
+      border: none; outline: none; padding: 16px;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 12px; line-height: 1.7; resize: none;
+      box-sizing: border-box; width: 100%; tab-size: 2;
+    }
+    .tester-preview-wrap {
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .preview-status {
+      font-size: 10px; padding: 2px 8px;
+      border-radius: 10px; font-weight: 600;
+    }
+    .preview-status.ready { background: rgba(39,201,63,0.2); color: #27c93f; }
+    .preview-status.empty { background: rgba(255,255,255,0.05); color: #555; }
+    .tester-iframe { flex: 1; border: none; width: 100%; background: #fff; }
+    .tester-statusbar {
+      padding: 5px 14px; background: #111;
+      border-top: 1px solid #222; font-size: 11px;
+      color: rgba(255,255,255,0.3); display: flex; gap: 20px;
+    }
+    .char-count { font-size: 10px; color: #555; }
   </style>
 </head>
 <body>
 
 <div class="top-bar">
   <div class="top-left">
-    <!-- This now always shows apple.png and never changes -->
     <img id="apple-icon" src="apple.png" alt="Apple">
     <strong>MacOS 26</strong>
   </div>
@@ -159,31 +271,53 @@
 <div id="desktop"></div>
 
 <div class="dock">
-  <div class="dock-icon" title="Finder" onclick="openFinder()"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Finder_Icon_macOS_Tahoe.png"></div>
-  <div class="dock-icon" title="Safari" onclick="openSafari()"><img src="https://cdn-icons-png.flaticon.com/128/16566/16566102.png"></div>
-  <div class="dock-icon" title="YouTube" onclick="openYouTube()"><img src="https://cdn-icons-png.flaticon.com/128/1384/1384060.png"></div>
-  <div class="dock-icon" title="Steam" onclick="openApp('Steam', './steam.html', './steam.ico')"><img src="./steam.ico"></div>
-  <div class="dock-icon" title="ChatGPT" onclick="openChatGPT()"><img src="https://cdn-icons-png.flaticon.com/128/12222/12222560.png"></div>
+  <div class="dock-icon" title="Finder" onclick="openFinder()">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Finder_Icon_macOS_Tahoe.png">
+  </div>
+  <div class="dock-icon" title="Safari" onclick="openSafari()">
+    <img src="https://cdn-icons-png.flaticon.com/128/16566/16566102.png">
+  </div>
+  <div class="dock-icon" title="YouTube" onclick="openYouTube()">
+    <img src="https://cdn-icons-png.flaticon.com/128/1384/1384060.png">
+  </div>
+  <div class="dock-icon" title="Steam" onclick="openApp('Steam', './steam.html', './steam.ico')">
+    <img src="./steam.ico">
+  </div>
+  <div class="dock-icon" title="Terminal" onclick="openApp('Terminal', 'games/terminal.html', 'https://upload.wikimedia.org/wikipedia/commons/6/68/Terminalicon3.png')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/68/Terminalicon3.png">
+  </div>
+  <div class="dock-icon" title="ChatGPT" onclick="openChatGPT()">
+    <img src="https://cdn-icons-png.flaticon.com/128/12222/12222560.png">
+  </div>
+  <div class="dock-icon" title="App Tester" onclick="openAppTester()">
+    <img src="https://cdn-icons-png.flaticon.com/128/8099/8099121.png">
+  </div>
 </div>
 
 <script>
 let windowZ = 100;
 const finderIcon = "https://upload.wikimedia.org/wikipedia/commons/b/b9/Finder_Icon_macOS_Tahoe.png";
+const terminalIcon = "https://upload.wikimedia.org/wikipedia/commons/6/68/Terminalicon3.png";
 
-function createWindow(title, contentHtml, iconUrl = finderIcon) {
+/* ═══════════════════════════════════════
+   CORE WINDOW FACTORY
+═══════════════════════════════════════ */
+function createWindow(title, contentHtml, iconUrl = finderIcon, w = 600, h = 450) {
     windowZ++;
     const win = document.createElement("div");
     win.className = "window";
     win.style.zIndex = windowZ;
-    win.style.left = (100 + Math.random() * 40) + "px";
-    win.style.top = (60 + Math.random() * 40) + "px";
+    win.style.width  = w + "px";
+    win.style.height = h + "px";
+    win.style.left   = (80 + Math.random() * 80) + "px";
+    win.style.top    = (50 + Math.random() * 60) + "px";
 
     win.innerHTML = `
       <div class="window-header">
         <div class="traffic-lights">
           <div class="dot red"></div>
-          <div class="dot yellow" title="Fullscreen"></div>
-          <div class="dot green" title="Minimize"></div>
+          <div class="dot yellow"></div>
+          <div class="dot green"></div>
         </div>
         <div class="window-title">${title}</div>
       </div>
@@ -192,15 +326,11 @@ function createWindow(title, contentHtml, iconUrl = finderIcon) {
 
     document.getElementById("desktop").appendChild(win);
 
-    win.querySelector(".red").onclick = (e) => { e.stopPropagation(); win.remove(); };
+    win.querySelector(".red").onclick    = (e) => { e.stopPropagation(); win.remove(); };
     win.querySelector(".yellow").onclick = (e) => { e.stopPropagation(); win.classList.toggle("maximized"); };
-    win.querySelector(".green").onclick = (e) => { e.stopPropagation(); win.classList.add("minimized"); };
+    win.querySelector(".green").onclick  = (e) => { e.stopPropagation(); win.classList.add("minimized"); };
 
-    // Removed the active-app-icon update from here — apple.png stays fixed
-    win.onmousedown = () => {
-        windowZ++;
-        win.style.zIndex = windowZ;
-    };
+    win.onmousedown = () => { windowZ++; win.style.zIndex = windowZ; };
 
     initDrag(win);
     return win;
@@ -210,67 +340,270 @@ function initDrag(win) {
     const header = win.querySelector(".window-header");
     header.onmousedown = (e) => {
         if (win.classList.contains('maximized')) return;
-        let startX = e.clientX;
-        let startY = e.clientY;
-        let startLeft = win.offsetLeft;
-        let startTop = win.offsetTop;
+        let startX = e.clientX, startY = e.clientY;
+        let startLeft = win.offsetLeft, startTop = win.offsetTop;
 
         function doDrag(e) {
             win.style.left = (startLeft + e.clientX - startX) + "px";
-            win.style.top = (startTop + e.clientY - startY) + "px";
+            win.style.top  = (startTop  + e.clientY - startY) + "px";
         }
-
         function stopDrag() {
             document.removeEventListener('mousemove', doDrag);
-            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('mouseup',  stopDrag);
         }
-
         document.addEventListener('mousemove', doDrag);
-        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('mouseup',   stopDrag);
     };
 }
 
-const openApp = (title, url, icon) => createWindow(title, `<iframe src="${url}"></iframe>`, icon);
+/* openApp: wraps a URL in an iframe window */
+const openApp = (title, url, icon, w, h) =>
+    createWindow(title, `<iframe src="${url}" style="width:100%;height:100%;border:none;"></iframe>`, icon, w, h);
 
+/* ═══════════════════════════════════════
+   BUILT-IN APPS
+═══════════════════════════════════════ */
 function openSafari() {
-    openApp('Safari', 'https://browser.rammerhead.org/', 'https://cdn-icons-png.flaticon.com/128/16566/16566102.png');
+    openApp('Safari', 'https://browser.rammerhead.org/',
+        'https://cdn-icons-png.flaticon.com/128/16566/16566102.png');
 }
 
 function openYouTube() {
-    openApp('YouTube', './yt.html', 'https://cdn-icons-png.flaticon.com/128/1384/1384060.png');
+    openApp('YouTube', './yt.html',
+        'https://cdn-icons-png.flaticon.com/128/1384/1384060.png');
+}
+
+function openChatGPT() {
+    const html = `<div style="padding:20px;background:#1e1e1e;height:100%;
+        color:white;font-size:14px;box-sizing:border-box;">
+        ChatGPT is ready. Type your message below...</div>`;
+    createWindow("ChatGPT", html,
+        'https://cdn-icons-png.flaticon.com/128/12222/12222560.png');
 }
 
 function openFinder() {
     const html = `
     <div class="finder-grid">
-        <div class="finder-item" onclick="openApp('Terminal', 'games/terminal.html', 'https://upload.wikimedia.org/wikipedia/commons/6/68/Terminalicon3.png')"><img src="https://cdn-icons-png.flaticon.com/128/1162/1162539.png">Terminal</div>
-        <div class="finder-item" onclick="openApp('Steam', './steam.html', './steam.ico')"><img src="./steam.ico">Steam</div>
-        <div class="finder-item" onclick="openSafari()"><img src="https://cdn-icons-png.flaticon.com/128/16566/16566102.png">Safari</div>
-        <div class="finder-item" onclick="openYouTube()"><img src="https://cdn-icons-png.flaticon.com/128/1384/1384060.png">YouTube</div>
-        <div class="finder-item" onclick="openChatGPT()"><img src="https://cdn-icons-png.flaticon.com/128/12222/12222560.png">ChatGPT</div>
+        <div class="finder-item"
+            onclick="openApp('Terminal','games/terminal.html','${terminalIcon}')">
+            <img src="${terminalIcon}">Terminal
+        </div>
+        <div class="finder-item"
+            onclick="openApp('Steam','./steam.html','./steam.ico')">
+            <img src="./steam.ico">Steam
+        </div>
+        <div class="finder-item" onclick="openSafari()">
+            <img src="https://cdn-icons-png.flaticon.com/128/16566/16566102.png">Safari
+        </div>
+        <div class="finder-item" onclick="openYouTube()">
+            <img src="https://cdn-icons-png.flaticon.com/128/1384/1384060.png">YouTube
+        </div>
+        <div class="finder-item" onclick="openChatGPT()">
+            <img src="https://cdn-icons-png.flaticon.com/128/12222/12222560.png">ChatGPT
+        </div>
+        <div class="finder-item" onclick="openAppTester()">
+            <img src="https://cdn-icons-png.flaticon.com/128/8099/8099121.png">App Tester
+        </div>
     </div>`;
     createWindow("Finder", html, finderIcon);
 }
 
-function openChatGPT() {
-    const html = `<div style="padding:20px; background:#1e1e1e; height:100%; color:white; font-size:14px;">ChatGPT is ready. Type your message below...</div>`;
-    createWindow("ChatGPT", html, 'https://cdn-icons-png.flaticon.com/128/12222/12222560.png');
+/* ═══════════════════════════════════════
+   APP TESTER
+═══════════════════════════════════════ */
+function openAppTester() {
+    const uid      = 'tester_' + Date.now();
+    const iframeId = 'preview_' + uid;
+    const editorId = 'editor_'  + uid;
+    const statusId = 'status_'  + uid;
+    const charsId  = 'chars_'   + uid;
+    const linesId  = 'lines_'   + uid;
+
+    const starter = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, sans-serif;
+      background: #1a1a1a;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      flex-direction: column;
+      gap: 12px;
+    }
+    h1 { font-size: 28px; margin: 0; }
+    p  { color: #888; margin: 0; font-size: 14px; }
+    button {
+      padding: 10px 24px;
+      background: #007aff;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button:hover { background: #3395ff; }
+  </style>
+</head>
+<body>
+  <h1>🚀 App Tester</h1>
+  <p>Edit the code on the left, then click Run.</p>
+  <button onclick="this.textContent='Hello!'">Click Me</button>
+</body>
+</html>`;
+
+    const html = `
+    <div class="tester-shell">
+      <div class="tester-toolbar">
+        <span>⚗️ App Tester</span>
+        <button class="tester-btn run"
+            onclick="runTester('${iframeId}','${editorId}','${statusId}')">▶ Run</button>
+        <button class="tester-btn wrap"
+            onclick="toggleWrap('${editorId}',this)">↩ Wrap</button>
+        <button class="tester-btn copy"
+            onclick="copyCode('${editorId}')">⎘ Copy</button>
+        <button class="tester-btn clear"
+            onclick="clearTester('${editorId}','${iframeId}','${statusId}')">✕ Clear</button>
+      </div>
+      <div class="tester-body">
+        <div class="tester-editor-wrap">
+          <div class="tester-editor-header">
+            <span>📄 HTML / CSS / JS</span>
+            <span class="char-count" id="${charsId}">0 chars</span>
+          </div>
+          <textarea class="tester-editor" id="${editorId}" spellcheck="false"
+            placeholder="Paste or write your HTML here…"
+            oninput="updateTesterStats('${editorId}','${charsId}','${linesId}')"
+            onkeydown="handleTab(event)"
+          >${escapeHtml(starter)}</textarea>
+        </div>
+        <div class="tester-preview-wrap">
+          <div class="tester-preview-header">
+            <span>👁 Preview</span>
+            <span class="preview-status empty" id="${statusId}">Empty</span>
+          </div>
+          <iframe class="tester-iframe" id="${iframeId}"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        </div>
+      </div>
+      <div class="tester-statusbar">
+        <span id="${linesId}">Lines: 0</span>
+        <span>Ready — press ▶ Run to preview</span>
+      </div>
+    </div>`;
+
+    const win = createWindow("App Tester", html,
+        'https://cdn-icons-png.flaticon.com/128/8099/8099121.png', 920, 590);
+
+    setTimeout(() => {
+        updateTesterStats(editorId, charsId, linesId);
+        runTester(iframeId, editorId, statusId);
+    }, 150);
 }
 
-// Update Clock
+function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function runTester(iframeId, editorId, statusId) {
+    const code   = document.getElementById(editorId).value;
+    const iframe = document.getElementById(iframeId);
+    const status = document.getElementById(statusId);
+    if (!code.trim()) {
+        status.textContent = 'Empty';
+        status.className   = 'preview-status empty';
+        return;
+    }
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open(); doc.write(code); doc.close();
+    status.textContent = '● Running';
+    status.className   = 'preview-status ready';
+}
+
+function clearTester(editorId, iframeId, statusId) {
+    document.getElementById(editorId).value = '';
+    const iframe = document.getElementById(iframeId);
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open(); doc.write(''); doc.close();
+    document.getElementById(statusId).textContent = 'Empty';
+    document.getElementById(statusId).className   = 'preview-status empty';
+}
+
+function toggleWrap(editorId, btn) {
+    const ta = document.getElementById(editorId);
+    const on = ta.style.whiteSpace === 'pre-wrap';
+    ta.style.whiteSpace  = on ? 'pre'    : 'pre-wrap';
+    ta.style.overflowWrap = on ? 'normal' : 'break-word';
+    btn.style.background  = on ? '#333'   : '#007aff';
+}
+
+function copyCode(editorId) {
+    const val = document.getElementById(editorId).value;
+    navigator.clipboard.writeText(val).then(() => {
+        const btn = event.target;
+        const orig = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        btn.style.background = '#27c93f';
+        setTimeout(() => { btn.textContent = orig; btn.style.background = '#333'; }, 1500);
+    });
+}
+
+function updateTesterStats(editorId, charsId, linesId) {
+    const val = document.getElementById(editorId).value;
+    const el  = document.getElementById(charsId);
+    const le  = document.getElementById(linesId);
+    if (el) el.textContent = val.length.toLocaleString() + ' chars';
+    if (le) le.textContent = 'Lines: ' + val.split('\n').length;
+}
+
+function handleTab(e) {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const ta = e.target;
+        const s  = ta.selectionStart;
+        ta.value = ta.value.substring(0, s) + '  ' + ta.value.substring(ta.selectionEnd);
+        ta.selectionStart = ta.selectionEnd = s + 2;
+    }
+}
+
+/* ═══════════════════════════════════════
+   MESSAGE LISTENER — Steam → MacOS bridge
+   Listens for postMessage from steam.html
+   iframe and opens a new MacOS window
+═══════════════════════════════════════ */
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'openWindow') {
+        openApp(
+            e.data.title,
+            e.data.url,
+            e.data.icon || finderIcon,
+            800,
+            560
+        );
+    }
+});
+
+/* ═══════════════════════════════════════
+   CLOCK
+═══════════════════════════════════════ */
 function updateTime() {
     const now = new Date();
-    document.getElementById("clock").innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    document.getElementById("clock").innerText =
+        now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 setInterval(updateTime, 1000);
 updateTime();
 
-window.onload = () => {
-    openFinder();
-};
+window.onload = () => { openFinder(); };
 
 document.addEventListener('keydown', (e) => {
-    if(e.key === "Escape") document.querySelectorAll('.minimized').forEach(w => w.classList.remove('minimized'));
+    if (e.key === "Escape")
+        document.querySelectorAll('.minimized').forEach(w => w.classList.remove('minimized'));
 });
 </script>
 </body>
