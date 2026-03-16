@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>macOS Creator</title>
+  <title>MacOS 26</title>
   <style>
     :root {
       --mac-blur: blur(20px);
@@ -16,9 +16,8 @@
       height: 100%;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      /* Looking for your local file Macbg.jpg */
       background: url("Macbg.jpg") center/cover no-repeat fixed;
-      background-color: #1a1a1a; /* Fallback color if image is missing */
+      background-color: #1a1a1a;
     }
 
     /* TOP BAR */
@@ -37,7 +36,9 @@
     }
 
     .top-left { display: flex; align-items: center; gap: 8px; }
-    #active-app-icon { width: 18px; height: 18px; object-fit: contain; }
+
+    /* Fixed Apple icon - never changes */
+    #apple-icon { width: 18px; height: 18px; object-fit: contain; }
 
     /* WINDOW SYSTEM */
     .window {
@@ -82,8 +83,8 @@
     .traffic-lights { display: flex; gap: 8px; width: 60px; }
     .dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; border: none; }
     .red { background: #ff5f56; }
-    .yellow { background: #ffbd2e; } /* Fullscreen */
-    .green { background: #27c93f; }  /* Minimize */
+    .yellow { background: #ffbd2e; }
+    .green { background: #27c93f; }
 
     .window-title { flex: 1; text-align: center; color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 500; margin-right: 60px; }
     .window-content { flex: 1; background: white; position: relative; }
@@ -148,7 +149,8 @@
 
 <div class="top-bar">
   <div class="top-left">
-    <img id="active-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Finder_Icon_macOS_Tahoe.png" alt="">
+    <!-- This now always shows apple.png and never changes -->
+    <img id="apple-icon" src="apple.png" alt="Apple">
     <strong>MacOS 26</strong>
   </div>
   <div id="clock">00:00</div>
@@ -190,19 +192,17 @@ function createWindow(title, contentHtml, iconUrl = finderIcon) {
 
     document.getElementById("desktop").appendChild(win);
 
-    // Click logic (Swapped as requested)
     win.querySelector(".red").onclick = (e) => { e.stopPropagation(); win.remove(); };
     win.querySelector(".yellow").onclick = (e) => { e.stopPropagation(); win.classList.toggle("maximized"); };
     win.querySelector(".green").onclick = (e) => { e.stopPropagation(); win.classList.add("minimized"); };
 
+    // Removed the active-app-icon update from here — apple.png stays fixed
     win.onmousedown = () => {
         windowZ++;
         win.style.zIndex = windowZ;
-        document.getElementById("active-app-icon").src = iconUrl;
     };
 
     initDrag(win);
-    document.getElementById("active-app-icon").src = iconUrl;
     return win;
 }
 
@@ -265,12 +265,10 @@ function updateTime() {
 setInterval(updateTime, 1000);
 updateTime();
 
-// Automatically open the Finder so the screen isn't empty on load
 window.onload = () => {
     openFinder();
 };
 
-// Restore hidden windows
 document.addEventListener('keydown', (e) => {
     if(e.key === "Escape") document.querySelectorAll('.minimized').forEach(w => w.classList.remove('minimized'));
 });
