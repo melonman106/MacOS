@@ -4,12 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MacOS 26</title>
+<link rel="icon" href="./apple.png">
 <style>
 :root {
   --mac-blur: blur(20px);
   --window-bg: rgba(28, 28, 30, 0.85);
   --border-radius: 12px;
   --dock-height: 70px;
+  --top-bar-height: 28px;
 }
 
 body, html {
@@ -18,20 +20,18 @@ body, html {
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: url("Macbg.jpg") center/cover no-repeat fixed;
-  background-color: #1a1a1a;
   color: white;
 }
 
 .top-bar {
-  height: 28px;
-  background: rgba(0, 0, 0, 0.3);
+  height: var(--top-bar-height);
+  background: rgba(0,0,0,0.3);
   backdrop-filter: var(--mac-blur);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 15px;
   font-size: 13px;
-  color: white;
   z-index: 10000;
   box-shadow: 0 1px 5px rgba(0,0,0,0.2);
 }
@@ -56,16 +56,10 @@ body, html {
 
 .window.maximized {
   width: 100% !important;
-  height: calc(100% - var(--dock-height) - 28px) !important;
-  top: 28px !important;
+  height: calc(100% - var(--dock-height) - var(--top-bar-height)) !important;
+  top: var(--top-bar-height) !important;
   left: 0 !important;
   border-radius: 0;
-}
-
-.window.minimized {
-  transform: scale(0.8) translateY(500px);
-  opacity: 0;
-  pointer-events: none;
 }
 
 .window-header {
@@ -85,13 +79,7 @@ body, html {
 .yellow { background: #ffbd2e; }
 .green  { background: #27c93f; }
 
-.window-title {
-  flex: 1; text-align: center;
-  color: rgba(255,255,255,0.8);
-  font-size: 13px; font-weight: 500;
-  margin-right: 60px;
-}
-
+.window-title { flex: 1; text-align: center; color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 500; margin-right: 60px; }
 .window-content { flex: 1; background: white; position: relative; overflow: hidden; }
 
 iframe { border: none; width: 100%; height: 100%; border-radius: 0 0 var(--border-radius) var(--border-radius); }
@@ -149,7 +137,7 @@ iframe { border: none; width: 100%; height: 100%; border-radius: 0 0 var(--borde
 </head>
 <body>
 
-<div class="top-bar">
+<div class="top-bar" id="top-bar">
   <div class="top-left">
     <img id="apple-icon" src="./apple.png" alt="Apple">
     <strong>MacOS 26</strong>
@@ -159,7 +147,7 @@ iframe { border: none; width: 100%; height: 100%; border-radius: 0 0 var(--borde
 
 <div id="desktop"></div>
 
-<div class="dock">
+<div class="dock" id="dock">
   <div class="dock-icon" title="Finder" onclick="openFinder()">
     <img src="./images/Finder.png">
   </div>
@@ -175,6 +163,12 @@ iframe { border: none; width: 100%; height: 100%; border-radius: 0 0 var(--borde
   <div class="dock-icon" title="Settings" onclick="openApp('Settings','./settings.html','./images/Settings.png')">
     <img src="./images/Settings.png">
   </div>
+  <div class="dock-icon" title="Apple Music" onclick="openApp('Music','./music.html','./images/Music.png')">
+    <img src="./images/Music.png">
+  </div>
+  <div class="dock-icon" title="Terminal" onclick="openApp('Terminal','./terminal.html','./images/Terminal.png')">
+    <img src="./images/Terminal.png">
+  </div>
   <div class="dock-icon" title="Ampler Launcher" onclick="openApp('Ampler Launcher','https://ampler-launcher.wasmer.app/','./images/Ampler.png')">
     <img src="./images/Ampler.png">
   </div>
@@ -183,15 +177,16 @@ iframe { border: none; width: 100%; height: 100%; border-radius: 0 0 var(--borde
 <script>
 let windowZ = 100;
 
+// Create window
 function createWindow(title, contentHtml, iconUrl, w = 600, h = 450) {
   windowZ++;
   const win = document.createElement("div");
   win.className = "window";
   win.style.zIndex = windowZ;
-  win.style.width  = w + "px";
+  win.style.width = w + "px";
   win.style.height = h + "px";
-  win.style.left   = (80 + Math.random()*80) + "px";
-  win.style.top    = (50 + Math.random()*60) + "px";
+  win.style.left = (80 + Math.random()*80) + "px";
+  win.style.top = (50 + Math.random()*60) + "px";
 
   win.innerHTML = `
     <div class="window-header">
@@ -214,21 +209,34 @@ function createWindow(title, contentHtml, iconUrl, w = 600, h = 450) {
   return win;
 }
 
+// Drag windows
 function initDrag(win) {
   const header = win.querySelector(".window-header");
   header.onmousedown = e => {
     if (win.classList.contains('maximized')) return;
     let startX = e.clientX, startY = e.clientY;
     let startLeft = win.offsetLeft, startTop = win.offsetTop;
-    function doDrag(e) { win.style.left = (startLeft+e.clientX-startX)+"px"; win.style.top=(startTop+e.clientY-startY)+"px"; }
-    function stopDrag() { document.removeEventListener('mousemove', doDrag); document.removeEventListener('mouseup', stopDrag); }
+    function doDrag(e) { 
+      win.style.left = (startLeft+e.clientX-startX)+"px"; 
+      win.style.top  = (startTop+e.clientY-startY)+"px"; 
+    }
+    function stopDrag() { 
+      document.removeEventListener('mousemove', doDrag); 
+      document.removeEventListener('mouseup', stopDrag); 
+    }
     document.addEventListener('mousemove', doDrag);
     document.addEventListener('mouseup', stopDrag);
   };
 }
 
+// Open apps
 const openApp = (title, url, icon, w, h) =>
   createWindow(title, `<iframe src="${url}" style="width:100%;height:100%;border:none;"></iframe>`, icon, w, h);
+
+function openFinder() { openApp('Finder','./gpt.html','./images/Finder.png'); }
+function openSafari() { openApp('Safari','./safari.html','./images/Safari.png'); }
+function openYouTube() { openApp('YouTube','./youtube.html','./images/YouTube.png'); }
+function openChatGPT() { openApp('ChatGPT','./gpt.html','./images/ChatGPT.png'); }
 
 function updateTime() {
   const now = new Date();
@@ -236,8 +244,6 @@ function updateTime() {
 }
 setInterval(updateTime, 1000);
 updateTime();
-window.onload = () => { openFinder(); };
 </script>
-
 </body>
 </html>
