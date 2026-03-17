@@ -7,118 +7,237 @@
 <style>
 :root {
   --mac-blur: blur(20px);
-  --window-bg: rgba(28,28,30,0.85);
+  --window-bg: rgba(28, 28, 30, 0.85);
   --border-radius: 12px;
-  --topbar-height: 28px;
-  --dock-height: 60px; /* reduced dock height */
+  --dock-height: 70px;
 }
-html, body { margin:0; height:100%; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow:hidden; }
-body { background: url('./images/desktop-bg.jpg') no-repeat center center fixed; background-size:cover; } /* desktop background */
-.top-bar { height: var(--topbar-height); background:rgba(0,0,0,0.3); backdrop-filter:var(--mac-blur); display:flex; justify-content:space-between; align-items:center; padding:0 15px; color:white; font-size:13px; box-shadow:0 1px 5px rgba(0,0,0,0.2); z-index:10000; position:fixed; width:100%; top:0; }
-.top-left { display:flex; align-items:center; gap:8px; }
-#apple-icon { width:18px; height:18px; object-fit:contain; }
-.window { position:absolute; background:var(--window-bg); border-radius:var(--border-radius); box-shadow:0 30px 70px rgba(0,0,0,0.5); display:flex; flex-direction:column; border:0.5px solid rgba(255,255,255,0.2); backdrop-filter:var(--mac-blur); overflow:hidden; transition:opacity 0.2s, transform 0.2s; }
-.window.maximized { width:100% !important; height: calc(100% - var(--topbar-height) - var(--dock-height)) !important; top: var(--topbar-height) !important; left:0 !important; border-radius:0; }
-.window.minimized { transform:scale(0.8) translateY(500px); opacity:0; pointer-events:none; }
-.window-header { height:38px; display:flex; align-items:center; padding:0 12px; cursor:default; user-select:none; background:rgba(255,255,255,0.05); flex-shrink:0; }
-.traffic-lights { display:flex; gap:8px; width:60px; }
-.dot { width:12px; height:12px; border-radius:50%; cursor:pointer; border:none; }
-.red { background:#ff5f56; } .yellow { background:#ffbd2e; } .green { background:#27c93f; }
-.window-title { flex:1; text-align:center; color:rgba(255,255,255,0.8); font-size:13px; font-weight:500; margin-right:60px; }
-.window-content { flex:1; position:relative; overflow:hidden; }
-iframe { border:none; width:100%; height:100%; border-radius:0 0 var(--border-radius) var(--border-radius); }
-#desktop { position:absolute; top:var(--topbar-height); left:0; width:100%; height: calc(100% - var(--topbar-height) - var(--dock-height)); overflow:hidden; }
-.dock { position:fixed; bottom:0; left:50%; transform:translateX(-50%); height:var(--dock-height); background:rgba(255,255,255,0.15); backdrop-filter:var(--mac-blur); display:flex; gap:10px; padding:8px 12px; border-radius:20px; border:0.5px solid rgba(255,255,255,0.2); z-index:10001; align-items:flex-end; }
-.dock-icon { width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform 0.2s; position:relative; }
-.dock-icon img { width:90%; height:90%; object-fit:contain; }
-.dock-icon:hover { transform:scale(1.3) translateY(-10px); }
-.dock-icon::after { content:attr(title); position:absolute; bottom:62px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.75); color:white; font-size:11px; padding:3px 9px; border-radius:6px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.15s; }
-.dock-icon:hover::after { opacity:1; }
-.finder-grid { display:flex; flex-direction:row; flex-wrap:nowrap; gap:20px; padding:20px; background:#1e1e1e; height:100%; overflow-x:auto; overflow-y:hidden; box-sizing:border-box; }
-.finder-item { display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; font-size:12px; cursor:pointer; text-align:center; padding:10px; border-radius:10px; transition:background 0.15s; }
-.finder-item:hover { background: rgba(255,255,255,0.1); }
-.finder-item img { width:48px; height:48px; margin-bottom:8px; object-fit:contain; }
+
+body, html {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: url("Macbg.jpg") center/cover no-repeat fixed;
+  background-color: #1a1a1a;
+  color: white;
+}
+
+.top-bar {
+  height: 28px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: var(--mac-blur);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  font-size: 13px;
+  color: white;
+  z-index: 10000;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+}
+
+.top-left { display: flex; align-items: center; gap: 8px; }
+#apple-icon { width: 18px; height: 18px; object-fit: contain; }
+
+.window {
+  position: absolute;
+  width: 600px;
+  height: 450px;
+  background: var(--window-bg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: var(--mac-blur);
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.window.maximized {
+  width: 100% !important;
+  height: calc(100% - var(--dock-height) - 28px) !important;
+  top: 28px !important;
+  left: 0 !important;
+  border-radius: 0;
+}
+
+.window.minimized {
+  transform: scale(0.8) translateY(500px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.window-header {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  cursor: default;
+  user-select: none;
+  background: rgba(255,255,255,0.05);
+  flex-shrink: 0;
+}
+
+.traffic-lights { display: flex; gap: 8px; width: 60px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; border: none; }
+.red    { background: #ff5f56; }
+.yellow { background: #ffbd2e; }
+.green  { background: #27c93f; }
+
+.window-title {
+  flex: 1; text-align: center;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px; font-weight: 500;
+  margin-right: 60px;
+}
+
+.window-content { flex: 1; background: white; position: relative; overflow: hidden; }
+
+iframe { border: none; width: 100%; height: 100%; border-radius: 0 0 var(--border-radius) var(--border-radius); }
+
+.dock {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: var(--mac-blur);
+  padding: 4px 8px;
+  height: var(--dock-height);
+  border-radius: 18px;
+  display: flex;
+  gap: 10px;
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  z-index: 10001;
+  align-items: center;
+}
+
+.dock-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+  position: relative;
+}
+.dock-icon img { width: 90%; height: 90%; object-fit: contain; }
+.dock-icon:hover { transform: scale(1.3) translateY(-10px); }
+.dock-icon::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.75);
+  color: white;
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.dock-icon:hover::after { opacity: 1; }
+
+#desktop { width: 100%; height: 100%; position: relative; }
 </style>
 </head>
 <body>
+
 <div class="top-bar">
-  <div class="top-left"><img id="apple-icon" src="./apple.png"> <strong>MacOS 26</strong></div>
+  <div class="top-left">
+    <img id="apple-icon" src="./apple.png" alt="Apple">
+    <strong>MacOS 26</strong>
+  </div>
   <div id="clock">00:00</div>
 </div>
+
 <div id="desktop"></div>
+
 <div class="dock">
-  <div class="dock-icon" title="Finder" onclick="openFinder()"><img src="./images/Finder.png"></div>
-  <div class="dock-icon" title="Safari" onclick="openApp('Safari','./safari.html','./images/Safari.png')"><img src="./images/Safari.png"></div>
-  <div class="dock-icon" title="YouTube" onclick="openApp('YouTube','./yt.html','./images/YouTube.png')"><img src="./images/YouTube.png"></div>
-  <div class="dock-icon" title="Steam" onclick="openApp('Steam','./steam.html','./images/Steam.png')"><img src="./images/Steam.png"></div>
-  <div class="dock-icon" title="Terminal" onclick="openApp('Terminal','games/terminal.html','./images/Terminal.png')"><img src="./images/Terminal.png"></div>
-  <div class="dock-icon" title="ChatGPT" onclick="openApp('ChatGPT','./gpt.html','./images/ChatGPT.png')"><img src="./images/ChatGPT.png"></div>
-  <div class="dock-icon" title="App Tester" onclick="openApp('App Tester','./apptester.html','./images/AppTester.png')"><img src="./images/AppTester.png"></div>
-  <div class="dock-icon" title="Ampler Launcher" onclick="openApp('Ampler Launcher','https://ampler-launcher.wasmer.app/','./images/AmplerLauncher.png')"><img src="./images/AmplerLauncher.png"></div>
-  <div class="dock-icon" title="Settings" onclick="openApp('Settings','./settings.html','./images/Settings.png')"><img src="./images/Settings.png"></div>
+  <div class="dock-icon" title="Finder" onclick="openFinder()">
+    <img src="./images/Finder.png">
+  </div>
+  <div class="dock-icon" title="Safari" onclick="openSafari()">
+    <img src="./images/Safari.png">
+  </div>
+  <div class="dock-icon" title="YouTube" onclick="openYouTube()">
+    <img src="./images/YouTube.png">
+  </div>
+  <div class="dock-icon" title="ChatGPT" onclick="openChatGPT()">
+    <img src="./images/ChatGPT.png">
+  </div>
+  <div class="dock-icon" title="Settings" onclick="openApp('Settings','./settings.html','./images/Settings.png')">
+    <img src="./images/Settings.png">
+  </div>
+  <div class="dock-icon" title="Ampler Launcher" onclick="openApp('Ampler Launcher','https://ampler-launcher.wasmer.app/','./images/Ampler.png')">
+    <img src="./images/Ampler.png">
+  </div>
 </div>
 
 <script>
 let windowZ = 100;
-function createWindow(title, contentHtml, iconUrl, w=600,h=450){
+
+function createWindow(title, contentHtml, iconUrl, w = 600, h = 450) {
   windowZ++;
-  const win=document.createElement("div");
-  win.className="window";
-  win.style.zIndex=windowZ;
-  win.style.width=w+"px";
-  win.style.height=h+"px";
-  win.style.left=(80+Math.random()*80)+"px";
-  win.style.top=(50+Math.random()*60)+"px";
-  win.innerHTML=`<div class="window-header">
-    <div class="traffic-lights"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-    <div class="window-title">${title}</div>
-  </div>
-  <div class="window-content">${contentHtml}</div>`;
+  const win = document.createElement("div");
+  win.className = "window";
+  win.style.zIndex = windowZ;
+  win.style.width  = w + "px";
+  win.style.height = h + "px";
+  win.style.left   = (80 + Math.random()*80) + "px";
+  win.style.top    = (50 + Math.random()*60) + "px";
+
+  win.innerHTML = `
+    <div class="window-header">
+      <div class="traffic-lights">
+        <div class="dot red"></div>
+        <div class="dot yellow"></div>
+        <div class="dot green"></div>
+      </div>
+      <div class="window-title">${title}</div>
+    </div>
+    <div class="window-content">${contentHtml}</div>
+  `;
   document.getElementById("desktop").appendChild(win);
-  win.querySelector(".red").onclick=e=>{ e.stopPropagation(); win.remove(); };
-  win.querySelector(".yellow").onclick=e=>{ e.stopPropagation(); win.classList.toggle("maximized"); };
-  win.querySelector(".green").onclick=e=>{ e.stopPropagation(); win.classList.add("minimized"); };
-  win.onmousedown=()=>{ windowZ++; win.style.zIndex=windowZ; };
+
+  win.querySelector(".red").onclick    = e => { e.stopPropagation(); win.remove(); };
+  win.querySelector(".yellow").onclick = e => { e.stopPropagation(); win.classList.toggle("maximized"); };
+  win.querySelector(".green").onclick  = e => { e.stopPropagation(); win.classList.add("minimized"); };
+  win.onmousedown = () => { windowZ++; win.style.zIndex = windowZ; };
   initDrag(win);
   return win;
 }
-function initDrag(win){
-  const header=win.querySelector(".window-header");
-  header.onmousedown=e=>{
-    if(win.classList.contains('maximized'))return;
-    let startX=e.clientX,startY=e.clientY,startLeft=win.offsetLeft,startTop=win.offsetTop;
-    function doDrag(e){ win.style.left=(startLeft+e.clientX-startX)+"px"; win.style.top=(startTop+e.clientY-startY)+"px"; }
-    function stopDrag(){ document.removeEventListener('mousemove',doDrag); document.removeEventListener('mouseup',stopDrag); }
-    document.addEventListener('mousemove',doDrag); document.addEventListener('mouseup',stopDrag);
+
+function initDrag(win) {
+  const header = win.querySelector(".window-header");
+  header.onmousedown = e => {
+    if (win.classList.contains('maximized')) return;
+    let startX = e.clientX, startY = e.clientY;
+    let startLeft = win.offsetLeft, startTop = win.offsetTop;
+    function doDrag(e) { win.style.left = (startLeft+e.clientX-startX)+"px"; win.style.top=(startTop+e.clientY-startY)+"px"; }
+    function stopDrag() { document.removeEventListener('mousemove', doDrag); document.removeEventListener('mouseup', stopDrag); }
+    document.addEventListener('mousemove', doDrag);
+    document.addEventListener('mouseup', stopDrag);
   };
 }
-const openApp=(title,url,icon,w,h)=>createWindow(title,`<iframe src="${url}" style="width:100%;height:100%;border:none;"></iframe>`,icon,w,h);
 
-/* Finder with horizontal icons */
-function openFinder(){
-  const html=document.createElement("div");
-  html.innerHTML=`
-  <div class="finder-grid">
-    <div class="finder-item" onclick="openApp('Terminal','games/terminal.html','./images/Terminal.png')"><img src="./images/Terminal.png">Terminal</div>
-    <div class="finder-item" onclick="openApp('Steam','./steam.html','./images/Steam.png')"><img src="./images/Steam.png">Steam</div>
-    <div class="finder-item" onclick="openApp('Safari','./safari.html','./images/Safari.png')"><img src="./images/Safari.png">Safari</div>
-    <div class="finder-item" onclick="openApp('YouTube','./yt.html','./images/YouTube.png')"><img src="./images/YouTube.png">YouTube</div>
-    <div class="finder-item" onclick="openApp('ChatGPT','./gpt.html','./images/ChatGPT.png')"><img src="./images/ChatGPT.png">ChatGPT</div>
-    <div class="finder-item" onclick="openApp('App Tester','./apptester.html','./images/AppTester.png')"><img src="./images/AppTester.png">App Tester</div>
-    <div class="finder-item" onclick="openApp('Ampler Launcher','https://ampler-launcher.wasmer.app/','./images/AmplerLauncher.png')"><img src="./images/AmplerLauncher.png">Ampler Launcher</div>
-    <div class="finder-item" onclick="openApp('Settings','./settings.html','./images/Settings.png')"><img src="./images/Settings.png">Settings</div>
-  </div>`;
-  createWindow("Finder", html.innerHTML, "./images/Finder.png", 800, 400);
+const openApp = (title, url, icon, w, h) =>
+  createWindow(title, `<iframe src="${url}" style="width:100%;height:100%;border:none;"></iframe>`, icon, w, h);
+
+function updateTime() {
+  const now = new Date();
+  document.getElementById("clock").innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
-
-/* Clock */
-function updateTime(){ const now=new Date(); document.getElementById("clock").innerText=now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
-setInterval(updateTime,1000); updateTime();
-
-/* Escape restores minimized windows */
-document.addEventListener('keydown',e=>{ if(e.key==="Escape") document.querySelectorAll('.minimized').forEach(w=>w.classList.remove('minimized')); });
-
-window.onload=()=>{ openFinder(); };
+setInterval(updateTime, 1000);
+updateTime();
+window.onload = () => { openFinder(); };
 </script>
+
 </body>
 </html>
