@@ -50,7 +50,14 @@ body{background:url('Macbg.jpg') center/cover no-repeat;background-size:cover!im
 
 #win-box{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none}
 .win{position:absolute;min-width:320px;min-height:200px;background:rgba(30,30,32,0.97);backdrop-filter:blur(30px);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.5),0 0 0 0.5px rgba(255,255,255,0.1);pointer-events:auto;transition:border-radius 0.25s}
-.win.fullscreen{top:0!important;left:0!important;width:100%!important;height:100%!important;border-radius:0}
+/* UPDATED FULLSCREEN STYLING - now starts below the top bar */
+.win.fullscreen{
+  top:25px!important; /* Start below the top bar */
+  left:0!important;
+  width:100%!important;
+  height:calc(100% - 25px)!important; /* Subtract top bar height */
+  border-radius:0;
+}
 .win.minimized{transform:scale(0.1);opacity:0;pointer-events:none}
 .win-bar{height:40px;background:rgba(50,50,52,0.98);display:flex;align-items:center;padding:0 14px;cursor:default;flex-shrink:0;border-bottom:1px solid rgba(0,0,0,0.3)}
 .win-bar .title{color:rgba(255,255,255,0.9);margin-left:8px;font-size:13px;font-weight:500;flex:1;text-align:center;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
