@@ -251,7 +251,6 @@
     }
     .char-count { font-size: 10px; color: #555; }
 
-    /* CHAT STYLES */
     .chat-shell {
       display: flex;
       flex-direction: column;
@@ -337,9 +336,7 @@
     }
     .chat-send-btn:hover { background: #3395ff; }
     .chat-send-btn:disabled { background: #333; cursor: not-allowed; }
-    .chat-bubble-wrap {
-      display: flex;
-    }
+    .chat-bubble-wrap { display: flex; }
     .chat-bubble-wrap.user { justify-content: flex-end; }
     .chat-bubble-wrap.assistant { justify-content: flex-start; }
     .chat-bubble {
@@ -382,32 +379,32 @@
 
 <div class="dock">
   <div class="dock-icon" title="Finder" onclick="openFinder()">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Finder_Icon_macOS_Tahoe.png">
+    <img src="./images/Finder.png">
   </div>
   <div class="dock-icon" title="Safari" onclick="openSafari()">
-    <img src="https://cdn-icons-png.flaticon.com/128/16566/16566102.png">
+    <img src="./images/Safari.png">
   </div>
   <div class="dock-icon" title="YouTube" onclick="openYouTube()">
-    <img src="https://cdn-icons-png.flaticon.com/128/1384/1384060.png">
+    <img src="./images/YouTube.png">
   </div>
-  <div class="dock-icon" title="Steam" onclick="openApp('Steam', './steam.html', './steam.ico')">
-    <img src="./steam.ico">
+  <div class="dock-icon" title="Steam" onclick="openApp('Steam','./steam.html','./images/Steam.png')">
+    <img src="./images/Steam.png">
   </div>
-  <div class="dock-icon" title="Terminal" onclick="openApp('Terminal', 'games/terminal.html', 'https://upload.wikimedia.org/wikipedia/commons/6/68/Terminalicon3.png')">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/68/Terminalicon3.png">
+  <div class="dock-icon" title="Terminal" onclick="openApp('Terminal','games/terminal.html','./images/Terminal.png')">
+    <img src="./images/Terminal.png">
   </div>
   <div class="dock-icon" title="ChatGPT" onclick="openChatGPT()">
-    <img src="https://cdn-icons-png.flaticon.com/128/12222/12222560.png">
+    <img src="./images/ChatGPT.png">
   </div>
   <div class="dock-icon" title="App Tester" onclick="openAppTester()">
-    <img src="https://cdn-icons-png.flaticon.com/128/8099/8099121.png">
+    <img src="./images/AppTester.png">
   </div>
 </div>
 
 <script>
 let windowZ = 100;
-const finderIcon = "https://upload.wikimedia.org/wikipedia/commons/b/b9/Finder_Icon_macOS_Tahoe.png";
-const terminalIcon = "https://upload.wikimedia.org/wikipedia/commons/6/68/Terminalicon3.png";
+const finderIcon   = "./images/Finder.png";
+const terminalIcon = "./images/Terminal.png";
 const chatHistories = {};
 
 /* ═══════════════════════════════════════
@@ -440,7 +437,6 @@ function createWindow(title, contentHtml, iconUrl = finderIcon, w = 600, h = 450
     win.querySelector(".red").onclick    = (e) => { e.stopPropagation(); win.remove(); };
     win.querySelector(".yellow").onclick = (e) => { e.stopPropagation(); win.classList.toggle("maximized"); };
     win.querySelector(".green").onclick  = (e) => { e.stopPropagation(); win.classList.add("minimized"); };
-
     win.onmousedown = () => { windowZ++; win.style.zIndex = windowZ; };
 
     initDrag(win);
@@ -453,17 +449,16 @@ function initDrag(win) {
         if (win.classList.contains('maximized')) return;
         let startX = e.clientX, startY = e.clientY;
         let startLeft = win.offsetLeft, startTop = win.offsetTop;
-
         function doDrag(e) {
             win.style.left = (startLeft + e.clientX - startX) + "px";
             win.style.top  = (startTop  + e.clientY - startY) + "px";
         }
         function stopDrag() {
             document.removeEventListener('mousemove', doDrag);
-            document.removeEventListener('mouseup',  stopDrag);
+            document.removeEventListener('mouseup', stopDrag);
         }
         document.addEventListener('mousemove', doDrag);
-        document.addEventListener('mouseup',   stopDrag);
+        document.addEventListener('mouseup', stopDrag);
     };
 }
 
@@ -474,13 +469,13 @@ const openApp = (title, url, icon, w, h) =>
    BUILT-IN APPS
 ═══════════════════════════════════════ */
 function openSafari() {
-    openApp('Safari', 'blob:https://asic.amrityadav.com.np/e3f490e5-d33e-4086-886e-9542b96aa49e',
-        'https://cdn-icons-png.flaticon.com/128/16566/16566102.png');
+    openApp('Safari',
+        'blob:https://asic.amrityadav.com.np/e3f490e5-d33e-4086-886e-9542b96aa49e',
+        './images/Safari.png');
 }
 
 function openYouTube() {
-    openApp('YouTube', './yt.html',
-        'https://cdn-icons-png.flaticon.com/128/1384/1384060.png');
+    openApp('YouTube', './yt.html', './images/YouTube.png');
 }
 
 /* ═══════════════════════════════════════
@@ -498,19 +493,16 @@ function openChatGPT() {
     const html = `
     <div class="chat-shell">
       <div class="chat-header">
-        <img src="https://cdn-icons-png.flaticon.com/128/12222/12222560.png">
+        <img src="./images/ChatGPT.png">
         <span>ChatGPT</span>
         <span class="chat-model-badge">GPT-4o</span>
       </div>
-
       <div class="chat-messages" id="${messagesId}">
         <div class="chat-bubble-wrap assistant">
           <div class="chat-bubble assistant">👋 Hello! How can I help you today?</div>
         </div>
       </div>
-
       <div class="chat-typing" id="${typingId}">● ChatGPT is typing...</div>
-
       <div class="chat-input-area">
         <textarea
           class="chat-textarea"
@@ -528,8 +520,7 @@ function openChatGPT() {
       </div>
     </div>`;
 
-    createWindow("ChatGPT", html,
-        'https://cdn-icons-png.flaticon.com/128/12222/12222560.png', 680, 520);
+    createWindow("ChatGPT", html, './images/ChatGPT.png', 680, 520);
 }
 
 function handleChatKey(e, uid, messagesId, inputId, typingId, sendId) {
@@ -548,21 +539,15 @@ async function sendChatMessage(uid, messagesId, inputId, typingId, sendId) {
 
     if (!userText) return;
 
-    // Disable send while processing
     if (sendBtn) sendBtn.disabled = true;
-
-    // Clear input
     inputEl.value = '';
     inputEl.style.height = 'auto';
 
-    // Add user message to UI
     appendChatBubble(messagesEl, userText, 'user');
 
-    // Add to history
     if (!chatHistories[uid]) chatHistories[uid] = [];
     chatHistories[uid].push({ role: 'user', content: userText });
 
-    // Show typing indicator
     if (typingEl) typingEl.style.display = 'block';
     if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
 
@@ -589,14 +574,12 @@ async function sendChatMessage(uid, messagesId, inputId, typingId, sendId) {
         const reply = data.choices?.[0]?.message?.content || '(No response)';
 
         chatHistories[uid].push({ role: 'assistant', content: reply });
-
         if (typingEl) typingEl.style.display = 'none';
         appendChatBubble(messagesEl, reply, 'assistant');
 
     } catch (err) {
         if (typingEl) typingEl.style.display = 'none';
-        appendChatBubble(messagesEl,
-            `⚠️ Error: ${err.message}`, 'error');
+        appendChatBubble(messagesEl, `⚠️ Error: ${err.message}`, 'error');
         console.error('ChatGPT error:', err);
     }
 
@@ -625,23 +608,23 @@ function openFinder() {
     <div class="finder-grid">
         <div class="finder-item"
             onclick="openApp('Terminal','games/terminal.html','${terminalIcon}')">
-            <img src="${terminalIcon}">Terminal
+            <img src="./images/Terminal.png">Terminal
         </div>
         <div class="finder-item"
-            onclick="openApp('Steam','./steam.html','./steam.ico')">
-            <img src="./steam.ico">Steam
+            onclick="openApp('Steam','./steam.html','./images/Steam.png')">
+            <img src="./images/Steam.png">Steam
         </div>
         <div class="finder-item" onclick="openSafari()">
-            <img src="https://cdn-icons-png.flaticon.com/128/16566/16566102.png">Safari
+            <img src="./images/Safari.png">Safari
         </div>
         <div class="finder-item" onclick="openYouTube()">
-            <img src="https://cdn-icons-png.flaticon.com/128/1384/1384060.png">YouTube
+            <img src="./images/YouTube.png">YouTube
         </div>
         <div class="finder-item" onclick="openChatGPT()">
-            <img src="https://cdn-icons-png.flaticon.com/128/12222/12222560.png">ChatGPT
+            <img src="./images/ChatGPT.png">ChatGPT
         </div>
         <div class="finder-item" onclick="openAppTester()">
-            <img src="https://cdn-icons-png.flaticon.com/128/8099/8099121.png">App Tester
+            <img src="./images/AppTester.png">App Tester
         </div>
     </div>`;
     createWindow("Finder", html, finderIcon);
@@ -736,8 +719,7 @@ function openAppTester() {
       </div>
     </div>`;
 
-    const win = createWindow("App Tester", html,
-        'https://cdn-icons-png.flaticon.com/128/8099/8099121.png', 920, 590);
+    const win = createWindow("App Tester", html, './images/AppTester.png', 920, 590);
 
     setTimeout(() => {
         updateTesterStats(editorId, charsId, linesId);
@@ -776,9 +758,9 @@ function clearTester(editorId, iframeId, statusId) {
 function toggleWrap(editorId, btn) {
     const ta = document.getElementById(editorId);
     const on = ta.style.whiteSpace === 'pre-wrap';
-    ta.style.whiteSpace   = on ? 'pre'    : 'pre-wrap';
-    ta.style.overflowWrap = on ? 'normal' : 'break-word';
-    btn.style.background  = on ? '#333'   : '#007aff';
+    ta.style.whiteSpace   = on ? 'pre'      : 'pre-wrap';
+    ta.style.overflowWrap = on ? 'normal'   : 'break-word';
+    btn.style.background  = on ? '#333'     : '#007aff';
 }
 
 function copyCode(editorId) {
