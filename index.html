@@ -9,192 +9,115 @@
   --mac-blur: blur(20px);
   --window-bg: rgba(28,28,30,0.85);
   --border-radius: 12px;
+  --topbar-height: 28px;
+  --dock-height: 70px;
 }
-
-body, html {
-  margin: 0; height: 100%; overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: url("Macbg.jpg") center/cover no-repeat fixed;
-  background-color: #1a1a1a;
-}
-
-/* Top bar */
-.top-bar {
-  height: 28px;
-  background: rgba(0,0,0,0.3);
-  backdrop-filter: var(--mac-blur);
-  display:flex; justify-content: space-between; align-items:center;
-  padding: 0 15px; font-size:13px; color:white; z-index:10000;
-  box-shadow:0 1px 5px rgba(0,0,0,0.2);
-}
+html, body { margin:0; height:100%; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background:#1a1a1a; overflow:hidden; }
+.top-bar { height: var(--topbar-height); background:rgba(0,0,0,0.3); backdrop-filter:var(--mac-blur); display:flex; justify-content:space-between; align-items:center; padding:0 15px; color:white; font-size:13px; box-shadow:0 1px 5px rgba(0,0,0,0.2); z-index:10000; position:fixed; width:100%; top:0; }
 .top-left { display:flex; align-items:center; gap:8px; }
 #apple-icon { width:18px; height:18px; object-fit:contain; }
-
-/* Window */
-.window {
-  position:absolute; width:600px; height:450px; background:var(--window-bg);
-  border-radius:var(--border-radius); box-shadow:0 30px 70px rgba(0,0,0,0.5);
-  display:flex; flex-direction:column; border:0.5px solid rgba(255,255,255,0.2);
-  backdrop-filter:var(--mac-blur); overflow:hidden;
-  transition:opacity 0.2s, transform 0.2s;
-}
-.window.maximized {
-  width:100% !important;
-  height: calc(100% - 70px) !important; /* stops above dock */
-  top:28px !important; left:0 !important; border-radius:0;
-}
-.window.minimized {
-  transform: scale(0.8) translateY(500px); opacity:0; pointer-events:none;
-}
-.window-header {
-  height:38px; display:flex; align-items:center; padding:0 12px; cursor:default; user-select:none;
-  background:rgba(255,255,255,0.05); flex-shrink:0;
-}
+.window { position:absolute; background:var(--window-bg); border-radius:var(--border-radius); box-shadow:0 30px 70px rgba(0,0,0,0.5); display:flex; flex-direction:column; border:0.5px solid rgba(255,255,255,0.2); backdrop-filter:var(--mac-blur); overflow:hidden; transition:opacity 0.2s, transform 0.2s; }
+.window.maximized { width:100% !important; height: calc(100% - var(--topbar-height) - var(--dock-height)) !important; top: var(--topbar-height) !important; left:0 !important; border-radius:0; }
+.window.minimized { transform:scale(0.8) translateY(500px); opacity:0; pointer-events:none; }
+.window-header { height:38px; display:flex; align-items:center; padding:0 12px; cursor:default; user-select:none; background:rgba(255,255,255,0.05); flex-shrink:0; }
 .traffic-lights { display:flex; gap:8px; width:60px; }
 .dot { width:12px; height:12px; border-radius:50%; cursor:pointer; border:none; }
 .red { background:#ff5f56; } .yellow { background:#ffbd2e; } .green { background:#27c93f; }
 .window-title { flex:1; text-align:center; color:rgba(255,255,255,0.8); font-size:13px; font-weight:500; margin-right:60px; }
-.window-content { flex:1; position:relative; overflow:hidden; background:#1a1a1a; }
-
-/* Dock */
-.dock {
-  position:fixed; bottom:10px; left:50%; transform:translateX(-50%);
-  background:rgba(255,255,255,0.2); backdrop-filter:var(--mac-blur);
-  padding:6px; border-radius:18px; display:flex; gap:10px;
-  border:0.5px solid rgba(255,255,255,0.3); z-index:10001;
-}
-.dock-icon { width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; transition: transform 0.2s; }
+.window-content { flex:1; position:relative; overflow:hidden; }
+iframe { border:none; width:100%; height:100%; border-radius:0 0 var(--border-radius) var(--border-radius); }
+#desktop { position:absolute; top:var(--topbar-height); left:0; width:100%; height: calc(100% - var(--topbar-height) - var(--dock-height)); background:#1a1a1a; overflow:hidden; }
+.dock { position:fixed; bottom:0; left:50%; transform:translateX(-50%); height:var(--dock-height); background:rgba(255,255,255,0.15); backdrop-filter:var(--mac-blur); display:flex; gap:10px; padding:10px 14px; border-radius:20px; border:0.5px solid rgba(255,255,255,0.2); z-index:10001; align-items:flex-end; }
+.dock-icon { width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform 0.2s; position:relative; }
 .dock-icon img { width:90%; height:90%; object-fit:contain; }
-.dock-icon:hover { transform: scale(1.3) translateY(-10px); }
-.dock-icon::after {
-  content: attr(title); position:absolute; bottom:62px; left:50%; transform:translateX(-50%);
-  background:rgba(0,0,0,0.75); color:white; font-size:11px; padding:3px 9px; border-radius:6px;
-  white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.15s;
-}
+.dock-icon:hover { transform:scale(1.3) translateY(-10px); }
+.dock-icon::after { content:attr(title); position:absolute; bottom:62px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.75); color:white; font-size:11px; padding:3px 9px; border-radius:6px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.15s; }
 .dock-icon:hover::after { opacity:1; }
-
-/* Finder horizontal */
-.finder-grid {
-  flex:1; display:flex; gap:20px; padding:20px; overflow-x:auto; overflow-y:hidden; align-items:flex-start;
-}
-.finder-grid::-webkit-scrollbar { height:8px; }
-.finder-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius:4px; }
-.finder-item { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; cursor:pointer; color:white; text-align:center; transition:transform 0.2s; }
-.finder-item:hover { transform:scale(1.05); }
-
-/* Chat bubbles */
-.chat-bubble-wrap { display:flex; }
-.chat-bubble-wrap.user { justify-content:flex-end; }
-.chat-bubble-wrap.assistant { justify-content:flex-start; }
-.chat-bubble { max-width:75%; padding:10px 14px; font-size:13px; line-height:1.6; white-space:pre-wrap; word-break:break-word; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
-.chat-bubble.user { background:#007aff; color:white; border-radius:18px 18px 4px 18px; }
-.chat-bubble.assistant { background:#2a2a2a; color:white; border-radius:18px 18px 18px 4px; }
-.chat-bubble.error { background:#3a1a1a; color:#ff5f56; border-radius:18px 18px 18px 4px; }
+.finder-grid { display:flex; flex-direction:row; flex-wrap:wrap; gap:20px; padding:20px; background:#1e1e1e; height:100%; overflow-x:auto; overflow-y:hidden; box-sizing:border-box; }
+.finder-item { display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; font-size:12px; cursor:pointer; text-align:center; padding:10px; border-radius:10px; transition:background 0.15s; }
+.finder-item:hover { background: rgba(255,255,255,0.1); }
+.finder-item img { width:48px; height:48px; margin-bottom:8px; object-fit:contain; }
 </style>
 </head>
 <body>
-
 <div class="top-bar">
-  <div class="top-left">
-    <img id="apple-icon" src="apple.png" alt="Apple">
-    <strong>MacOS 26</strong>
-  </div>
+  <div class="top-left"><img id="apple-icon" src="./images/apple.png"> <strong>MacOS 26</strong></div>
   <div id="clock">00:00</div>
 </div>
-
 <div id="desktop"></div>
-
 <div class="dock">
   <div class="dock-icon" title="Finder" onclick="openFinder()"><img src="./images/Finder.png"></div>
-  <div class="dock-icon" title="Safari" onclick="openSafari()"><img src="./images/Safari.png"></div>
-  <div class="dock-icon" title="YouTube" onclick="openYouTube()"><img src="./images/YouTube.png"></div>
+  <div class="dock-icon" title="Safari" onclick="openApp('Safari','./safari.html','./images/Safari.png')"><img src="./images/Safari.png"></div>
+  <div class="dock-icon" title="YouTube" onclick="openApp('YouTube','./yt.html','./images/YouTube.png')"><img src="./images/YouTube.png"></div>
   <div class="dock-icon" title="Steam" onclick="openApp('Steam','./steam.html','./images/Steam.png')"><img src="./images/Steam.png"></div>
   <div class="dock-icon" title="Terminal" onclick="openApp('Terminal','games/terminal.html','./images/Terminal.png')"><img src="./images/Terminal.png"></div>
-  <div class="dock-icon" title="ChatGPT" onclick="openChatGPT()"><img src="./images/ChatGPT.png"></div>
+  <div class="dock-icon" title="ChatGPT" onclick="openApp('ChatGPT','./gpt.html','./images/ChatGPT.png')"><img src="./images/ChatGPT.png"></div>
   <div class="dock-icon" title="App Tester" onclick="openApp('App Tester','./apptester.html','./images/AppTester.png')"><img src="./images/AppTester.png"></div>
-  <div class="dock-icon" title="Ampler Launcher" onclick="openApp('Ampler Launcher','./amplerlauncher.html','./images/AmplerLauncher.png')"><img src="./images/AmplerLauncher.png"></div>
+  <div class="dock-icon" title="Ampler Launcher" onclick="openApp('Ampler Launcher','https://ampler-launcher.wasmer.app/','./images/AmplerLauncher.png')"><img src="./images/AmplerLauncher.png"></div>
   <div class="dock-icon" title="Settings" onclick="openApp('Settings','./settings.html','./images/Settings.png')"><img src="./images/Settings.png"></div>
 </div>
 
 <script>
-let windowZ=100;
-
-/* Create windows */
-function createWindow(title, contentHtml, iconUrl,w=600,h=450){
+let windowZ = 100;
+function createWindow(title, contentHtml, iconUrl, w=600,h=450){
   windowZ++;
-  const win=document.createElement('div'); win.className='window';
-  win.style.zIndex=windowZ; win.style.width=w+'px'; win.style.height=h+'px';
-  win.style.left=(80+Math.random()*80)+'px'; win.style.top=(50+Math.random()*60)+'px';
-  win.innerHTML=`
-    <div class="window-header">
-      <div class="traffic-lights">
-        <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
-      </div>
-      <div class="window-title">${title}</div>
-    </div>
-    <div class="window-content">${contentHtml}</div>`;
-  document.getElementById('desktop').appendChild(win);
-
-  win.querySelector('.red').onclick=e=>{e.stopPropagation(); win.remove();};
-  win.querySelector('.yellow').onclick=e=>{e.stopPropagation(); win.classList.toggle('maximized');};
-  win.querySelector('.green').onclick=e=>{e.stopPropagation(); win.classList.add('minimized');};
-  win.onmousedown=()=>{windowZ++; win.style.zIndex=windowZ;};
-  initDrag(win); return win;
+  const win=document.createElement("div");
+  win.className="window";
+  win.style.zIndex=windowZ;
+  win.style.width=w+"px";
+  win.style.height=h+"px";
+  win.style.left=(80+Math.random()*80)+"px";
+  win.style.top=(50+Math.random()*60)+"px";
+  win.innerHTML=`<div class="window-header">
+    <div class="traffic-lights"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+    <div class="window-title">${title}</div>
+  </div>
+  <div class="window-content">${contentHtml}</div>`;
+  document.getElementById("desktop").appendChild(win);
+  win.querySelector(".red").onclick=e=>{ e.stopPropagation(); win.remove(); };
+  win.querySelector(".yellow").onclick=e=>{ e.stopPropagation(); win.classList.toggle("maximized"); };
+  win.querySelector(".green").onclick=e=>{ e.stopPropagation(); win.classList.add("minimized"); };
+  win.onmousedown=()=>{ windowZ++; win.style.zIndex=windowZ; };
+  initDrag(win);
+  return win;
 }
-
-/* Drag with bounds */
 function initDrag(win){
-  const header=win.querySelector('.window-header');
-  header.onmousedown=(e)=>{
-    if(win.classList.contains('maximized')) return;
-    let startX=e.clientX, startY=e.clientY;
-    let startLeft=win.offsetLeft, startTop=win.offsetTop;
-    function doDrag(e){
-      let newTop=startTop+(e.clientY-startY);
-      if(newTop<28) newTop=28; // can't go above top bar
-      if(newTop+win.offsetHeight>window.innerHeight-70) newTop=window.innerHeight-70-win.offsetHeight;
-      let newLeft=startLeft+(e.clientX-startX);
-      if(newLeft<0) newLeft=0; if(newLeft+win.offsetWidth>window.innerWidth) newLeft=window.innerWidth-win.offsetWidth;
-      win.style.top=newTop+'px'; win.style.left=newLeft+'px';
-    }
-    function stopDrag(){document.removeEventListener('mousemove',doDrag); document.removeEventListener('mouseup',stopDrag);}
+  const header=win.querySelector(".window-header");
+  header.onmousedown=e=>{
+    if(win.classList.contains('maximized'))return;
+    let startX=e.clientX,startY=e.clientY,startLeft=win.offsetLeft,startTop=win.offsetTop;
+    function doDrag(e){ win.style.left=(startLeft+e.clientX-startX)+"px"; win.style.top=(startTop+e.clientY-startY)+"px"; }
+    function stopDrag(){ document.removeEventListener('mousemove',doDrag); document.removeEventListener('mouseup',stopDrag); }
     document.addEventListener('mousemove',doDrag); document.addEventListener('mouseup',stopDrag);
   };
 }
-
-/* Open apps in window */
 const openApp=(title,url,icon,w,h)=>createWindow(title,`<iframe src="${url}" style="width:100%;height:100%;border:none;"></iframe>`,icon,w,h);
 
-/* Finder with horizontal scroll */
+/* Finder with horizontal icons */
 function openFinder(){
-  const apps=[
-    {name:'Terminal', icon:'./images/Terminal.png', url:'games/terminal.html'},
-    {name:'Steam', icon:'./images/Steam.png', url:'./steam.html'},
-    {name:'Safari', icon:'./images/Safari.png', url:null},
-    {name:'YouTube', icon:'./images/YouTube.png', url:'./yt.html'},
-    {name:'ChatGPT', icon:'./images/ChatGPT.png', url:'./gpt.html'},
-    {name:'App Tester', icon:'./images/AppTester.png', url:'./apptester.html'},
-    {name:'Ampler Launcher', icon:'./images/AmplerLauncher.png', url:'./amplerlauncher.html'},
-    {name:'Settings', icon:'./images/Settings.png', url:'./settings.html'}
-  ];
-  const grid=document.createElement('div'); grid.className='finder-grid';
-  apps.forEach(a=>{
-    const item=document.createElement('div'); item.className='finder-item';
-    item.innerHTML=`<img src="${a.icon}"><span>${a.name}</span>`;
-    if(a.url) item.onclick=()=>openApp(a.name,a.url);
-    grid.appendChild(item);
-  });
-  createWindow('Finder',grid.outerHTML);
+  const html=document.createElement("div");
+  html.innerHTML=`
+  <div class="finder-grid">
+    <div class="finder-item" onclick="openApp('Terminal','games/terminal.html','./images/Terminal.png')"><img src="./images/Terminal.png">Terminal</div>
+    <div class="finder-item" onclick="openApp('Steam','./steam.html','./images/Steam.png')"><img src="./images/Steam.png">Steam</div>
+    <div class="finder-item" onclick="openApp('Safari','./safari.html','./images/Safari.png')"><img src="./images/Safari.png">Safari</div>
+    <div class="finder-item" onclick="openApp('YouTube','./yt.html','./images/YouTube.png')"><img src="./images/YouTube.png">YouTube</div>
+    <div class="finder-item" onclick="openApp('ChatGPT','./gpt.html','./images/ChatGPT.png')"><img src="./images/ChatGPT.png">ChatGPT</div>
+    <div class="finder-item" onclick="openApp('App Tester','./apptester.html','./images/AppTester.png')"><img src="./images/AppTester.png">App Tester</div>
+    <div class="finder-item" onclick="openApp('Ampler Launcher','https://ampler-launcher.wasmer.app/','./images/AmplerLauncher.png')"><img src="./images/AmplerLauncher.png">Ampler Launcher</div>
+    <div class="finder-item" onclick="openApp('Settings','./settings.html','./images/Settings.png')"><img src="./images/Settings.png">Settings</div>
+  </div>`;
+  createWindow("Finder", html.innerHTML, "./images/Finder.png", 800, 400);
 }
 
 /* Clock */
-function updateTime(){const now=new Date(); document.getElementById("clock").innerText=now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
+function updateTime(){ const now=new Date(); document.getElementById("clock").innerText=now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
 setInterval(updateTime,1000); updateTime();
 
-/* Initial Finder */
-window.onload=()=>{openFinder();};
+/* Escape restores minimized windows */
+document.addEventListener('keydown',e=>{ if(e.key==="Escape") document.querySelectorAll('.minimized').forEach(w=>w.classList.remove('minimized')); });
 
-document.addEventListener('keydown',(e)=>{if(e.key==='Escape') document.querySelectorAll('.minimized').forEach(w=>w.classList.remove('minimized'));});
+window.onload=()=>{ openFinder(); };
 </script>
 </body>
 </html>
