@@ -40,7 +40,11 @@ body, html {
   transition: background 0.15s;
 }
 .nav-left .apple-logo:hover { background:rgba(255,255,255,0.12); }
-.nav-left .apple-logo img { width:13px; height:13px; display:block; opacity:0.9; }
+.nav-left .apple-logo img {
+  width:12px; height:14px;
+  display:block;
+  filter:brightness(0.95);
+}
 .nav-app-name {
   color:#fff; font-weight:600; font-size:13px; line-height:25px;
   padding:0 10px; border-radius:4px;
@@ -145,6 +149,12 @@ body, html {
   box-shadow:0 8px 30px rgba(0,0,0,0.4), inset 0 0 0 0.5px rgba(255,255,255,0.1);
   z-index:1000;
   border:0.5px solid rgba(255,255,255,0.12);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#dock.hidden {
+  opacity:0;
+  transform:translateX(-50%) translateY(120px);
+  pointer-events:none;
 }
 .dock-app {
   width:50px; height:50px;
@@ -168,13 +178,24 @@ body, html {
 }
 .dock-app:hover .dock-tooltip { opacity:1; }
 
+/* Pin hint shown when shift is held */
+.dock-app .shift-hint {
+  position:absolute; top:-28px; left:50%; transform:translateX(-50%);
+  background:rgba(0,122,255,0.9); color:#fff; font-size:10px;
+  padding:3px 8px; border-radius:4px; white-space:nowrap;
+  pointer-events:none; opacity:0; transition:opacity 0.15s;
+  font-weight:600;
+}
+body.shift-held .dock-app .shift-hint { opacity:1; }
+body.shift-held .dock-app .dock-tooltip { opacity:0 !important; }
+
 /* Dock separator */
 .dock-separator {
   width:1px; height:36px; background:rgba(255,255,255,0.2);
   align-self:center; margin:0 3px; flex-shrink:0;
 }
 
-/* Pinned indicator (subtle dot under icon) */
+/* Pinned indicator */
 .dock-app.pinned::after {
   content:'';
   position:absolute;
@@ -294,9 +315,6 @@ body, html {
   </div>
 </div>
 
-<!-- Context Menu -->
-<div id="context-menu"></div>
-
 <!-- Finder (Desktop) -->
 <div id="finder"></div>
 
@@ -310,6 +328,7 @@ body, html {
 // ============ LIVE CLOCK ============
 const clockEl = document.getElementById('nav-clock');
 const activeAppName = document.getElementById('active-app-name');
+const dock = document.getElementById('dock');
 
 function updateClock() {
   const now = new Date();
@@ -327,60 +346,25 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-// ============ CONTEXT MENU ============
-const contextMenu = document.getElementById('context-menu');
-let contextTarget = null;
-
-function showContextMenu(e, items) {
-  e.preventDefault();
-  contextTarget = e.target.closest('.dock-app');
-  let html = '';
-  items.forEach(item => {
-    if (item.separator) {
-      html += '<div class="menu-separator"></div>';
-    } else {
-      const disabled = item.disabled ? ' disabled' : '';
-      const check = item.checked ? '<span class="check">✓</span>' : '<span class="check"></span>';
-      const shortcut = item.shortcut ? `<span class="shortcut">${item.shortcut}</span>` : '';
-      html += `<div class="menu-item${disabled}" data-action="${item.action || ''}">${check}${item.label}${shortcut}</div>`;
-    }
-  });
-  contextMenu.innerHTML = html;
-  contextMenu.style.display = 'block';
-  // Position
-  const x = Math.min(e.clientX, window.innerWidth - 220);
-  const y = Math.min(e.clientY, window.innerHeight - contextMenu.offsetHeight - 10);
-  contextMenu.style.left = x + 'px';
-  contextMenu.style.top  = y + 'px';
-  // Bind clicks
-  contextMenu.querySelectorAll('.menu-item:not(.disabled)').forEach(el => {
-    el.addEventListener('click', () => {
-      const action = el.dataset.action;
-      if (action && contextTarget) {
-        handleDockAction(action, contextTarget);
-      }
-      hideContextMenu();
-    });
-  });
-}
-
-function hideContextMenu() {
-  contextMenu.style.display = 'none';
-  contextTarget = null;
-}
-
-document.addEventListener('click', (e) => {
-  if (!contextMenu.contains(e.target)) hideContextMenu();
+// ============ SHIFT KEY TRACKING ============
+let shiftHeld = false;
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Shift' && !shiftHeld) {
+    shiftHeld = true;
+    document.body.classList.add('shift-held');
+  }
 });
-document.addEventListener('contextmenu', (e) => {
-  if (!e.target.closest('.dock-app')) hideContextMenu();
+document.addEventListener('keyup', (e) => {
+  if (e.key === 'Shift') {
+    shiftHeld = false;
+    document.body.classList.remove('shift-held');
+  }
 });
 
 // ============ PIN / UNPIN STORAGE ============
 const PIN_KEY = 'macos_dock_pins';
 let pinnedApps = JSON.parse(localStorage.getItem(PIN_KEY) || 'null');
 
-// Default pinned: all apps pinned by default
 function getDefaultPins() {
   const pins = {};
   appsList.forEach(a => pins[a.url] = true);
@@ -405,33 +389,6 @@ function togglePin(url) {
   savePins();
 }
 
-// ============ HANDLE DOCK ACTIONS ============
-function handleDockAction(action, dockEl) {
-  const url = dockEl.dataset.url;
-  const app = appsList.find(a => a.url === url);
-  if (!app) return;
-
-  switch (action) {
-    case 'open':
-      openWindow(app);
-      break;
-    case 'pin':
-      togglePin(url);
-      rebuildDock();
-      break;
-    case 'close':
-      closeWindowByUrl(url);
-      break;
-    case 'show':
-      const win = openWindows.find(w => w.dataset.url === url);
-      if (win) {
-        win.classList.remove('minimized');
-        bringToFront(win);
-      }
-      break;
-  }
-}
-
 // ============ CONFIG ============
 const appsList = [
   { name:'Safari',          url:'./Safari.html',                       icon:'./images/Safari.png',   w:900, h:600 },
@@ -445,7 +402,6 @@ const appsList = [
 ];
 
 const finder = document.getElementById('finder');
-const dock = document.getElementById('dock');
 const windowsContainer = document.getElementById('windows-container');
 let topZ = 100;
 let openWindows = [];
@@ -471,14 +427,12 @@ appsList.forEach((app, i) => {
 function rebuildDock() {
   dock.innerHTML = '';
 
-  // Pinned apps
   const pinned = appsList.filter(a => isPinned(a.url));
   pinned.forEach(app => {
     const d = createDockIcon(app, true);
     dock.appendChild(d);
   });
 
-  // Separator if there are both pinned and open-unpinned apps
   const unpinnedOpen = appsList.filter(a => !isPinned(a.url) && openWindows.some(w => w.dataset.url === a.url));
 
   if (pinned.length > 0 && unpinnedOpen.length > 0) {
@@ -487,11 +441,12 @@ function rebuildDock() {
     dock.appendChild(sep);
   }
 
-  // Open but unpinned apps
   unpinnedOpen.forEach(app => {
     const d = createDockIcon(app, false);
     dock.appendChild(d);
   });
+
+  updateDockVisibility();
 }
 
 function createDockIcon(app, pinned) {
@@ -500,32 +455,32 @@ function createDockIcon(app, pinned) {
   d.alt = app.name;
   d.className = 'dock-app' + (pinned ? ' pinned' : '');
   d.dataset.url = app.url;
+
   const tip = document.createElement('div');
   tip.className = 'dock-tooltip';
   tip.textContent = app.name;
   d.appendChild(tip);
-  d.addEventListener('click', () => openWindow(app));
-  d.addEventListener('contextmenu', (e) => {
-    const isOpen = openWindows.some(w => w.dataset.url === app.url);
-    const appIsPinned = isPinned(app.url);
-    const items = [
-      { label: app.name, disabled: true },
-      { separator: true },
-      { label: 'Open', action: 'open' },
-      { separator: true },
-    ];
-    if (appIsPinned) {
-      items.push({ label: 'Remove from Dock', action: 'pin', checked: false });
-    } else {
-      items.push({ label: 'Keep in Dock', action: 'pin', checked: true });
+
+  const shiftHint = document.createElement('div');
+  shiftHint.className = 'shift-hint';
+  shiftHint.textContent = pinned ? '✕ Unpin' : '📌 Pin';
+  d.appendChild(shiftHint);
+
+  d.addEventListener('click', (e) => {
+    if (e.shiftKey) {
+      // Shift+click = toggle pin
+      togglePin(app.url);
+      rebuildDock();
+      return;
     }
-    if (isOpen) {
-      items.push({ separator: true });
-      items.push({ label: 'Show', action: 'show' });
-      items.push({ label: 'Close', action: 'close' });
-    }
-    showContextMenu(e, items);
+    openWindow(app);
   });
+
+  // Prevent default right-click (no more context menu)
+  d.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+  });
+
   return d;
 }
 
@@ -571,6 +526,16 @@ function updateActiveApp(name) {
   activeAppName.textContent = name || 'Finder';
 }
 
+// ============ DOCK VISIBILITY (hide on fullscreen) ============
+function updateDockVisibility() {
+  const anyMaximized = openWindows.some(w => w.classList.contains('maximized'));
+  if (anyMaximized) {
+    dock.classList.add('hidden');
+  } else {
+    dock.classList.remove('hidden');
+  }
+}
+
 // ============ OPEN WINDOW ============
 function openWindow(app) {
   const existing = openWindows.find(w => w.dataset.url === app.url);
@@ -602,7 +567,7 @@ function openWindow(app) {
       <div style="width:44px;"></div>
     </div>
     <div class="window-body">
-      <iframe src="${app.url}"></iframe>
+      <iframe src="${app.url}" allowfullscreen></iframe>
     </div>
   `;
 
@@ -617,13 +582,14 @@ function openWindow(app) {
   w.querySelector('.green').addEventListener('click', (e) => {
     e.stopPropagation();
     w.classList.toggle('maximized');
+    updateDockVisibility();
   });
 
   windowsContainer.appendChild(w);
   openWindows.push(w);
   initWindowDrag(w);
   updateActiveApp(app.name);
-  rebuildDock(); // Add to dock if unpinned
+  rebuildDock();
 }
 
 function bringToFront(w) {
@@ -642,13 +608,9 @@ function closeWindow(w) {
     const topWin = openWindows.reduce((a, b) =>
       (parseInt(a.style.zIndex||0) > parseInt(b.style.zIndex||0)) ? a : b, null);
     updateActiveApp(topWin ? topWin.dataset.name : null);
-    rebuildDock(); // Remove from dock if unpinned
+    updateDockVisibility();
+    rebuildDock();
   }, 200);
-}
-
-function closeWindowByUrl(url) {
-  const win = openWindows.find(w => w.dataset.url === url);
-  if (win) closeWindow(win);
 }
 
 windowsContainer.addEventListener('mousedown', (e) => {
@@ -693,6 +655,20 @@ finder.addEventListener('click', (e) => {
   if (e.target === finder) {
     document.querySelectorAll('.finder-app').forEach(el => el.classList.remove('selected'));
     updateActiveApp(null);
+  }
+});
+
+// ============ LISTEN FOR postMessage FROM STEAM.HTML ============
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'openWindow') {
+    const gameApp = {
+      name: e.data.title,
+      url: e.data.url,
+      icon: e.data.icon || './images/Steam.png',
+      w: 1000,
+      h: 650
+    };
+    openWindow(gameApp);
   }
 });
 </script>
