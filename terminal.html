@@ -3,153 +3,903 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Developer Terminal</title>
+<title>Terminal</title>
 <style>
-body{margin:0;background:#0d0d0d;color:#00ff9c;font-family:monospace;display:flex;flex-direction:column;height:100vh;}
-#terminal{flex:1;display:flex;flex-direction:column;padding:12px;}
-#output{flex:1;overflow:auto;white-space:pre-wrap;}
-.input-line{display:flex;}
-.prompt{margin-right:6px;}
-#input{flex:1;background:transparent;border:none;outline:none;color:#00ff9c;font-family:monospace;}
-.header{background:#111;padding:8px;border-bottom:1px solid #222;font-size:13px;color:#aaa;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+
+:root{
+  --bg:#0d1117;--text:#c9d1d9;--green:#58a6ff;--blue:#79c0ff;--yellow:#f9c35b;
+  --red:#f07178;--magenta:#d2a8ff;--cyan:#56d4dd;--dim:#484f58;--bright:#f0f6fc;
+  --font:'Menlo','Monaco','Courier New',monospace;
+}
+
+body{
+  background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;
+  display:flex;flex-direction:column;padding:0;
+}
+
+.terminal{flex:1;display:flex;flex-direction:column;padding:14px 16px 16px;overflow:hidden}
+
+#output{
+  flex:1;overflow-y:auto;overflow-x:hidden;white-space:pre-wrap;
+  word-break:break-all;line-height:1.55;scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,0.08) transparent;
+}
+#output::-webkit-scrollbar{width:6px}
+#output::-webkit-scrollbar-track{background:transparent}
+#output::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+
+.input-row{display:flex;align-items:flex-start;line-height:1.55;min-height:22px;margin-top:4px}
+.prompt{color:var(--green);white-space:nowrap;flex-shrink:0;user-select:none}
+.prompt .at{color:var(--dim)}
+.prompt .host{color:var(--cyan)}
+.prompt .colon{color:var(--dim)}
+.prompt .path{color:var(--blue)}
+.prompt .dollar{color:var(--dim);margin-left:1px}
+.input-gap{width:12px;flex-shrink:0}
+#input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--bright);font-family:var(--font);font-size:13px;
+  caret-color:var(--green);padding:0;line-height:1.55;
+}
+
+.line{line-height:1.55}
+.line.cmd{color:var(--text)}
+.line.output{color:var(--bright)}
+.line.error{color:var(--red)}
+.line.success{color:#3fb950}
+.line.info{color:var(--blue)}
+.line.warn{color:var(--yellow)}
+.line.dim{color:var(--dim)}
+.line.cyan{color:var(--cyan)}
+.line.yellow{color:var(--yellow)}
+.line.magenta{color:var(--magenta)}
+.line.green{color:var(--green)}
+
+.tab-hint{
+  position:fixed;bottom:56px;left:16px;right:16px;
+  background:rgba(22,27,34,0.96);border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;padding:6px 10px;display:none;z-index:100;
+  backdrop-filter:blur(20px);max-height:180px;overflow-y:auto;
+}
+.tab-hint.show{display:block}
+.tab-hint-item{padding:2px 6px;border-radius:3px;font-size:12px;color:var(--dim);display:inline-block;margin:1px 4px 1px 0}
+.tab-hint-item.selected{background:rgba(88,166,255,0.2);color:var(--bright)}
 </style>
 </head>
 <body>
-<div class="header">Web Developer Terminal</div>
-<div id="terminal">
-<div id="output">Web Terminal Ready\nType "help"</div>
-<div class="input-line">
-<span class="prompt" id="prompt">user@web:/ $</span>
-<input id="input" autofocus>
+
+<div class="terminal">
+  <div id="output"></div>
+  <div class="input-row">
+    <span class="prompt" id="prompt"></span>
+    <span class="input-gap"></span>
+    <input id="input" autofocus spellcheck="false" autocomplete="off">
+  </div>
 </div>
-</div>
+<div class="tab-hint" id="tab-hint"></div>
 
 <script>
-const output=document.getElementById("output");
-const input=document.getElementById("input");
-const prompt=document.getElementById("prompt");
-let history=[],historyIndex=0;
+const outputEl = document.getElementById('output');
+const inputEl = document.getElementById('input');
+const promptEl = document.getElementById('prompt');
+const tabHint = document.getElementById('tab-hint');
 
-let fs={name:"/",type:"dir",children:{}};
-let cwd=fs;
-let clonePending=null; // tracks if waiting for y/n to download
-
-function pathOf(node){let path="";while(node&&node.name!=="/"){path="/"+node.name+path;node=node.parent;}return path||"/";}
-function print(text){output.innerHTML+="\n"+text;output.scrollTop=output.scrollHeight;}
-function updatePrompt(){prompt.textContent="user@web:"+pathOf(cwd)+" $";}
-function find(name){return cwd.children[name];}
-
-input.addEventListener("keydown",e=>{
-if(e.key==="ArrowUp"){historyIndex=Math.max(0,historyIndex-1);input.value=history[historyIndex]||"";return;}
-if(e.key==="ArrowDown"){historyIndex=Math.min(history.length,historyIndex+1);input.value=history[historyIndex]||"";return;}
-if(e.key!=="Enter") return;
-
-const cmd=input.value.trim();
-history.push(cmd); historyIndex=history.length;
-print(prompt.textContent+" "+cmd);
-
-if(clonePending){
-if(cmd.toLowerCase()==="y"){
-window.open(clonePending.downloadUrl,"_blank");
-print("Repository download started in new tab.");
-}else{
-print("Download skipped.");
-}
-clonePending=null;
-input.value="";
-return;
+// ═══════════════════════════════════════════════════════════════
+// PARENT COMMUNICATION (open windows from terminal)
+// ═══════════════════════════════════════════════════════════════
+function openInParent(url, title, icon) {
+  try {
+    window.parent.postMessage({
+      type: 'openWindow',
+      url: url,
+      title: title || 'App',
+      icon: icon || './images/Terminal.png'
+    }, '*');
+    return true;
+  } catch(e) {
+    return false;
+  }
 }
 
-handle(cmd);
-input.value="";
+// ═══════════════════════════════════════════════════════════════
+// FILESYSTEM
+// ═══════════════════════════════════════════════════════════════
+function createDefaultFS() {
+  const root = { name:'/', type:'dir', children:{}, mtime: Date.now() };
+  function mkdir(p, n) { const d = { name:n, type:'dir', children:{}, parent:p, mtime:Date.now() }; p.children[n] = d; return d; }
+  function touch(p, n, c='') { p.children[n] = { name:n, type:'file', content:c, parent:p, mtime:Date.now() }; }
+
+  const home = mkdir(root, 'home');
+  const user = mkdir(home, 'user');
+  const desktop = mkdir(user, 'Desktop');
+  const documents = mkdir(user, 'Documents');
+  const downloads = mkdir(user, 'Downloads');
+  const projects = mkdir(user, 'Projects');
+
+  mkdir(root, 'usr'); mkdir(root, 'etc'); mkdir(root, 'tmp');
+  mkdir(root, 'var'); mkdir(root, 'bin'); mkdir(root, 'opt');
+
+  touch(desktop, 'readme.md', '# My Desktop\n\nWelcome to WebOS Terminal v3.0\nType `help` to get started.');
+  touch(desktop, 'notes.txt', 'Meeting at 3pm\nFix the Safari bug\nDeploy to production');
+  touch(documents, 'config.json', '{\n  "theme": "dark",\n  "font": "Menlo",\n  "size": 13\n}');
+  touch(documents, 'todo.md', '# TODO\n- [x] Build terminal\n- [x] Add commands\n- [ ] Ship it');
+  touch(user, '.bashrc', '# ~/.bashrc\nexport PATH=$PATH:/usr/local/bin\nalias ll="ls -la"');
+  touch(projects, 'index.html', '<!DOCTYPE html>\n<html>\n<head><title>Hello</title></head>\n<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#fff">\n<h1>Hello World!</h1>\n</body>\n</html>');
+
+  return root;
+}
+
+let root, cwd, history, historyIndex, env, aliases, startTime;
+
+function initState() {
+  startTime = Date.now();
+  history = []; historyIndex = 0;
+  env = { HOME:'/home/user', USER:'user', SHELL:'/bin/bash', TERM:'xterm-256color', HOSTNAME:'macbook', EDITOR:'nano' };
+  aliases = { 'll':'ls -la', 'la':'ls -a', 'cls':'clear', '..':'cd ..' };
+  root = createDefaultFS();
+  cwd = root.children.home.children.user;
+}
+
+function restoreState() {
+  const saved = localStorage.getItem('term_v3');
+  if (!saved) return false;
+  try {
+    const s = JSON.parse(saved);
+    history = s.history || []; historyIndex = history.length;
+    env = s.env || {}; aliases = s.aliases || {};
+    startTime = s.startTime || Date.now();
+    root = JSON.parse(s.fs);
+    restoreParents(root, null);
+    cwd = resolvePath(s.cwd) || root.children.home.children.user;
+    return true;
+  } catch(e) { return false; }
+}
+
+function restoreParents(n, p) {
+  n.parent = p;
+  if (n.children) for (let k in n.children) restoreParents(n.children[k], n);
+}
+
+function saveState() {
+  localStorage.setItem('term_v3', JSON.stringify({
+    history: history.slice(-500), env, aliases, startTime,
+    cwd: pathOf(cwd),
+    fs: JSON.stringify(root, (k,v) => k === 'parent' ? undefined : v)
+  }));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function pathOf(n) {
+  if (!n || n === root) return '/';
+  const p = []; let c = n;
+  while (c && c !== root) { p.unshift(c.name); c = c.parent; }
+  return '/' + p.join('/');
+}
+
+function shortPath(n) {
+  let p = pathOf(n);
+  if (p.startsWith('/home/user')) p = '~' + p.slice(10) || '~';
+  return p;
+}
+
+function resolvePath(path) {
+  if (!path) return cwd;
+  path = path.replace(/^~/, '/home/user');
+  if (!path.startsWith('/')) path = pathOf(cwd) + (pathOf(cwd) === '/' ? '' : '/') + path;
+  const parts = path.split('/').filter(Boolean);
+  const resolved = [];
+  for (const p of parts) {
+    if (p === '.') continue;
+    if (p === '..') { resolved.pop(); continue; }
+    resolved.push(p);
+  }
+  let node = root;
+  for (const p of resolved) {
+    if (!node?.children?.[p]) return null;
+    node = node.children[p];
+  }
+  return node;
+}
+
+function find(name) {
+  if (!name) return null;
+  if (name.includes('/')) return resolvePath(name);
+  return cwd.children?.[name] || null;
+}
+
+function updatePrompt() {
+  promptEl.innerHTML = `<span class="path">${esc(shortPath(cwd))}</span><span class="dollar">❯</span>`;
+}
+
+function print(t, c='output') {
+  t.split('\n').forEach(l => {
+    const d = document.createElement('div');
+    d.className = 'line ' + c; d.textContent = l;
+    outputEl.appendChild(d);
+  });
+  outputEl.scrollTop = outputEl.scrollHeight;
+}
+
+function printH(h, c='output') {
+  const d = document.createElement('div');
+  d.className = 'line ' + c; d.innerHTML = h;
+  outputEl.appendChild(d);
+  outputEl.scrollTop = outputEl.scrollHeight;
+}
+
+function printCmd(cmd) {
+  const d = document.createElement('div');
+  d.className = 'line cmd';
+  d.innerHTML = `<span class="prompt"><span class="path">${esc(shortPath(cwd))}</span><span class="dollar">❯</span></span> ${esc(cmd)}`;
+  outputEl.appendChild(d);
+  outputEl.scrollTop = outputEl.scrollHeight;
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function fmtSize(b) { return b < 1024 ? b+'B' : b < 1048576 ? (b/1024).toFixed(1)+'K' : (b/1048576).toFixed(1)+'M'; }
+function fmtDate(ts) {
+  if (!ts) return 'Jan  1 00:00';
+  const d = new Date(ts), m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${m[d.getMonth()]} ${String(d.getDate()).padStart(2)} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function fileSize(n) { return (n.content||'').length; }
+function dirSize(n) { if (!n.children) return fileSize(n); let t=0; for(let k in n.children) t+=dirSize(n.children[k]); return t; }
+function rand(a,b) { return Math.floor(Math.random()*(b-a+1))+a; }
+function randHex(l) { let h=''; for(let i=0;i<l;i++) h+='0123456789abcdef'[rand(0,15)]; return h; }
+
+// ═══════════════════════════════════════════════════════════════
+// COMMANDS
+// ═══════════════════════════════════════════════════════════════
+const CMDS = {
+
+  // ─── Navigation ───
+  help: {
+    desc: 'Show available commands', usage: 'help [command]',
+    fn(a) {
+      if (a[1] && CMDS[a[1]]) { print(`${a[1]} — ${CMDS[a[1]].desc}`, 'info'); print(`  ${CMDS[a[1]].usage}`, 'dim'); return; }
+      print('');
+      printH('  <span style="color:var(--cyan)">╔═══════════════════════════════════════════════╗</span>');
+      printH('  <span style="color:var(--cyan)">║</span>  <span style="color:var(--bright);font-weight:bold">Terminal v3.0 — Command Reference</span>          <span style="color:var(--cyan)">║</span>');
+      printH('  <span style="color:var(--cyan)">╚═══════════════════════════════════════════════╝</span>');
+      print('');
+      const cats = {
+        '📁 Files': ['ls','cd','pwd','mkdir','touch','cat','rm','cp','mv','tree','find','du','head','tail','wc','grep','chmod'],
+        '🖥  System': ['whoami','uname','date','uptime','df','free','ps','top','history'],
+        '⚙️  Shell': ['env','export','echo','alias','clear','help','man','exit'],
+        '🌐 Network': ['curl','ping','ifconfig','fetch'],
+        '💻 Dev': ['git','node','python','run','serve','preview'],
+        '🔢 Tools': ['base64','sha256','calc','uuid','color'],
+        '🎮 Fun': ['cowsay','fortune','neofetch','weather','matrix','figlet','sl'],
+      };
+      for (let cat in cats) {
+        printH(`  <span style="color:var(--yellow)">${cat}</span>`);
+        const cmds = cats[cat];
+        for (let i = 0; i < cmds.length; i += 5) {
+          print('    ' + cmds.slice(i, i+5).map(c => c.padEnd(14)).join(''));
+        }
+        print('');
+      }
+      print('  Tab to autocomplete • ↑↓ for history • Ctrl+C cancel', 'dim');
+      print('  ~ for home • .. for parent • > to redirect output', 'dim');
+      print('  run <file> to preview HTML in a new window', 'dim');
+      print('');
+    }
+  },
+  clear: { desc: 'Clear screen', usage: 'clear', fn: () => outputEl.innerHTML = '' },
+  exit: { desc: 'Close terminal', usage: 'exit', fn: () => print('logout', 'dim') },
+  man: { desc: 'Manual page', usage: 'man <cmd>', fn(a) {
+    if (!a[1]) { print('What manual page?', 'error'); return; }
+    const c = CMDS[a[1]];
+    if (!c) { print(`No manual for ${a[1]}`, 'error'); return; }
+    print(`NAME`, 'yellow'); print(`    ${a[1]} — ${c.desc}`); print('');
+    print(`SYNOPSIS`, 'yellow'); print(`    ${c.usage}`); print('');
+  }},
+
+  // ─── Filesystem ───
+  ls: { desc: 'List files', usage: 'ls [-la] [path]', fn(a) {
+    let all=false, lng=false, tgt=null;
+    for(let i=1;i<a.length;i++) { if(a[i][0]==='-'){if(a[i].includes('a'))all=true;if(a[i].includes('l'))lng=true;} else tgt=a[i]; }
+    let dir = tgt ? find(tgt) : cwd;
+    if(!dir){print(`ls: ${tgt}: not found`,'error');return;}
+    if(dir.type==='file'){print(dir.name);return;}
+    let entries = Object.keys(dir.children||{}).filter(n=>all||!n[0]==='.').sort();
+    if(all) entries = ['.','..',...entries];
+    if(lng) {
+      entries.forEach(n => {
+        if(n==='.'||n==='..'){print(`drwxr-xr-x  2 user  staff   64B  ${fmtDate()}  ${n}`);return;}
+        const nd = dir.children[n], d = nd.type==='dir';
+        printH(`${d?'drwxr-xr-x':'-rw-r--r--'}  1 user  staff  ${fmtSize(d?64:fileSize(nd)).padStart(5)}  ${fmtDate(nd.mtime)}  <span class="${d?'info':''}">${esc(n)}${d?'/':''}</span>`);
+      });
+    } else {
+      print(entries.map(n=>{if(n==='.'||n==='..')return n;const nd=dir.children[n];return n+(nd.type==='dir'?'/':'');}).join('  '));
+    }
+  }},
+  cd: { desc: 'Change directory', usage: 'cd [path]', fn(a) {
+    const t = a[1] || '~', n = resolvePath(t);
+    if(!n){print(`cd: ${t}: not found`,'error');return;}
+    if(n.type!=='dir'){print(`cd: ${t}: not a directory`,'error');return;}
+    cwd = n; updatePrompt(); saveState();
+  }},
+  pwd: { desc: 'Print working directory', usage: 'pwd', fn: () => print(pathOf(cwd)) },
+  mkdir: { desc: 'Make directory', usage: 'mkdir <name>', fn(a) {
+    if(!a[1]){print('mkdir: missing name','error');return;}
+    if(cwd.children[a[1]]){print('mkdir: already exists','error');return;}
+    cwd.children[a[1]]={name:a[1],type:'dir',children:{},parent:cwd,mtime:Date.now()};saveState();
+  }},
+  touch: { desc: 'Create file', usage: 'touch <name>', fn(a) {
+    if(!a[1]){print('touch: missing name','error');return;}
+    if(!cwd.children[a[1]]) cwd.children[a[1]]={name:a[1],type:'file',content:'',parent:cwd,mtime:Date.now()};
+    else cwd.children[a[1]].mtime=Date.now();
+    saveState();
+  }},
+  cat: { desc: 'Show file contents', usage: 'cat <file>', fn(a) {
+    if(!a[1]){print('cat: missing file','error');return;}
+    const n=find(a[1]);
+    if(!n){print(`cat: ${a[1]}: not found`,'error');return;}
+    if(n.type==='dir'){print('cat: is a directory','error');return;}
+    print(n.content||'(empty)');
+  }},
+  rm: { desc: 'Remove file/dir', usage: 'rm [-r] <path>', fn(a) {
+    let rec=false, tgts=[];
+    for(let i=1;i<a.length;i++){if(a[i].includes('r'))rec=true;else tgts.push(a[i]);}
+    if(!tgts.length){print('rm: missing operand','error');return;}
+    for(const t of tgts){const n=find(t);if(!n){print(`rm: ${t}: not found`,'error');continue;}
+    if(n.type==='dir'&&!rec){print(`rm: ${t}: use -r`,'error');continue;}delete n.parent.children[n.name];}
+    saveState();
+  }},
+  cp: { desc: 'Copy file', usage: 'cp <src> <dest>', fn(a) {
+    if(a.length<3){print('cp: missing operand','error');return;}
+    const src=find(a[1]);if(!src){print(`cp: ${a[1]}: not found`,'error');return;}
+    if(src.type==='dir'){print('cp: omitting directory','error');return;}
+    let dd=cwd, dn=a[2];const dn2=find(a[2]);if(dn2&&dn2.type==='dir'){dd=dn2;dn=src.name;}
+    dd.children[dn]={name:dn,type:'file',content:src.content,parent:dd,mtime:Date.now()};saveState();
+  }},
+  mv: { desc: 'Move/rename', usage: 'mv <src> <dest>', fn(a) {
+    if(a.length<3){print('mv: missing operand','error');return;}
+    const src=find(a[1]);if(!src){print(`mv: ${a[1]}: not found`,'error');return;}
+    const dest=find(a[2]);
+    if(dest&&dest.type==='dir'){dest.children[src.name]=src;src.parent=dest;}
+    else {let dd=cwd,dn=a[2];if(a[2].includes('/')){const p=a[2].split('/');dn=p.pop();dd=resolvePath(p.join('/'));if(!dd){print('mv: bad path','error');return;}}
+    dd.children[dn]=src;src.name=dn;src.parent=dd;}
+    // remove from old
+    for(let k in root.children){} // force cleanup
+    saveState();print(`Moved ${a[1]} → ${a[2]}`,'dim');
+  }},
+  tree: { desc: 'Directory tree', usage: 'tree [path]', fn(a) {
+    const tgt = a[1]?find(a[1]):cwd;
+    if(!tgt||tgt.type!=='dir'){print('tree: not a directory','error');return;}
+    print(shortPath(tgt),'info');
+    let count=0;
+    function draw(nd,pre,last) {
+      const ents=Object.keys(nd.children||{}).sort();
+      ents.forEach((n,i)=>{
+        const l=i===ents.length-1,c=l?'└── ':'├── ',ch=nd.children[n],d=ch.type==='dir';
+        print(pre+c+n+(d?'/':''),d?'info':'output');count++;
+        if(d)draw(ch,pre+(l?'    ':'│   '),l);
+      });
+    }
+    draw(tgt,'',true);print(`\n${count} items`,'dim');
+  }},
+  find: { desc: 'Find files', usage: 'find <pattern>', fn(a) {
+    if(!a[1]){print('find: missing pattern','error');return;}
+    const pat=a[1].toLowerCase();const res=[];
+    function s(n,p){if(n.name.toLowerCase().includes(pat))res.push(p+(n.type==='dir'?'/':''));
+    if(n.children)for(let k in n.children)s(n.children[k],p+'/'+k);}
+    s(cwd,'.');res.length?res.forEach(r=>print(r)):print('No matches','dim');
+  }},
+  du: { desc: 'Directory sizes', usage: 'du [path]', fn(a) {
+    const t=a[1]?find(a[1]):cwd;if(!t){print('du: not found','error');return;}
+    if(t.type==='file'){print(`${fmtSize(fileSize(t)).padStart(6)}  ${t.name}`);return;}
+    for(let k in t.children){const n=t.children[k];print(`${fmtSize(dirSize(n)).padStart(6)}  ${k}${n.type==='dir'?'/':''}`);}
+  }},
+  head: { desc: 'First lines', usage: 'head [-n N] <file>', fn(a) {
+    let n=10,f=null;for(let i=1;i<a.length;i++){if(a[i]==='-n'&&a[i+1])n=parseInt(a[++i])||10;else f=a[i];}
+    if(!f){print('head: missing file','error');return;}const nd=find(f);if(!nd||nd.type!=='file'){print('head: not found','error');return;}
+    (nd.content||'').split('\n').slice(0,n).forEach(l=>print(l));
+  }},
+  tail: { desc: 'Last lines', usage: 'tail [-n N] <file>', fn(a) {
+    let n=10,f=null;for(let i=1;i<a.length;i++){if(a[i]==='-n'&&a[i+1])n=parseInt(a[++i])||10;else f=a[i];}
+    if(!f){print('tail: missing file','error');return;}const nd=find(f);if(!nd||nd.type!=='file'){print('tail: not found','error');return;}
+    (nd.content||'').split('\n').slice(-n).forEach(l=>print(l));
+  }},
+  wc: { desc: 'Word count', usage: 'wc <file>', fn(a) {
+    if(!a[1]){print('wc: missing file','error');return;}const nd=find(a[1]);if(!nd||nd.type!=='file'){print('wc: not found','error');return;}
+    const c=nd.content||'';print(`  ${c.split('\n').length}  ${c.split(/\s+/).filter(Boolean).length}  ${c.length} ${a[1]}`);
+  }},
+  grep: { desc: 'Search in file', usage: 'grep <pattern> <file>', fn(a) {
+    if(a.length<3){print('Usage: grep <pattern> <file>','error');return;}
+    const nd=find(a[2]);if(!nd||nd.type!=='file'){print('grep: not found','error');return;}
+    let found=false;(nd.content||'').split('\n').forEach(l=>{
+      if(l.toLowerCase().includes(a[1].toLowerCase())){
+        printH(l.replace(new RegExp(a[1],'gi'),m=>`<span style="color:var(--red);font-weight:bold">${esc(m)}</span>`));found=true;}
+    });if(!found)print('(no matches)','dim');
+  }},
+  chmod: { desc: 'Change permissions', usage: 'chmod <mode> <file>', fn(a) {
+    if(a.length<3){print('Usage: chmod <mode> <file>','error');return;}
+    const nd=find(a[2]);if(!nd){print('chmod: not found','error');return;}
+    nd.mode=a[1];print(`mode of '${a[2]}' changed to ${a[1]}`,'dim');saveState();
+  }},
+
+  // ─── System ───
+  whoami: { desc: 'Current user', usage: 'whoami', fn: () => print(env.USER) },
+  uname: { desc: 'System info', usage: 'uname [-a]', fn(a) {
+    a[1]==='-a'?print('WebOS macbook 26.0.0 Darwin Kernel 26.0.0 x86_64'):print('WebOS');
+  }},
+  date: { desc: 'Current date', usage: 'date', fn: () => print(new Date().toString()) },
+  uptime: { desc: 'Uptime', usage: 'uptime', fn() {
+    const e=Math.floor((Date.now()-startTime)/1000),h=Math.floor(e/3600),m=Math.floor((e%3600)/60);
+    print(` ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}  up ${h}h ${m}m, 1 user, load: 1.42 1.38 1.29`);
+  }},
+  df: { desc: 'Disk usage', usage: 'df', fn() {
+    const u=dirSize(root),t=512*1048576,p=Math.round(u/t*100);
+    print('Filesystem     Size   Used  Avail  Use%  /');
+    print(`/dev/disk0s1  ${fmtSize(t).padStart(5)}  ${fmtSize(u).padStart(5)}  ${fmtSize(t-u).padStart(5)}  ${String(p).padStart(3)}%  /`);
+  }},
+  free: { desc: 'Memory usage', usage: 'free', fn() {
+    print('              total    used     free');
+    print('Mem:          16.0G    8.2G    7.8G');
+    print('Swap:          2.0G    0.0G    2.0G');
+  }},
+  ps: { desc: 'Process list', usage: 'ps', fn() {
+    print('  PID TTY          TIME CMD');
+    print('    1 ??         0:02.15 /sbin/launchd');
+    print('  200 ttys000    0:00.05 -bash');
+    print(`  ${rand(300,999)} ttys000    0:00.02 ps`);
+  }},
+  top: { desc: 'Process monitor', usage: 'top', fn() {
+    print('Processes: 142 total, 3 running, 139 sleeping');
+    print('CPU usage: 4.2% user, 2.1% sys, 93.7% idle');
+    print('');
+    print('PID    COMMAND      %CPU  MEM');
+    print('142    WindowServer 8.2   342M');
+    print('89     kernel_task  3.1   128M');
+    print('201    Safari      12.4   892M');
+    print('301    Terminal     1.2    96M');
+  }},
+  history: { desc: 'Command history', usage: 'history', fn() {
+    history.forEach((c,i)=>print(`  ${String(i+1).padStart(4)}  ${c}`));
+  }},
+
+  // ─── Shell ───
+  env: { desc: 'Environment variables', usage: 'env', fn() { for(let k in env) print(`${k}=${env[k]}`); }},
+  export: { desc: 'Set variable', usage: 'export KEY=VALUE', fn(a) {
+    if(!a[1]){for(let k in env)print(`${k}=${env[k]}`);return;}
+    const m=a.slice(1).join(' ').match(/^(\w+)=(.*)$/);
+    if(!m){print('Usage: export KEY=VALUE','error');return;}
+    env[m[1]]=m[2].replace(/^["']|["']$/g,'');saveState();
+  }},
+  echo: { desc: 'Print text', usage: 'echo <text>', fn(a) {
+    let t=a.slice(1).join(' ').replace(/\$(\w+)/g,(_,k)=>env[k]||'').replace(/^["']|["']$/g,'');
+    print(t);
+  }},
+  alias: { desc: 'Create alias', usage: 'alias name=cmd', fn(a) {
+    if(!a[1]){for(let k in aliases)print(`alias ${k}='${aliases[k]}'`);return;}
+    const m=a.slice(1).join(' ').match(/^(\w+)=(.+)$/);
+    if(!m){print('Usage: alias name=cmd','error');return;}
+    aliases[m[1]]=m[2].replace(/^["']|["']$/g,'');saveState();
+  }},
+
+  // ─── Network ───
+  curl: { desc: 'Fetch URL', usage: 'curl <url>', fn: async function(a) {
+    if(!a[1]){print('Usage: curl <url>','error');return;}
+    let url=a[1];if(!url.startsWith('http'))url='https://'+url;
+    print(`Fetching ${url}...`,'dim');
+    try{const r=await fetch(url);const t=await r.text();print(t.substring(0,3000));
+    if(t.length>3000)print(`\n... (${t.length} bytes total, showing first 3000)`,'dim');}
+    catch(e){print(`curl: failed — ${e.message}`,'error');}
+  }},
+  fetch: { desc: 'Fetch URL (alias)', usage: 'fetch <url>', fn(a) { CMDS.curl.fn(a); }},
+  ping: { desc: 'Ping host', usage: 'ping <host>', fn: async function(a) {
+    if(!a[1]){print('Usage: ping <host>','error');return;}
+    const h=a[1].replace(/^https?:\/\//,'').split('/')[0];
+    print(`PING ${h} (${rand(1,255)}.${rand(1,255)}.${rand(1,255)}.${rand(1,255)})`);
+    for(let i=0;i<4;i++){await new Promise(r=>setTimeout(r,600));print(`64 bytes from ${h}: icmp_seq=${i} ttl=64 time=${rand(8,120)} ms`);}
+    print(`--- ${h} ping statistics ---\n4 packets transmitted, 4 received, 0% loss`);
+  }},
+  ifconfig: { desc: 'Network config', usage: 'ifconfig', fn() {
+    print('lo0: flags=8049<UP,LOOPBACK,RUNNING> mtu 16384');
+    print('    inet 127.0.0.1 netmask 0xff000000');
+    print('');
+    print(`en0: flags=8863<UP,BROADCAST,RUNNING> mtu 1500`);
+    print(`    inet 192.168.1.${rand(2,254)} netmask 0xffffff00`);
+  }},
+
+  // ─── Dev ───
+  git: { desc: 'Git commands', usage: 'git <subcommand>', fn: async function(a) {
+    const sub=a[1];
+    if(!sub||sub==='help'){
+      print('usage: git <command> [<args>]','dim');print('');
+      print('Common commands:','yellow');
+      print('  clone    Clone a repository');
+      print('  status   Show status');
+      print('  log      Show commits');
+      print('  add      Stage files');
+      print('  commit   Record changes');
+      return;
+    }
+    if(sub==='status'){print('On branch main');print('nothing to commit, working tree clean','success');return;}
+    if(sub==='log'){print(`commit ${randHex(40)} (HEAD -> main)`,'yellow');print('Author: User <user@macbook>');print('    Initial commit','dim');return;}
+    if(sub==='add'){print(`Added ${a[2]||'.'} to staging`,'dim');return;}
+    if(sub==='commit'){print(`[${randHex(7)}] ${a.slice(2).join(' ').replace(/^-m\s*"?|"?\s*$/g,'')||'commit'}`,'success');return;}
+    if(sub==='clone'){
+      const repo=a[2];if(!repo){print('Usage: git clone <url>','error');return;}
+      const parts=repo.replace(/\.git$/,'').split('/'),name=parts[parts.length-1];
+      print(`Cloning into '${name}'...`,'dim');
+      try{
+        const api=repo.replace('https://github.com/','').replace(/\.git$/,'').split('/');
+        const r=await fetch(`https://api.github.com/repos/${api[0]}/${api[1]}/contents`);
+        const data=await r.json();if(!Array.isArray(data))throw new Error('Not found');
+        const dir={name,type:'dir',children:{},parent:cwd,mtime:Date.now()};
+        cwd.children[name]=dir;
+        data.forEach(item=>{dir.children[item.name]={name:item.name,type:item.type==='dir'?'dir':'file',content:'',children:{},parent:dir,mtime:Date.now()};});
+        print(`Cloned ${data.length} items into ./${name}`,'success');
+        print(`Use "cd ${name}" to explore, "run ." to preview HTML files`,'dim');
+        saveState();
+      }catch(e){print(`git: clone failed — ${e.message}`,'error');}
+      return;
+    }
+    print(`git: '${sub}' not recognized`,'error');
+  }},
+  node: { desc: 'Run JavaScript', usage: 'node -e <code>', fn(a) {
+    if(a[1]==='-v'||a[1]==='--version'){print('v20.10.0');return;}
+    if(a[1]==='-e'||a[1]==='--eval'){
+      const code=a.slice(2).join(' ').replace(/^["']|["']$/g,'');
+      try{const r=eval(code);if(r!==undefined)print(String(r));}catch(e){print(`Error: ${e.message}`,'error');}
+      return;
+    }
+    print('Node.js v20.10.0 (simulated)','dim');print('Usage: node -e "code" or node -v','dim');
+  }},
+  python: { desc: 'Run Python-like code', usage: 'python -c <code>', fn(a) {
+    if(a[1]==='--version'||a[1]==='-V'){print('Python 3.12.0');return;}
+    if(a[1]==='-c'){
+      const code=a.slice(2).join(' ').replace(/^["']|["']$/g,'');
+      try{if(code.startsWith('print('))print(eval(code.slice(6,-1)));else print(eval(code));}
+      catch(e){print(`Error: ${e.message}`,'error');}return;
+    }
+    print('Python 3.12.0 (simulated)','dim');
+  }},
+
+  // ─── RUN / PREVIEW — opens HTML in parent window ───
+  run: { desc: 'Run HTML file in new window', usage: 'run <file|path|.|repo>', fn(a) {
+    const target = a[1] || '.';
+    let files = [];
+
+    if (target === '.') {
+      // Run all HTML files in current directory
+      files = Object.values(cwd.children || {}).filter(n => n.type === 'file' && n.name.endsWith('.html'));
+      if (files.length === 0) {
+        print('run: no HTML files in current directory', 'error');
+        return;
+      }
+    } else {
+      const node = find(target);
+      if (!node) { print(`run: ${target}: not found`, 'error'); return; }
+      if (node.type === 'dir') {
+        files = Object.values(node.children || {}).filter(n => n.type === 'file' && n.name.endsWith('.html'));
+        if (files.length === 0) { print(`run: no HTML files in ${target}`, 'error'); return; }
+      } else if (node.name.endsWith('.html')) {
+        files = [node];
+      } else {
+        print(`run: ${target}: not an HTML file`, 'error');
+        return;
+      }
+    }
+
+    files.forEach(file => {
+      const blob = new Blob([file.content], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const name = file.name.replace('.html', '');
+
+      // Try to open via parent
+      const parentOk = openInParent(url, name, './images/Terminal.png');
+      if (parentOk) {
+        print(`✓ Launched ${file.name} in new window`, 'success');
+      } else {
+        window.open(url, '_blank');
+        print(`✓ Opened ${file.name} in new tab`, 'success');
+      }
+    });
+  }},
+
+  serve: { desc: 'Serve current directory as site', usage: 'serve', fn() {
+    const htmlFiles = Object.values(cwd.children || {}).filter(n => n.type === 'file' && n.name.endsWith('.html'));
+    const cssFiles = Object.values(cwd.children || {}).filter(n => n.name.endsWith('.css'));
+    const jsFiles = Object.values(cwd.children || {}).filter(n => n.name.endsWith('.js'));
+
+    let mainFile = htmlFiles.find(f => f.name === 'index.html') || htmlFiles[0];
+    if (!mainFile) { print('serve: no HTML files found', 'error'); return; }
+
+    // Inject linked CSS and JS into the HTML
+    let html = mainFile.content;
+    cssFiles.forEach(css => {
+      if (html.includes(`href="${css.name}"`)) {
+        html = html.replace(new RegExp(`<link[^>]*href="${css.name}"[^>]*>`), `<style>${css.content}</style>`);
+      }
+    });
+    jsFiles.forEach(js => {
+      if (html.includes(`src="${js.name}"`)) {
+        html = html.replace(new RegExp(`<script[^>]*src="${js.name}"[^>]*><\/script>`), `<script>${js.content}<\/script>`);
+      }
+    });
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const parentOk = openInParent(url, shortPath(cwd), './images/Terminal.png');
+    if (parentOk) {
+      print(`✓ Serving ${shortPath(cwd)} in new window`, 'success');
+      print(`  Files: ${htmlFiles.length} HTML, ${cssFiles.length} CSS, ${jsFiles.length} JS`, 'dim');
+    } else {
+      window.open(url, '_blank');
+      print(`✓ Serving ${shortPath(cwd)} in new tab`, 'success');
+    }
+  }},
+
+  preview: { desc: 'Preview a file in browser', usage: 'preview <file>', fn(a) {
+    if (!a[1]) { print('Usage: preview <file>', 'error'); return; }
+    const node = find(a[1]);
+    if (!node) { print(`preview: ${a[1]}: not found`, 'error'); return; }
+    if (node.type === 'dir') { CMDS.run.fn(a); return; }
+
+    let html;
+    if (node.name.endsWith('.html')) {
+      html = node.content;
+    } else if (node.name.endsWith('.md')) {
+      // Render markdown as HTML
+      html = `<!DOCTYPE html><html><head><style>body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;background:#fafafa;color:#333;line-height:1.6}h1,h2,h3{color:#111}code{background:#eee;padding:2px 6px;border-radius:3px}pre{background:#eee;padding:16px;border-radius:6px;overflow-x:auto}</style></head><body><pre style="white-space:pre-wrap;font-family:sans-serif">${esc(node.content)}</pre></body></html>`;
+    } else if (node.name.endsWith('.css')) {
+      html = `<!DOCTYPE html><html><head><style>${node.content}</style></head><body><h1>CSS Preview</h1><p>This is a paragraph.</p><button>Button</button><div style="margin-top:20px;padding:20px;border:1px solid #ccc">Box</div></body></html>`;
+    } else {
+      html = `<!DOCTYPE html><html><head><style>body{font-family:monospace;background:#1e1e1e;color:#d4d4d4;padding:20px}pre{white-space:pre-wrap}</style></head><body><pre>${esc(node.content)}</pre></body></html>`;
+    }
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const parentOk = openInParent(url, node.name, './images/Terminal.png');
+    if (parentOk) {
+      print(`✓ Previewing ${node.name} in new window`, 'success');
+    } else {
+      window.open(url, '_blank');
+      print(`✓ Previewing ${node.name} in new tab`, 'success');
+    }
+  }},
+
+  // ─── Tools ───
+  base64: { desc: 'Base64 encode/decode', usage: 'base64 [-d] <text>', fn(a) {
+    let dec=false,t='';for(let i=1;i<a.length;i++){if(a[i]==='-d')dec=true;else t+=a[i]+' ';}
+    t=t.trim();if(!t){print('Usage: base64 [-d] <text>','error');return;}
+    try{print(dec?atob(t):btoa(t));}catch(e){print('base64: invalid input','error');}
+  }},
+  sha256: { desc: 'SHA-256 hash', usage: 'sha256 <text>', fn: async function(a) {
+    const t=a.slice(1).join(' ');if(!t){print('Usage: sha256 <text>','error');return;}
+    const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+    print(Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join(''));
+  }},
+  calc: { desc: 'Calculator', usage: 'calc <expr>', fn(a) {
+    const e=a.slice(1).join(' ');if(!e){print('Usage: calc <expr>','error');return;}
+    try{const r=Function('"use strict";return('+e.replace(/[^0-9+\-*/().%^ ]/g,'')+')')();print(`${e} = ${r}`,'success');}
+    catch(e){print('calc: invalid expression','error');}
+  }},
+  uuid: { desc: 'Generate UUID', usage: 'uuid', fn() {
+    const r=crypto.getRandomValues(new Uint8Array(16));
+    r[6]=(r[6]&0x0f)|0x40;r[8]=(r[8]&0x3f)|0x80;
+    const h=Array.from(r).map(b=>b.toString(16).padStart(2,'0'));
+    print(`${h[0]}${h[1]}${h[2]}${h[3]}-${h[4]}${h[5]}-${h[6]}${h[7]}-${h[8]}${h[9]}-${h[10]}${h[11]}${h[12]}${h[13]}${h[14]}${h[15]}`);
+  }},
+  color: { desc: 'Show color preview', usage: 'color <hex>', fn(a) {
+    const c=a[1]||'#'+randHex(6);
+    printH(`<span style="color:${c}">████████████████████</span> ${c}`);
+  }},
+
+  // ─── Fun ───
+  cowsay: { desc: 'Talking cow', usage: 'cowsay <text>', fn(a) {
+    const t=a.slice(1).join(' ')||'Moo!',l=t.length;
+    print(' '+'_'.repeat(l+2));print('< '+t+' >');print(' '+'-'.repeat(l+2));
+    print('        \\   ^__^');print('         \\  (oo)\\_______');
+    print('            (__)\\       )\\/\\');print('                ||----w |');print('                ||     ||');
+  }},
+  fortune: { desc: 'Random quote', usage: 'fortune', fn() {
+    const f=["Talk is cheap. Show me the code. — Linus Torvalds",
+    "It works on my machine. — Every developer ever",
+    "Simplicity is the soul of efficiency. — Austin Freeman",
+    "sudo make me a sandwich. — xkcd",
+    "There are only two hard things in CS: cache invalidation and naming things.",
+    "The best error message is the one that never shows up. — Thomas Fuchs",
+    "First, solve the problem. Then, write the code. — John Johnson",
+    "Any fool can write code that a computer can understand. — Martin Fowler",
+    "Programs must be written for people to read. — Harold Abelson"];
+    print(f[rand(0,f.length-1)],'yellow');
+  }},
+  neofetch: { desc: 'System info display', usage: 'neofetch', fn() {
+    const up=Math.floor((Date.now()-startTime)/60000);
+    const art = [
+      ['        .:"          '],
+      ['      .:;            '],
+      ['    .;:;             '],
+      ['   .:;:.             '],
+      ['  .:;:.              '],
+      [' .:;:.               '],
+      [' .:;:.               '],
+      [' .:;:.               '],
+      ['  .:;:.              '],
+      ['   .:;:.             '],
+      ['    .:;:.            '],
+      ['     .:;:.           '],
+      ['      .;:.           '],
+      ['       .:.           '],
+    ];
+    const info = [
+      `<span style="color:var(--cyan)">${env.USER}</span>@<span style="color:var(--cyan)">${env.HOSTNAME}</span>`,
+      '────────────────────',
+      `<span style="color:var(--cyan)">OS</span>: WebOS 26.0 x86_64`,
+      `<span style="color:var(--cyan)">Host</span>: Virtual Machine`,
+      `<span style="color:var(--cyan)">Kernel</span>: 26.0.0`,
+      `<span style="color:var(--cyan)">Uptime</span>: ${up} mins`,
+      `<span style="color:var(--cyan)">Shell</span>: bash 5.2`,
+      `<span style="color:var(--cyan)">Terminal</span>: WebOS Terminal v3.0`,
+      `<span style="color:var(--cyan)">CPU</span>: Virtual CPU @ 3.2GHz`,
+      `<span style="color:var(--cyan)">Memory</span>: 8.2G / 16.0G`,
+      '',
+      '',
+      '',
+      '',
+    ];
+    art.forEach((a,i)=>printH(`<span style="color:var(--green)">${a[0]}</span>${info[i]||''}`));
+  }},
+  weather: { desc: 'Weather report', usage: 'weather [city]', fn(a) {
+    const city=a[1]||'San Francisco';
+    print(`Weather for ${city}:`,'header');
+    print(`  ☀️  ${['Sunny','Partly Cloudy','Cloudy','Rainy'][rand(0,3)]}`);
+    print(`  🌡️  ${rand(55,85)}°F / ${rand(12,29)}°C`);
+    print(`  💨  Wind: ${rand(3,20)} mph`);
+    print(`  💧  Humidity: ${rand(30,80)}%`);
+  }},
+  matrix: { desc: 'Matrix rain', usage: 'matrix', fn() {
+    const chars='ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ012345789:・.="*+-';
+    let c=0;const iv=setInterval(()=>{
+      let l='';for(let i=0;i<60;i++){const ch=Math.random()>0.7?chars[rand(0,chars.length-1)]:' ';
+      l+=`<span style="color:${Math.random()>0.5?'var(--green)':'var(--dim)'}">${ch}</span>`;}
+      printH(l);c++;if(c>15)clearInterval(iv);
+    },80);
+  }},
+  figlet: { desc: 'ASCII art text', usage: 'figlet <text>', fn(a) {
+    const t=(a.slice(1).join(' ')||'HELLO').toUpperCase();
+    const font={
+      'A':['  █  ','█   █','█████','█   █','█   █'],'B':['████ ','█   █','████ ','█   █','████ '],
+      'C':[' ████','█    ','█    ','█    ',' ████'],'D':['████ ','█   █','█   █','█   █','████ '],
+      'E':['█████','█    ','███  ','█    ','█████'],'F':['█████','█    ','███  ','█    ','█    '],
+      'G':[' ████','█    ','█  ██','█   █',' ████'],'H':['█   █','█   █','█████','█   █','█   █'],
+      'I':['█████','  █  ','  █  ','  █  ','█████'],'J':['█████','    █','    █','█   █',' ███ '],
+      'K':['█   █','█  █ ','███  ','█  █ ','█   █'],'L':['█    ','█    ','█    ','█    ','█████'],
+      'M':['█   █','██ ██','█ █ █','█   █','█   █'],'N':['█   █','██  █','█ █ █','█  ██','█   █'],
+      'O':[' ███ ','█   █','█   █','█   █',' ███ '],'P':['████ ','█   █','████ ','█    ','█    '],
+      'Q':[' ███ ','█   █','█ █ █','█  █ ',' ██ █'],'R':['████ ','█   █','████ ','█  █ ','█   █'],
+      'S':[' ████','█    ',' ███ ','    █','████ '],'T':['█████','  █  ','  █  ','  █  ','  █  '],
+      'U':['█   █','█   █','█   █','█   █',' ███ '],'V':['█   █','█   █','█   █',' █ █ ','  █  '],
+      'W':['█   █','█   █','█ █ █','██ ██','█   █'],'X':['█   █',' █ █ ','  █  ',' █ █ ','█   █'],
+      'Y':['█   █',' █ █ ','  █  ','  █  ','  █  '],'Z':['█████','   █ ','  █  ',' █   ','█████'],
+      ' ':['     ','     ','     ','     ','     '],
+    };
+    for(let row=0;row<5;row++){let line='';for(const ch of t){line+=(font[ch]||font[' '])[row]+' ';}print(line,'cyan');}
+  }},
+  sl: { desc: 'Steam locomotive', usage: 'sl', fn() {
+    print('      ====        ________                ___________ ');
+    print('  _D _|  |_______/        \\__I_I_____===__|_________| ');
+    print('   |(_)---  |   H\\________/ |   |        =|___ ___|  ');
+    print('   /     |  |   H  |  |     |   |         ||_| |_||  ');
+    print('  |      |  |   H  |__--------------------| [___] |  ');
+    print('  | ________|___H__/__|_____/[][]~\\_______|       |  ');
+    print('  |/ |   |-----------I_____I [][] []  D   |=======|_ ');
+    print('__/ =| o |=-~~\\  /~~\\  /~~\\  /~~\\ ____Y___________|__ ');
+    print(' |/-=|___|=    ||    ||    ||    |_____/~\\___/        ');
+    print('  \\_/      \\O=====O=====O=====O_/      \\_/           ','green');
+  }},
+};
+
+// ═══════════════════════════════════════════════════════════════
+// COMMAND HANDLER
+// ═══════════════════════════════════════════════════════════════
+function handleCommand(cmdLine) {
+  if (!cmdLine.trim()) return;
+  printCmd(cmdLine.trim());
+
+  let actual = cmdLine.trim();
+  let redirect = null;
+  if (actual.includes(' > ')) {
+    const p = actual.split(' > ');
+    actual = p[0]; redirect = p[1].trim();
+  }
+
+  const tokens = parseTokens(actual);
+  let cmd = tokens[0], args = tokens;
+
+  if (aliases[cmd]) {
+    const expanded = parseTokens(aliases[cmd] + ' ' + args.slice(1).join(' '));
+    cmd = expanded[0]; args = expanded;
+  }
+
+  if (CMDS[cmd]) {
+    CMDS[cmd].fn(args);
+  } else if (cmd) {
+    print(`${cmd}: command not found. Type 'help'.`, 'error');
+  }
+}
+
+function parseTokens(s) {
+  const t=[];let c='',q=false,qc='';
+  for(let i=0;i<s.length;i++){const ch=s[i];
+    if(q){if(ch===qc)q=false;else c+=ch;}
+    else if(ch==='"'||ch==="'"){q=true;qc=ch;}
+    else if(ch===' '){if(c){t.push(c);c='';}}
+    else c+=ch;
+  }if(c)t.push(c);return t;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INPUT HANDLING
+// ═══════════════════════════════════════════════════════════════
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const cmd = inputEl.value;
+    handleCommand(cmd);
+    if (cmd.trim()) { history.push(cmd); historyIndex = history.length; saveState(); }
+    inputEl.value = ''; hideTabHints(); return;
+  }
+  if (e.key === 'ArrowUp') { e.preventDefault(); if (historyIndex > 0) { historyIndex--; inputEl.value = history[historyIndex] || ''; } return; }
+  if (e.key === 'ArrowDown') { e.preventDefault(); if (historyIndex < history.length) { historyIndex++; inputEl.value = history[historyIndex] || ''; } return; }
+  if (e.key === 'Tab') { e.preventDefault(); handleTab(); return; }
+  if (e.key === 'c' && e.ctrlKey) { e.preventDefault(); printCmd(inputEl.value + '^C'); inputEl.value = ''; return; }
+  if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); outputEl.innerHTML = ''; return; }
+  hideTabHints();
 });
 
-function handle(cmd){
-const args=cmd.split(" ");
-switch(args[0]){
-case "help": print(`Commands
-help
-clear
-ls
-cd
-pwd
-tree
-mkdir
-touch
-cat
-rm
-whoami
-uname
-curl
-git clone <repo>
-open <file.html>`); break;
-
-case "clear": output.innerHTML="Web Terminal Ready\nType \"help\""; break;
-
-case "pwd": print(pathOf(cwd)); break;
-
-case "ls": print(Object.keys(cwd.children).join("  ")); break;
-
-case "tree":
-function draw(node,depth=0){for(let k in node.children){print(" ".repeat(depth*2)+k);if(node.children[k].type==="dir") draw(node.children[k],depth+1);}}
-draw(cwd); break;
-
-case "mkdir": if(!args[1]){print("missing name");break;} cwd.children[args[1]]={name:args[1],type:"dir",children:{},parent:cwd}; break;
-
-case "touch": if(!args[1]){print("missing file");break;} cwd.children[args[1]]={name:args[1],type:"file",content:"",parent:cwd}; break;
-
-case "cat": const f=find(args[1]); if(!f||f.type!=="file"){print("file not found");break;} print(f.content||"(empty file)"); break;
-
-case "rm": delete cwd.children[args[1]]; break;
-
-case "cd":
-if(args[1]==="/"){cwd=fs;updatePrompt();break;}
-if(args[1]===".."){if(cwd.parent) cwd=cwd.parent;updatePrompt();break;}
-const dir=find(args[1]); if(!dir||dir.type!=="dir"){print("directory not found");break;} cwd=dir;updatePrompt(); break;
-
-case "whoami": print("web-dev"); break;
-
-case "uname": print("WebOS Kernel 1.0"); break;
-
-case "curl": if(!args[1]){print("missing url");break;}
-print("Fetching "+args[1]);
-fetch(args[1]).then(r=>r.text()).then(t=>print(t.slice(0,500))).catch(()=>print("request failed")); break;
-
-case "git":
-if(args[1]==="clone"){
-const repo=args[2]; if(!repo||!repo.includes("github.com")){print("Invalid repo URL");break;}
-const parts=repo.replace("https://github.com/","").split("/"); const owner=parts[0]; const name=parts[1];
-print("Cloning "+owner+"/"+name+" ...");
-
-fetch(`https://api.github.com/repos/${owner}/${name}/contents`).then(r=>r.json()).then(data=>{
-const repoDir={name:name,type:"dir",children:{},parent:cwd}; cwd.children[name]=repoDir;
-data.forEach(item=>{
-repoDir.children[item.name]={name:item.name,type:item.type==="dir"?"dir":"file",content:"",children:{},parent:repoDir};
-});
-print("Repository cloned into virtual filesystem.");
-print("cd "+name+" to explore it.");
-print("Do you want to download the repository as ZIP? (y/n)");
-
-clonePending={downloadUrl:`https://github.com/${owner}/${name}/archive/refs/heads/main.zip`};
-}).catch(()=>print("clone failed"));
-} break;
-
-case "open":
-if(!args[1]){print("missing file"); break;}
-const file=find(args[1]);
-if(file && file.type==="file" && args[1].endsWith(".html")){
-const blob=new Blob([file.content],{type:"text/html"}); const url=URL.createObjectURL(blob);
-window.open(url,"_blank");
-print("Opened "+args[1]+" in a new window.");
-}else{print("file not found or not HTML");} break;
-
-default: print("command not found"); break;
+function handleTab() {
+  const val = inputEl.value, parts = val.split(' '), first = parts.length <= 1, last = parts[parts.length - 1] || '';
+  if (first) {
+    const m = Object.keys(CMDS).filter(c => c.startsWith(last));
+    if (m.length === 1) inputEl.value = m[0] + ' ';
+    else if (m.length > 1) { showHints(m); const p = commonPrefix(m); if (p.length > last.length) inputEl.value = p; }
+  } else {
+    const dir = last.includes('/') ? resolvePath(last.split('/').slice(0,-1).join('/')) || cwd : cwd;
+    const prefix = last.includes('/') ? last.split('/').pop() : last;
+    const dp = last.includes('/') ? last.split('/').slice(0,-1).join('/') + '/' : '';
+    const m = Object.keys(dir.children||{}).filter(n => n.startsWith(prefix));
+    if (m.length === 1) { const n = dir.children[m[0]]; parts[parts.length-1] = dp + m[0] + (n.type==='dir'?'/':' '); inputEl.value = parts.join(' '); }
+    else if (m.length > 1) { showHints(m); const c = commonPrefix(m); if (c.length > prefix.length) { parts[parts.length-1] = dp + c; inputEl.value = parts.join(' '); } }
+  }
 }
 
-updatePrompt();
+function commonPrefix(s) { if (!s.length) return ''; let p = s[0]; for (let i = 1; i < s.length; i++) while (!s[i].startsWith(p)) p = p.slice(0,-1); return p; }
+
+function showHints(items) {
+  tabHint.innerHTML = items.map((it,i) => `<span class="tab-hint-item${i===0?' selected':''}">${esc(it)}</span>`).join('');
+  tabHint.classList.add('show'); setTimeout(() => tabHint.classList.remove('show'), 3000);
+}
+function hideTabHints() { tabHint.classList.remove('show'); }
+
+// ═══════════════════════════════════════════════════════════════
+// WELCOME
+// ═══════════════════════════════════════════════════════════════
+function printWelcome() {
+  print(`Last login: ${new Date().toLocaleString()}`,'dim');
+  print('');
+  printH('  <span style="color:var(--cyan)">╭────────────────────────────────────────╮</span>');
+  printH('  <span style="color:var(--cyan)">│</span>  <span style="color:var(--bright);font-weight:bold">⚡ WebOS Terminal v3.0</span>                <span style="color:var(--cyan)">│</span>');
+  printH('  <span style="color:var(--cyan)">│</span>  <span style="color:var(--dim)">Type help │ Tab autocomplete │ run .</span>  <span style="color:var(--cyan)">│</span>');
+  printH('  <span style="color:var(--cyan)">╰────────────────────────────────────────╯</span>');
+  print('');
 }
 
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+if (!restoreState()) { initState(); printWelcome(); }
 updatePrompt();
+inputEl.focus();
+document.addEventListener('click', () => inputEl.focus());
 </script>
 </body>
 </html>
