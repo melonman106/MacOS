@@ -3,155 +3,263 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>macOS 26 Words</title>
+<title>macOS 26</title>
 <link rel="icon" href="./apple.png">
 <style>
 :root {
+  --mac-red: #ff5f56;
+  --mac-yellow: #ffbd2e;
+  --mac-green: #27c93f;
   --dock-height: 80px;
-  --dock-width: 800px;
-  --top-nav-height: 30px;
+  --dock-width: 80px;
+  --window-border-radius: 12px;
+  --transition-speed: 0.25s;
 }
+
+* { box-sizing: border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif; }
 
 body, html {
-  margin:0; padding:0; height:100%; width:100%;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-  background: url('Macbg.jpg') no-repeat center/cover;
+  width: 100vw; height: 100vh;
   overflow: hidden;
-}
-
-#top-nav {
-  position: fixed; top:0; left:0; right:0;
-  height: var(--top-nav-height);
-  background: rgba(20,20,20,0.9);
-  z-index: 1000;
-  display:flex; align-items:center; padding:0 10px;
-  color:white; font-weight:600;
+  background: url('Macbg.jpg') center/cover no-repeat;
 }
 
 #dock {
-  position: fixed; bottom:0; left:50%; transform:translateX(-50%);
-  height: var(--dock-height); width: var(--dock-width);
-  background: rgba(20,20,20,0.85); border-radius:20px;
-  display:flex; align-items:center; justify-content:center; gap:20px;
-  padding:0 10px; backdrop-filter:blur(20px); z-index:1000;
+  position: fixed; bottom:0; left:50%;
+  transform: translateX(-50%);
+  height: var(--dock-height);
+  display:flex; align-items:center; justify-content:center;
+  gap: 12px;
+  background: rgba(15,15,15,0.5);
+  padding: 10px;
+  border-radius: 20px 20px 0 0;
+  backdrop-filter: blur(20px);
+  z-index: 999;
 }
 
 .dock-app {
-  width:60px; height:60px;
+  width: var(--dock-width); height: var(--dock-width);
   display:flex; align-items:center; justify-content:center;
-  cursor:pointer; transition: transform 0.2s;
+  border-radius: 16px;
+  cursor:pointer;
+  transition: transform var(--transition-speed), filter var(--transition-speed);
 }
 
-.dock-app:hover { transform: scale(1.25); }
-
-#finder {
-  position: absolute; top: var(--top-nav-height); left: 0;
-  right:0; bottom: var(--dock-height);
-  background: rgba(30,30,30,0.4); backdrop-filter: blur(20px);
-  display:grid; grid-template-columns: repeat(auto-fill, minmax(80px,1fr));
-  grid-auto-rows: 100px; gap:15px; padding:20px;
-  overflow-y: auto; box-sizing:border-box;
+.dock-app:hover {
+  transform: scale(1.2);
+  filter: brightness(1.3);
 }
 
-.finder-app {
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  cursor:pointer; transition: transform 0.15s;
-  text-align:center; font-size:12px; color:white;
-}
-
-.finder-app:hover { transform: scale(1.15); }
+.dock-app img { width: 60%; height: 60%; pointer-events:none; }
 
 .window {
-  position:absolute; background:#1c1c1e; border-radius:12px; border:1px solid rgba(255,255,255,0.1);
-  z-index:500; display:none; overflow:hidden;
-  resize:both; min-width:200px; min-height:150px;
+  position: absolute;
+  background: #1c1c1e;
+  border-radius: var(--window-border-radius);
+  border:1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+  display:none;
+  flex-direction: column;
+  box-shadow:0 20px 50px rgba(0,0,0,0.7);
+  transition: all var(--transition-speed);
+  z-index: 900;
 }
 
 .window-header {
-  height:25px; background: rgba(50,50,50,0.85); display:flex; align-items:center; padding:0 5px;
-  cursor: move; color:white; font-size:12px;
+  height: 32px; display:flex; align-items:center;
+  padding: 0 10px; background: rgba(30,30,30,0.85);
+  cursor: grab;
 }
 
-.window-close { margin-left:auto; cursor:pointer; font-weight:bold; }
-
-iframe.app-content {
-  width:100%; height:calc(100% - 25px); border:none;
+.window-header .traffic {
+  display:flex; gap:6px;
+  margin-right: auto;
 }
 
-/* Toast */
-.toast { position:fixed; bottom: var(--dock-height); left:50%;
-  transform:translateX(-50%) translateY(50px);
-  background:rgba(0,0,0,0.85); color:#fff; padding:10px 25px; border-radius:20px;
-  opacity:0; pointer-events:none; transition: transform 0.35s, opacity 0.3s; z-index:9999;
+.traffic div {
+  width:12px; height:12px;
+  border-radius:50%;
+  cursor:pointer;
 }
-.toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+.traffic .close { background: var(--mac-red);}
+.traffic .fullscreen { background: var(--mac-yellow);}
+.traffic .minimize { background: var(--mac-green);}
+
+.window-content {
+  flex:1; overflow:auto;
+}
+
+iframe {
+  width:100%; height:100%; border:none;
+}
+
+/* Animations */
+@keyframes scaleUp { from {transform: scale(0.8); opacity:0;} to {transform:scale(1); opacity:1;} }
+.window.show { display:flex; animation: scaleUp 0.2s ease forwards; }
+
 </style>
 </head>
 <body>
 
-<div id="top-nav"> macOS 26 Words</div>
-
-<div id="finder">
-  <div class="finder-app" data-app="Safari"><img src="./images/Safari.png" style="width:50px;height:50px"><br>Safari</div>
-  <div class="finder-app" data-app="YouTube"><img src="./images/YouTube.png" style="width:50px;height:50px"><br>YouTube</div>
-  <div class="finder-app" data-app="ChatGPT"><img src="./images/ChatGPT.png" style="width:50px;height:50px"><br>ChatGPT</div>
-  <div class="finder-app" data-app="AppleMusic"><img src="./images/AppleMusic.png" style="width:50px;height:50px"><br>Music</div>
-  <div class="finder-app" data-app="Terminal"><img src="./images/Terminal.png" style="width:50px;height:50px"><br>Terminal</div>
-  <div class="finder-app" data-app="Steam"><img src="./images/Steam.png" style="width:50px;height:50px"><br>Steam</div>
-  <div class="finder-app" data-app="AmplerLauncher"><img src="./images/Ampler.png" style="width:50px;height:50px"><br>Ampler</div>
-  <div class="finder-app" data-app="Settings"><img src="./images/Settings.png" style="width:50px;height:50px"><br>Settings</div>
-</div>
-
+<!-- Dock -->
 <div id="dock">
-  <div class="dock-app" data-app="Finder"><img src="./images/Finder.png" style="width:40px;height:40px"></div>
-  <div class="dock-app" data-app="Safari"><img src="./images/Safari.png" style="width:40px;height:40px"></div>
-  <div class="dock-app" data-app="YouTube"><img src="./images/YouTube.png" style="width:40px;height:40px"></div>
-  <div class="dock-app" data-app="ChatGPT"><img src="./images/ChatGPT.png" style="width:40px;height:40px"></div>
-  <div class="dock-app" data-app="AppleMusic"><img src="./images/AppleMusic.png" style="width:40px;height:40px"></div>
-  <div class="dock-app" data-app="Terminal"><img src="./images/Terminal.png" style="width:40px;height:40px"></div>
-  <div class="dock-app" data-app="Steam"><img src="./images/Steam.png" style="width:40px;height:40px"></div>
-  <div class="dock-app" data-app="AmplerLauncher"><img src="./images/Ampler.png" style="width:40px;height:40px"></div>
-  <div class="dock-app" data-app="Settings"><img src="./images/Settings.png" style="width:40px;height:40px"></div>
+  <div class="dock-app" data-app="Safari"><img src="./images/Safari.png"></div>
+  <div class="dock-app" data-app="YouTube"><img src="./images/YouTube.png"></div>
+  <div class="dock-app" data-app="ChatGPT"><img src="./images/ChatGPT.png"></div>
+  <div class="dock-app" data-app="Settings"><img src="./images/Settings.png"></div>
+  <div class="dock-app" data-app="Ampler"><img src="./images/Ampler.png"></div>
+  <div class="dock-app" data-app="Terminal"><img src="./images/Terminal.png"></div>
+  <div class="dock-app" data-app="Music"><img src="./images/Music.png"></div>
+  <div class="dock-app" data-app="Steam"><img src="./images/Steam.png"></div>
 </div>
 
-<!-- App Windows -->
-<div id="windows-container"></div>
+<!-- Windows -->
+<div class="window" id="Safari"><div class="window-header">
+  <div class="traffic">
+    <div class="close"></div>
+    <div class="fullscreen"></div>
+    <div class="minimize"></div>
+  </div>
+  <span>Safari</span>
+</div><div class="window-content"><iframe src="./Safari.html"></iframe></div></div>
 
-<div class="toast" id="toast"></div>
+<div class="window" id="YouTube"><div class="window-header">
+  <div class="traffic">
+    <div class="close"></div>
+    <div class="fullscreen"></div>
+    <div class="minimize"></div>
+  </div>
+  <span>YouTube</span>
+</div><div class="window-content"><iframe src="./yt.html"></iframe></div></div>
+
+<div class="window" id="ChatGPT"><div class="window-header">
+  <div class="traffic">
+    <div class="close"></div>
+    <div class="fullscreen"></div>
+    <div class="minimize"></div>
+  </div>
+  <span>ChatGPT</span>
+</div><div class="window-content"><iframe src="./GPT.html"></iframe></div></div>
+
+<div class="window" id="Settings"><div class="window-header">
+  <div class="traffic">
+    <div class="close"></div>
+    <div class="fullscreen"></div>
+    <div class="minimize"></div>
+  </div>
+  <span>Settings</span>
+</div><div class="window-content">
+  <h2>Settings</h2>
+  <p>Configure macOS simulator.</p>
+</div></div>
+
+<div class="window" id="Ampler"><div class="window-header">
+  <div class="traffic">
+    <div class="close"></div>
+    <div class="fullscreen"></div>
+    <div class="minimize"></div>
+  </div>
+  <span>Ampler Launcher</span>
+</div><div class="window-content"><iframe src="https://ampler-launcher.wasmer.app/"></iframe></div></div>
+
+<div class="window" id="Terminal"><div class="window-header">
+  <div class="traffic">
+    <div class="close"></div>
+    <div class="fullscreen"></div>
+    <div class="minimize"></div>
+  </div>
+  <span>Terminal</span>
+</div><div class="window-content"><iframe src="./terminal.html"></iframe></div></div>
+
+<div class="window" id="Music"><div class="window-header">
+  <div class="traffic">
+    <div class="close"></div>
+    <div class="fullscreen"></div>
+    <div class="minimize"></div>
+  </div>
+  <span>Apple Music</span>
+</div><div class="window-content"><iframe src="https://freefy.app"></iframe></div></div>
+
+<div class="window" id="Steam"><div class="window-header">
+  <div class="traffic">
+    <div class="close"></div>
+    <div class="fullscreen"></div>
+    <div class="minimize"></div>
+  </div>
+  <span>Steam Library</span>
+</div><div class="window-content"><iframe src="./steam.html"></iframe></div></div>
 
 <script>
+// Dragging windows
+let dragTarget = null, offsetX=0, offsetY=0;
+
+document.querySelectorAll('.window-header').forEach(header=>{
+  header.addEventListener('mousedown', e=>{
+    const w = header.parentElement;
+    dragTarget=w;
+    offsetX = e.clientX - w.offsetLeft;
+    offsetY = e.clientY - w.offsetTop;
+    w.style.zIndex=1000;
+  });
+});
+
+document.addEventListener('mousemove', e=>{
+  if(dragTarget){
+    let x=e.clientX-offsetX, y=e.clientY-offsetY;
+    y=Math.max(0, Math.min(y, window.innerHeight-dragTarget.offsetHeight-80));
+    x=Math.max(0, Math.min(x, window.innerWidth-dragTarget.offsetWidth));
+    dragTarget.style.left=x+'px';
+    dragTarget.style.top=y+'px';
+  }
+});
+
+document.addEventListener('mouseup', ()=>{ dragTarget=null; });
+
+// Dock click open
 const apps = {
-  Safari: './Safari.html',
-  YouTube: './YouTube.html',
-  ChatGPT: './gpt.html',
-  AppleMusic: 'https://freefy.app',
-  Terminal: './Terminal.html',
-  Steam: './Steam.html',
-  AmplerLauncher: 'https://ampler-launcher.wasmer.app/',
-  Settings: './Settings.html'
+  "Safari":"./Safari.html",
+  "YouTube":"./yt.html",
+  "ChatGPT":"./GPT.html",
+  "Settings":"Settings",
+  "Ampler":"https://ampler-launcher.wasmer.app/",
+  "Terminal":"./terminal.html",
+  "Music":"https://freefy.app",
+  "Steam":"./steam.html"
 };
 
-function showToast(msg){
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
-}
+document.querySelectorAll('.dock-app').forEach(app=>{
+  app.addEventListener('click', ()=>{
+    const id = app.dataset.app;
+    const win = document.getElementById(id);
+    if(win.style.display==='flex'){ return; }
+    win.style.display='flex';
+    win.style.width='800px'; win.style.height='500px';
+    win.style.left=(window.innerWidth/2-400)+'px';
+    win.style.top=(window.innerHeight/2-250)+'px';
+    win.classList.add('show');
+  });
+});
 
-function openApp(name,url,width=800,height=500){
-  const container=document.getElementById('windows-container');
-  const win=document.createElement('div');
-  win.className='window'; win.style.width=width+'px'; win.style.height=height+'px';
-  win.style.left=((window.innerWidth-width)/2)+'px';
-  win.style.top=((window.innerHeight-height-parseInt(getComputedStyle(document.documentElement).getPropertyValue('--dock-height')))/2)+'px';
-  win.innerHTML=`<div class="window-header">${name} <span class="window-close" onclick="this.parentElement.parentElement.remove()">✕</span></div>
-  <iframe class="app-content" src="${url}"></iframe>`;
-  container.appendChild(win);
-  win.style.display='block';
-  showToast(`🚀 Launching ${name}`);
-}
-
-// Finder app clicks
-document.querySelectorAll('.finder-app, .dock-app').forEach(app=>{
-  app.addEventListener('click',()=>openApp(app.dataset.app, apps[app.dataset.app]));
+// Traffic lights
+document.querySelectorAll('.traffic .close').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    const win = btn.closest('.window'); win.style.display='none';
+  });
+});
+document.querySelectorAll('.traffic .fullscreen').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    const win = btn.closest('.window');
+    win.style.width=window.innerWidth+'px';
+    win.style.height=(window.innerHeight-80)+'px';
+    win.style.left=0; win.style.top=0;
+  });
+});
+document.querySelectorAll('.traffic .minimize').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    const win = btn.closest('.window');
+    win.style.display='none';
+  });
 });
 </script>
 
