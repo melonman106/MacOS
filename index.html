@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>macOS</title>
+<title>MacOS</title>
 <link rel="icon" href="./apple.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -336,12 +336,11 @@ function createWin(app, saved) {
   bar.querySelector('.lt.r').addEventListener('click', function(e) { e.stopPropagation(); closeWin(win); });
   bar.querySelector('.lt.y').addEventListener('click', function(e) { e.stopPropagation(); win.classList.toggle('minimized'); saveAll(); });
 
-  // GREEN = FULLSCREEN
+  // GREEN = FULLSCREEN (UPDATED - now uses toggleFullscreen function)
   bar.querySelector('.lt.g').addEventListener('click', function(e) {
     e.stopPropagation();
-    win.classList.toggle('fullscreen');
-    updateDock();
-    saveAll();
+    // The toggleFullscreen function now handles everything
+    toggleFullscreen(win); // Pass the specific window to toggle
   });
 
   document.getElementById('win-box').appendChild(win);
@@ -362,7 +361,7 @@ function closeWin(win) {
     wins = wins.filter(function(w) { return w !== win; });
     var top = topWin(); setAppName(top ? top.dataset.name : null);
     buildDock();
-    updateDock();
+    updateDock(); // Make sure dock is updated when window is closed
     saveAll();
   }, 200);
 }
@@ -371,11 +370,14 @@ function bringFront(win) { win.style.zIndex = ++nextZ; setAppName(win.dataset.na
 function topWin() { if (!wins.length) return null; return wins.reduce(function(a, b) { return (parseInt(a.style.zIndex) || 0) > (parseInt(b.style.zIndex) || 0) ? a : b; }); }
 function minFront() { var w = topWin(); if (w) { w.classList.toggle('minimized'); saveAll(); } }
 
-function toggleFullscreen() {
-  var w = topWin();
+// UPDATED toggleFullscreen function to accept an optional window parameter
+function toggleFullscreen(winToToggle) {
+  // If a specific window is provided, toggle it; otherwise toggle the top window
+  var w = winToToggle || topWin();
   if (w) {
+    bringFront(w); // Bring window to front when toggling fullscreen
     w.classList.toggle('fullscreen');
-    updateDock();
+    updateDock(); // This is the key function that shows/hides the dock
     saveAll();
   }
 }
@@ -420,7 +422,7 @@ function restoreAll() {
     if (app) createWin(app, sw);
   });
   var top = topWin(); if (top) setAppName(top.dataset.name);
-  updateDock();
+  updateDock(); // Make sure dock is updated after restoring windows
 }
 
 window.addEventListener('beforeunload', saveAll);
