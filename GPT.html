@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252525;
+            --bg-tertiary: #2a2a2a;
+            --bg-elevated: #303030;
+            --border: #3a3a3a;
+            --border-subtle: #2e2e2e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+            --text-tertiary: #555;
+            --accent: #0a84ff;
+            --accent-hover: #409cff;
+            --green: #30d158;
+            --red: #ff453a;
+            --orange: #ff9f0a;
+            --scrollbar: #444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            font-family: -apple-system, 'Inter', 'SF Pro Text', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* ============================================
+           Header
+           ============================================ */
+        .header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            background: var(--bg-secondary);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-icon svg {
+            width: 16px; height: 16px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-btn {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .header-btn:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .header-btn svg {
+            width: 15px; height: 15px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+        }
+
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        /* ============================================
+           Messages Area
+           ============================================ */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .messages::-webkit-scrollbar { width: 8px; }
+        .messages::-webkit-scrollbar-track { background: transparent; }
+        .messages::-webkit-scrollbar-thumb {
+            background: var(--scrollbar);
+            border-radius: 4px;
+            border: 2px solid var(--bg-primary);
+        }
+
+        .message {
+            display: flex;
+            gap: 14px;
+            animation: fadeIn 0.25s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        .message-avatar {
+            width: 30px; height: 30px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .message.ai .message-avatar {
+            background: var(--accent);
+            color: white;
+        }
+
+        .message.user .message-avatar {
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .message-content { flex: 1; min-width: 0; }
+
+        .message-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .message-time {
+            font-weight: 400;
+            color: var(--text-tertiary);
+            font-size: 11px;
+        }
+
+        .message-text {
+            font-size: 13.5px;
+            line-height: 1.65;
+            color: var(--text-primary);
+        }
+
+        .message-text code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .message-text pre {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        /* Image attachments in messages */
+        .message-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .message-images img {
+            max-width: 280px;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            object-fit: cover;
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+        }
+
+        .message-images img:hover {
+            opacity: 0.85;
+        }
+
+        .message-file-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .message-file-badge svg {
+            width: 14px; height: 14px;
+            opacity: 0.6;
+        }
+
+        /* ============================================
+           Typing Indicator
+           ============================================ */
+        .typing {
+            display: flex; gap: 4px; padding: 2px 0;
+        }
+
+        .typing span {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            animation: typingBounce 1.2s ease-in-out infinite;
+        }
+
+        .typing span:nth-child(2) { animation-delay: 0.12s; }
+        .typing span:nth-child(3) { animation-delay: 0.24s; }
+
+        @keyframes typingBounce {
+            0%, 100% { opacity: 0.3; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        /* ============================================
+           Welcome State
+           ============================================ */
+        .welcome {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            gap: 16px;
+        }
+
+        .welcome-icon {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 4px;
+        }
+
+        .welcome-icon svg { width: 28px; height: 28px; color: white; }
+
+        .welcome h2 { font-size: 20px; font-weight: 600; }
+
+        .welcome p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            max-width: 340px;
+            line-height: 1.5;
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .shortcut-card {
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .shortcut-card:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border);
+        }
+
+        .shortcut-card h4 {
+            font-size: 12px; font-weight: 600; margin-bottom: 4px;
+        }
+
+        .shortcut-card p {
+            font-size: 11px; color: var(--text-tertiary); max-width: none;
+        }
+
+        /* ============================================
+           Input Area
+           ============================================ */
+        .input-area {
+            padding: 16px 24px 20px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+        }
+
+        /* File preview strip */
+        .file-previews {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+            min-height: 0;
+        }
+
+        .file-previews:empty {
+            display: none;
+        }
+
+        .file-preview {
+            position: relative;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            animation: previewIn 0.2s ease forwards;
+        }
+
+        @keyframes previewIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .file-preview.image-preview {
+            width: 72px; height: 72px;
+        }
+
+        .file-preview.image-preview img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .file-preview.file-preview-card {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            max-width: 200px;
+        }
+
+        .file-preview-card .file-icon {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            background: var(--bg-elevated);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .file-preview-card .file-icon svg {
+            width: 14px; height: 14px;
+            color: var(--text-secondary);
+        }
+
+        .file-preview-card .file-info {
+            min-width: 0;
+        }
+
+        .file-preview-card .file-name {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-preview-card .file-size {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .file-preview .remove-file {
+            position: absolute;
+            top: 4px; right: 4px;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            border: none;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            z-index: 2;
+        }
+
+        .file-preview:hover .remove-file {
+            opacity: 1;
+        }
+
+        .file-preview .remove-file:hover {
+            background: var(--red);
+        }
+
+        .file-preview-card .remove-file {
+            position: static;
+            opacity: 0.5;
+            border-radius: 4px;
+            background: transparent;
+            width: 18px; height: 18px;
+            flex-shrink: 0;
+        }
+
+        .file-preview-card:hover .remove-file {
+            opacity: 1;
+        }
+
+        /* Input wrapper */
+        .input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 10px;
+            transition: border-color 0.15s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--accent);
+        }
+
+        .attach-btn {
+            width: 32px; height: 32px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .attach-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .attach-btn svg {
+            width: 18px; height: 18px;
+        }
+
+        #userInput {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13.5px;
+            line-height: 1.5;
+            resize: none;
+            min-height: 20px;
+            max-height: 120px;
+        }
+
+        #userInput::placeholder { color: var(--text-tertiary); }
+
+        #sendButton {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        #sendButton:hover:not(:disabled) { background: var(--accent-hover); }
+        #sendButton:active:not(:disabled) { transform: scale(0.95); }
+        #sendButton:disabled { opacity: 0.3; cursor: default; }
+        #sendButton svg { width: 16px; height: 16px; }
+
+        .input-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            padding: 0 2px;
+        }
+
+        .input-hint {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .input-hint kbd {
+            display: inline-block;
+            padding: 1px 5px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            margin: 0 2px;
+        }
+
+        .file-count {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ============================================
+           Drag & Drop Overlay
+           ============================================ */
+        .drop-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 132, 255, 0.06);
+            backdrop-filter: blur(2px);
+            border: 2px dashed var(--accent);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .drop-overlay.active {
+            opacity: 1;
+        }
+
+        .drop-overlay svg {
+            width: 40px; height: 40px;
+            color: var(--accent);
+        }
+
+        .drop-overlay p {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        .drop-overlay span {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           Image Lightbox
+           ============================================ */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px; right: 20px;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Hidden file input */
+        #fileInput { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app" id="app">
+        <!-- Drop overlay -->
+        <div class="drop-overlay" id="dropOverlay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p>Drop files here</p>
+            <span>Images and documents supported</span>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="header-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <h1>AI Assistant</h1>
+            </div>
+            <div class="header-right">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    Ready
+                </div>
+                <button class="header-btn" title="Clear chat" onclick="clearChat()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="messages" id="messages">
+            <div class="welcome" id="welcome">
+                <div class="welcome-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <h2>AI Assistant</h2>
+                <p>Ask questions, share images or files, get help with code, and more.</p>
+                <div class="shortcuts-grid">
+                    <div class="shortcut-card" data-prompt="Explain this concept">
+                        <h4>Explain</h4>
+                        <p>Break down complex topics</p>
+                    </div>
+                    <div class="shortcut-card" data-prompt="Review this code">
+                        <h4>Review Code</h4>
+                        <p>Get feedback on your code</p>
+                    </div>
+                    <div class="shortcut-card" data-prompt="What's in this image?">
+                        <h4>Analyze Image</h4>
+                        <p>Upload a photo to analyze</p>
+                    </div>
+                    <div class="shortcut-card" data-prompt="Help me debug this">
+                        <h4>Debug</h4>
+                        <p>Find and fix problems</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-area">
+            <div class="file-previews" id="filePreviews"></div>
+            <div class="input-wrapper">
+                <button class="attach-btn" id="attachBtn" title="Attach files">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+                    </svg>
+                </button>
+                <textarea id="userInput" placeholder="Message AI Assistant..." rows="1" spellcheck="false"></textarea>
+                <button id="sendButton" disabled title="Send">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-footer">
+                <span class="input-hint"><kbd>Enter</kbd> send · <kbd>Shift+Enter</kbd> new line · drag & drop files</span>
+                <span class="file-count" id="fileCount"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close">&times;</button>
+        <img id="lightboxImg" src="" alt="">
+    </div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="fileInput" multiple accept="image/*,.pdf,.txt,.md,.json,.js,.py,.html,.css,.csv,.xml,.yaml,.yml,.log,.doc,.docx">
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const API_KEY = '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';
+        const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+        const MODEL = 'openrouter/hunter-alpha'; // Use gpt-4o for vision support
+
+        // ============================================
+        // DOM
+        // ============================================
+        const app = document.getElementById('app');
+        const messagesEl = document.getElementById('messages');
+        const welcomeEl = document.getElementById('welcome');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const attachBtn = document.getElementById('attachBtn');
+        const fileInput = document.getElementById('fileInput');
+        const filePreviews = document.getElementById('filePreviews');
+        const fileCount = document.getElementById('fileCount');
+        const dropOverlay = document.getElementById('dropOverlay');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+
+        // ============================================
+        // State
+        // ============================================
+        let conversationHistory = [
+            { role: 'system', content: 'You are a helpful AI assistant. Be clear, concise, and well-structured. When analyzing images or files, describe what you see in detail.' }
+        ];
+        let hasStarted = false;
+        let pendingFiles = []; // { type, data, name, size, mimeType }
+
+        // ============================================
+        // Textarea auto-resize & input handling
+        // ============================================
+        userInput.addEventListener('input', () => {
+            updateSendButton();
+            userInput.style.height = 'auto';
+            userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+        });
+
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (canSend()) sendMessage();
+            }
+        });
+
+        sendButton.addEventListener('click', () => {
+            if (canSend()) sendMessage();
+        });
+
+        function canSend() {
+            return userInput.value.trim() || pendingFiles.length > 0;
+        }
+
+        function updateSendButton() {
+            sendButton.disabled = !canSend();
+        }
+
+        // ============================================
+        // File attachment button
+        // ============================================
+        attachBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+            fileInput.value = ''; // Reset so same file can be selected again
+        });
+
+        // ============================================
+        // Drag & Drop
+        // ============================================
+        let dragCounter = 0;
+
+        app.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            dragCounter++;
+            dropOverlay.classList.add('active');
+        });
+
+        app.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dragCounter--;
+            if (dragCounter === 0) {
+                dropOverlay.classList.remove('active');
+            }
+        });
+
+        app.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        app.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragCounter = 0;
+            dropOverlay.classList.remove('active');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // ============================================
+        // Handle file selection
+        // ============================================
+        async function handleFiles(files) {
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    // Read as base64
+                    const base64 = await readFileAsBase64(file);
+                    pendingFiles.push({
+                        type: 'image',
+                        data: base64,
+                        name: file.name,
+                        size: file.size,
+                        mimeType: file.type
+                    });
+                } else if (isTextFile(file)) {
+                    // Read as text
+                    const text = await readFileAsText(file);
+                    pendingFiles.push({
+                        type: 'text',
+                        data: text,
+                        name: file.name,
+                        size: file.size,
+                        mimeType: file.type
+                    });
+                } else {
+                    // Generic file - just store metadata
+                    pendingFiles.push({
+                        type: 'file',
+                        data: null,
+                        name: file.name,
+                        size: file.size,
+                        mimeType: file.type
+                    });
+                }
+            }
+            renderFilePreviews();
+            updateSendButton();
+        }
+
+        function isTextFile(file) {
+            const textTypes = [
+                'text/plain', 'text/csv', 'text/markdown', 'text/html', 'text/css',
+                'application/json', 'application/javascript', 'application/xml',
+                'application/x-yaml', 'application/yaml'
+            ];
+            const textExts = ['.txt', '.md', '.json', '.js', '.py', '.html', '.css', '.csv', '.xml', '.yaml', '.yml', '.log', '.ts', '.jsx', '.tsx', '.sh', '.bash', '.rb', '.go', '.rs', '.java', '.c', '.cpp', '.h'];
+            
+            if (textTypes.includes(file.type)) return true;
+            const ext = '.' + file.name.split('.').pop().toLowerCase();
+            return textExts.includes(ext);
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function readFileAsText(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsText(file);
+            });
+        }
+
+        // ============================================
+        // Render file previews
+        // ============================================
+        function renderFilePreviews() {
+            filePreviews.innerHTML = '';
+            
+            pendingFiles.forEach((file, index) => {
+                const el = document.createElement('div');
+                
+                if (file.type === 'image') {
+                    el.className = 'file-preview image-preview';
+                    el.innerHTML = `
+                        <img src="${file.data}" alt="${file.name}">
+                        <button class="remove-file" onclick="removeFile(${index})" title="Remove">&times;</button>
+                    `;
+                    el.querySelector('img').addEventListener('click', () => {
+                        openLightbox(file.data);
+                    });
+                } else {
+                    el.className = 'file-preview file-preview-card';
+                    el.innerHTML = `
+                        <div class="file-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                        <button class="remove-file" onclick="removeFile(${index})" title="Remove">&times;</button>
+                    `;
+                }
+                
+                filePreviews.appendChild(el);
+            });
+
+            // Update file count
+            if (pendingFiles.length > 0) {
+                fileCount.textContent = `${pendingFiles.length} file${pendingFiles.length > 1 ? 's' : ''}`;
+            } else {
+                fileCount.textContent = '';
+            }
+        }
+
+        function removeFile(index) {
+            pendingFiles.splice(index, 1);
+            renderFilePreviews();
+            updateSendButton();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // ============================================
+        // Lightbox
+        // ============================================
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        // ============================================
+        // Shortcut cards
+        // ============================================
+        document.querySelectorAll('.shortcut-card').forEach(card => {
+            card.addEventListener('click', () => {
+                userInput.value = card.dataset.prompt;
+                userInput.focus();
+                updateSendButton();
+                userInput.setSelectionRange(userInput.value.length, userInput.value.length);
+            });
+        });
+
+        // ============================================
+        // Helpers
+        // ============================================
+        function getTime() {
+            return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        }
+
+        function scrollToBottom() {
+            requestAnimationFrame(() => {
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            });
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ============================================
+        // Add message to chat
+        // ============================================
+        function addMessage(role, text, files = []) {
+            if (!hasStarted && welcomeEl) {
+                welcomeEl.style.display = 'none';
+                hasStarted = true;
+            }
+
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+
+            const avatarChar = role === 'ai' ? '✦' : 'Y';
+            const label = role === 'ai' ? 'AI' : 'You';
+
+            let imagesHtml = '';
+            let fileBadgesHtml = '';
+            let messageImages = [];
+
+            // Build image HTML and collect images for lightbox
+            const imageFiles = files.filter(f => f.type === 'image');
+            if (imageFiles.length > 0) {
+                imagesHtml = `<div class="message-images">`;
+                imageFiles.forEach((f, i) => {
+                    const id = `msg-img-${Date.now()}-${i}`;
+                    imagesHtml += `<img src="${f.data}" alt="${f.name}" id="${id}" onclick="openLightbox('${f.data}')">`;
+                });
+                imagesHtml += `</div>`;
+                messageImages = imageFiles.map(f => f.data);
+            }
+
+            // Build file badges
+            const otherFiles = files.filter(f => f.type !== 'image');
+            otherFiles.forEach(f => {
+                fileBadgesHtml += `
+                    <div class="message-file-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        ${escapeHtml(f.name)} · ${formatFileSize(f.size)}
+                    </div>
+                `;
+            });
+
+            div.innerHTML = `
+                <div class="message-avatar">${avatarChar}</div>
+                <div class="message-content">
+                    <div class="message-label">
+                        ${label}
+                        <span class="message-time">${getTime()}</span>
+                    </div>
+                    ${text ? `<div class="message-text">${escapeHtml(text)}</div>` : ''}
+                    ${imagesHtml}
+                    ${fileBadgesHtml}
+                </div>
+            `;
+
+            messagesEl.appendChild(div);
+            scrollToBottom();
+            return div;
+        }
+
+        // ============================================
+        // Typing indicator
+        // ============================================
+        function addTyping() {
+            const div = document.createElement('div');
+            div.className = 'message ai';
+            div.id = 'typingIndicator';
+            div.innerHTML = `
+                <div class="message-avatar">✦</div>
+                <div class="message-content">
+                    <div class="message-label">AI</div>
+                    <div class="typing"><span></span><span></span><span></span></div>
+                </div>
+            `;
+            messagesEl.appendChild(div);
+            scrollToBottom();
+        }
+
+        function removeTyping() {
+            const el = document.getElementById('typingIndicator');
+            if (el) el.remove();
+        }
+
+        // ============================================
+        // Clear chat
+        // ============================================
+        function clearChat() {
+            messagesEl.innerHTML = '';
+            messagesEl.appendChild(welcomeEl);
+            welcomeEl.style.display = 'flex';
+            hasStarted = false;
+            pendingFiles = [];
+            renderFilePreviews();
+            updateSendButton();
+            conversationHistory = [
+                { role: 'system', content: 'You are a helpful AI assistant. Be clear, concise, and well-structured.' }
+            ];
+        }
+
+        // ============================================
+        // Send message
+        // ============================================
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            const files = [...pendingFiles];
+            
+            if (!text && files.length === 0) return;
+
+            // Show user message
+            addMessage('user', text || (files.length > 0 ? `[Sent ${files.length} file${files.length > 1 ? 's' : ''}]` : ''), files);
+
+            // Build API message content
+            const messageContent = [];
+
+            // Add text if present
+            if (text) {
+                messageContent.push({ type: 'text', text });
+            }
+
+            // Add images to message
+            const imageFiles = files.filter(f => f.type === 'image');
+            imageFiles.forEach(f => {
+                messageContent.push({
+                    type: 'image_url',
+                    image_url: {
+                        url: f.data,
+                        detail: 'auto'
+                    }
+                });
+            });
+
+            // Add text file contents
+            const textFiles = files.filter(f => f.type === 'text');
+            textFiles.forEach(f => {
+                messageContent.push({
+                    type: 'text',
+                    text: `\n\n--- File: ${f.name} ---\n${f.data}\n--- End of ${f.name} ---`
+                });
+            });
+
+            // Add non-readable file names
+            const otherFiles = files.filter(f => f.type === 'file');
+            if (otherFiles.length > 0) {
+                const fileList = otherFiles.map(f => `${f.name} (${formatFileSize(f.size)})`).join(', ');
+                messageContent.push({
+                    type: 'text',
+                    text: `\n\n[Attached files: ${fileList}]`
+                });
+            }
+
+            // Add to conversation history
+            conversationHistory.push({
+                role: 'user',
+                content: messageContent.length === 1 && messageContent[0].type === 'text'
+                    ? messageContent[0].text
+                    : messageContent
+            });
+
+            // Clear input
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            pendingFiles = [];
+            renderFilePreviews();
+            updateSendButton();
+            userInput.focus();
+
+            // Show typing
+            addTyping();
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer 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`
+                    },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        messages: conversationHistory,
+                        max_tokens: 4096,
+                        temperature: 0.7
+                    })
+                });
+
+                removeTyping();
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    addMessage('ai', `Error: ${err.error?.message || 'Something went wrong.'}`);
+                    return;
+                }
+
+                const data = await response.json();
+                const reply = data.choices[0].message.content;
+
+                addMessage('ai', reply);
+                conversationHistory.push({ role: 'assistant', content: reply });
+
+            } catch (err) {
+                removeTyping();
+                addMessage('ai', 'Connection failed. Check your network and try again.');
+            }
+        }
+
+        // Focus input on load
+        userInput.focus();
+    </script>
+
+</body>
+</html>
