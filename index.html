@@ -10,9 +10,10 @@
   --window-bg: rgba(28,28,30,0.85);
   --border-radius: 12px;
   --topbar-height: 28px;
-  --dock-height: 70px;
+  --dock-height: 60px; /* reduced dock height */
 }
-html, body { margin:0; height:100%; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background:#1a1a1a; overflow:hidden; }
+html, body { margin:0; height:100%; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow:hidden; }
+body { background: url('./images/desktop-bg.jpg') no-repeat center center fixed; background-size:cover; } /* desktop background */
 .top-bar { height: var(--topbar-height); background:rgba(0,0,0,0.3); backdrop-filter:var(--mac-blur); display:flex; justify-content:space-between; align-items:center; padding:0 15px; color:white; font-size:13px; box-shadow:0 1px 5px rgba(0,0,0,0.2); z-index:10000; position:fixed; width:100%; top:0; }
 .top-left { display:flex; align-items:center; gap:8px; }
 #apple-icon { width:18px; height:18px; object-fit:contain; }
@@ -26,14 +27,14 @@ html, body { margin:0; height:100%; font-family:-apple-system, BlinkMacSystemFon
 .window-title { flex:1; text-align:center; color:rgba(255,255,255,0.8); font-size:13px; font-weight:500; margin-right:60px; }
 .window-content { flex:1; position:relative; overflow:hidden; }
 iframe { border:none; width:100%; height:100%; border-radius:0 0 var(--border-radius) var(--border-radius); }
-#desktop { position:absolute; top:var(--topbar-height); left:0; width:100%; height: calc(100% - var(--topbar-height) - var(--dock-height)); background:#1a1a1a; overflow:hidden; }
-.dock { position:fixed; bottom:0; left:50%; transform:translateX(-50%); height:var(--dock-height); background:rgba(255,255,255,0.15); backdrop-filter:var(--mac-blur); display:flex; gap:10px; padding:10px 14px; border-radius:20px; border:0.5px solid rgba(255,255,255,0.2); z-index:10001; align-items:flex-end; }
+#desktop { position:absolute; top:var(--topbar-height); left:0; width:100%; height: calc(100% - var(--topbar-height) - var(--dock-height)); overflow:hidden; }
+.dock { position:fixed; bottom:0; left:50%; transform:translateX(-50%); height:var(--dock-height); background:rgba(255,255,255,0.15); backdrop-filter:var(--mac-blur); display:flex; gap:10px; padding:8px 12px; border-radius:20px; border:0.5px solid rgba(255,255,255,0.2); z-index:10001; align-items:flex-end; }
 .dock-icon { width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform 0.2s; position:relative; }
 .dock-icon img { width:90%; height:90%; object-fit:contain; }
 .dock-icon:hover { transform:scale(1.3) translateY(-10px); }
 .dock-icon::after { content:attr(title); position:absolute; bottom:62px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.75); color:white; font-size:11px; padding:3px 9px; border-radius:6px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.15s; }
 .dock-icon:hover::after { opacity:1; }
-.finder-grid { display:flex; flex-direction:row; flex-wrap:wrap; gap:20px; padding:20px; background:#1e1e1e; height:100%; overflow-x:auto; overflow-y:hidden; box-sizing:border-box; }
+.finder-grid { display:flex; flex-direction:row; flex-wrap:nowrap; gap:20px; padding:20px; background:#1e1e1e; height:100%; overflow-x:auto; overflow-y:hidden; box-sizing:border-box; }
 .finder-item { display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; font-size:12px; cursor:pointer; text-align:center; padding:10px; border-radius:10px; transition:background 0.15s; }
 .finder-item:hover { background: rgba(255,255,255,0.1); }
 .finder-item img { width:48px; height:48px; margin-bottom:8px; object-fit:contain; }
@@ -41,7 +42,7 @@ iframe { border:none; width:100%; height:100%; border-radius:0 0 var(--border-ra
 </head>
 <body>
 <div class="top-bar">
-  <div class="top-left"><img id="apple-icon" src="./images/apple.png"> <strong>MacOS 26</strong></div>
+  <div class="top-left"><img id="apple-icon" src="./apple.png"> <strong>MacOS 26</strong></div>
   <div id="clock">00:00</div>
 </div>
 <div id="desktop"></div>
