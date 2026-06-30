@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Golden Gate App Placeholder</title>
+<style>
+:root{color-scheme:dark;--bg1:#111827;--bg2:#1d2b53;--accent:#0a84ff;--line:rgba(255,255,255,.16);--text:#f7f9ff;--muted:rgba(247,249,255,.68)}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{display:grid;place-items:center;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;color:var(--text);background:radial-gradient(circle at 25% 15%,rgba(10,132,255,.38),transparent 32%),radial-gradient(circle at 78% 30%,rgba(255,94,168,.28),transparent 34%),linear-gradient(135deg,var(--bg1),var(--bg2));overflow:hidden}.app{width:min(680px,calc(100vw - 48px));padding:28px;border:1px solid var(--line);border-radius:28px;background:rgba(255,255,255,.12);box-shadow:0 30px 90px rgba(0,0,0,.35);backdrop-filter:blur(34px) saturate(180%)}.badge{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:rgba(10,132,255,.22);border:1px solid rgba(10,132,255,.32);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}h1{margin:18px 0 10px;font-size:clamp(32px,7vw,58px);letter-spacing:-.06em;line-height:.95}p{margin:0;color:var(--muted);font-size:15px;line-height:1.55}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}.tile{padding:14px;border-radius:18px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12)}.tile b{display:block;margin-bottom:4px}.tile span{color:var(--muted);font-size:12px}.ok{display:inline-block;margin-top:22px;padding:10px 14px;border-radius:999px;background:var(--accent);font-weight:800}@media(max-width:560px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="app">
+  <span class="badge">Golden Gate launcher file</span>
+  <h1 id="app-name">Test App</h1>
+  <p>This local placeholder proves the desktop launched a real HTML file. Replace this file or point the app registry to a finished app later.</p>
+  <section class="grid" aria-label="Launch checks">
+    <div class="tile"><b>File loaded</b><span>apps/Test/test.html</span></div>
+    <div class="tile"><b>Sandbox ready</b><span>Safe iframe content</span></div>
+    <div class="tile"><b>No crash path</b><span>Local fallback page</span></div>
+  </section>
+  <div class="ok">Ready</div>
+</main>
+<script>
+(function(){
+  var params = new URLSearchParams(location.search);
+  var app = params.get('app') || (location.hash ? decodeURIComponent(location.hash.slice(1)) : 'Test App');
+  document.title = app + ' Placeholder';
+  document.getElementById('app-name').textContent = app;
+})();
+</script>
+</body>
+</html>
