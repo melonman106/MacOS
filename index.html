@@ -165,12 +165,12 @@ window.addEventListener('error', function(e){
 // look exactly like the desktop "crashing".
 // ═══════════════════════════════════════════════════════════════
 var APPS = [
-  { name:'Safari',   url:'./apps/Browser/index.html', icon:'./images/Safari.png',   w:1000, h:680 },
+  { name:'Safari',   url:'./apps/browser/index.html', icon:'./images/Safari.png',   w:1000, h:680 },
   { name:'YouTube',  url:'./apps/Youtube/yt.html',       icon:'./images/YouTube.png',  w:960, h:640 },
-  { name:'ChatGPT',  url:'./apps/AI/GPT.html',      icon:'./images/ChatGPT.png',  w:800, h:560 },
-  { name:'Settings', url:'./apps/System/Settings.html',  icon:'./images/Settings.png', w:860, h:580 },
-  { name:'Terminal', url:'./apps/System/terminal.html',  icon:'./images/Terminal.png', w:720, h:440 },
-  { name:'Steam',    url:'./apps/Steam/steam.html',     icon:'./images/Steam.png',    w:960, h:640 },
+  { name:'ChatGPT',  url:'./AI/GPT.html',      icon:'./images/ChatGPT.png',  w:800, h:560 },
+  { name:'Settings', url:'./System/Settings.html',  icon:'./images/Settings.png', w:860, h:580 },
+  { name:'Terminal', url:'./System/terminal.html',  icon:'./images/Terminal.png', w:720, h:440 },
+  { name:'Steam',    url:'./Steam/steam.html',     icon:'./images/Steam.png',    w:960, h:640 },
   { name:'Music',    url:'./apps/Music/music.html', icon:'./images/Music.png',  w:900, h:600 },
   { name:'Ampler',   url:'./apps/Ampler/ampler.html', icon:'./images/Ampler.png', w:800, h:550 },
 ];
@@ -191,6 +191,22 @@ function save(key, val) {
   var wp = load('wallpaper', null);
   if (wp && typeof wp === 'string') document.body.style.background = wp;
 })();
+
+// ═══════════════════════════════════════════════════════════════
+// STORAGE MIGRATION
+// File paths were reorganized into /apps/<Category>/file.html.
+// Old localStorage entries (pins, iconpos, savedwins) keyed by the
+// previous flat paths no longer match, which silently breaks the
+// dock and window restore without throwing any error. Bump this
+// version whenever paths change again to force a clean reset.
+// ═══════════════════════════════════════════════════════════════
+var STORAGE_VERSION = 'v2-apps-subfolders';
+if (load('storageVersion', null) !== STORAGE_VERSION) {
+  localStorage.removeItem('pins');
+  localStorage.removeItem('iconpos');
+  localStorage.removeItem('savedwins');
+  save('storageVersion', STORAGE_VERSION);
+}
 
 // ═══════════════════════════════════════════════════════════════
 // STATE
