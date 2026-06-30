@@ -9,85 +9,85 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body,html{width:100%;height:100%;overflow:hidden;font-family:'Inter',-apple-system,sans-serif;user-select:none;-webkit-user-select:none}
+body,html{width:100%;height:100%;overflow:hidden;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;user-select:none;-webkit-user-select:none}
 body{background:url('./Macbg.png') center/cover no-repeat;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}
 
-#top-bar{position:fixed;top:0;left:0;right:0;height:25px;background:rgba(30,30,30,0.72);backdrop-filter:blur(30px) saturate(180%);display:flex;align-items:center;justify-content:space-between;padding:0;z-index:1000;border-bottom:0.5px solid rgba(255,255,255,0.1)}
+/* ── TOP MENU BAR ───────────────────────────────────────── */
+#top-bar{position:fixed;top:0;left:0;right:0;height:26px;background:rgba(22,22,24,0.55);backdrop-filter:blur(40px) saturate(190%);-webkit-backdrop-filter:blur(40px) saturate(190%);display:flex;align-items:center;justify-content:space-between;padding:0;z-index:1000;border-bottom:0.5px solid rgba(255,255,255,0.08);box-shadow:0 1px 0 rgba(0,0,0,0.15)}
 .top-left,.top-right{display:flex;align-items:center;height:100%}
-.top-logo{display:flex;align-items:center;justify-content:center;height:100%;width:36px;cursor:pointer}
+.top-logo{display:flex;align-items:center;justify-content:center;height:100%;width:36px;cursor:pointer;border-radius:4px}
 .top-logo:hover{background:rgba(255,255,255,0.12)}
-.top-logo img{width:12px;height:14px}
-.top-app{color:#fff;font-weight:600;font-size:13px;padding:0 10px;height:100%;display:flex;align-items:center;cursor:default}
+.top-logo img{width:13px;height:15px;filter:drop-shadow(0 0 1px rgba(255,255,255,0.2))}
+.top-app{color:#fff;font-weight:600;font-size:13px;padding:0 10px;height:100%;display:flex;align-items:center;cursor:default;letter-spacing:.1px}
 .top-app:hover{background:rgba(255,255,255,0.08)}
 .top-item{color:rgba(255,255,255,0.85);font-size:13px;padding:0 10px;height:100%;display:flex;align-items:center;cursor:default;position:relative}
 .top-item:hover{background:rgba(255,255,255,0.12);color:#fff}
 .top-icon{display:flex;align-items:center;justify-content:center;height:100%;width:32px;cursor:default;color:rgba(255,255,255,0.85)}
-.top-icon:hover{background:rgba(255,255,255,0.12)}
+.top-icon:hover{background:rgba(255,255,255,0.12);color:#fff}
 .top-icon svg{width:13px;height:13px;fill:currentColor}
-.top-clock{color:#fff;font-size:13px;font-weight:500;padding:0 12px;height:100%;display:flex;align-items:center;cursor:default;white-space:nowrap}
+.top-clock{color:#fff;font-size:13px;font-weight:500;padding:0 12px;height:100%;display:flex;align-items:center;cursor:default;white-space:nowrap;font-variant-numeric:tabular-nums}
 .top-clock:hover{background:rgba(255,255,255,0.12)}
 
-.dropdown{position:absolute;top:100%;left:-4px;background:rgba(40,40,42,0.92);backdrop-filter:blur(40px);border-radius:6px;padding:4px 0;min-width:200px;box-shadow:0 10px 35px rgba(0,0,0,0.5),0 0 0 0.5px rgba(255,255,255,0.12);z-index:9999;display:none;overflow:hidden}
-.dropdown.show{display:block}
-.dd-item{padding:4px 16px;font-size:13px;color:#fff;cursor:default;white-space:nowrap}
-.dd-item:hover{background:rgba(0,122,255,0.85)}
-.dd-sep{height:1px;background:rgba(255,255,255,0.1);margin:4px 0}
+.dropdown{position:absolute;top:100%;left:-4px;background:rgba(34,34,38,0.78);backdrop-filter:blur(50px) saturate(180%);-webkit-backdrop-filter:blur(50px) saturate(180%);border-radius:9px;padding:5px 0;min-width:210px;box-shadow:0 16px 40px rgba(0,0,0,0.55),0 0 0 0.5px rgba(255,255,255,0.1);z-index:9999;display:none;overflow:hidden}
+.dropdown.show{display:block;animation:ddIn .12s ease}
+@keyframes ddIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.dd-item{padding:5px 16px;font-size:13px;color:#fff;cursor:default;white-space:nowrap;border-radius:5px;margin:0 4px}
+.dd-item:hover{background:rgba(10,132,255,0.9)}
+.dd-sep{height:1px;background:rgba(255,255,255,0.1);margin:5px 8px}
 
-#finder{position:absolute;top:25px;left:0;right:0;bottom:80px}
-.icon{width:90px;text-align:center;cursor:pointer;position:absolute;padding:8px 6px;border-radius:8px}
-.icon:hover{background:rgba(255,255,255,0.15)}
-.icon.selected{background:rgba(0,122,255,0.4)}
-.icon img{width:56px;height:56px;pointer-events:none}
+/* ── DESKTOP ─────────────────────────────────────────────── */
+#finder{position:absolute;top:26px;left:0;right:0;bottom:80px}
+.icon{width:90px;text-align:center;cursor:pointer;position:absolute;padding:8px 6px;border-radius:9px}
+.icon:hover{background:rgba(255,255,255,0.12)}
+.icon.selected{background:rgba(10,132,255,0.45)}
+.icon img{width:56px;height:56px;pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35))}
 .icon span{display:block;margin-top:5px;font-size:11px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.9);line-height:1.3}
 
-#dock{position:fixed;bottom:6px;left:50%;transform:translateX(-50%);background:rgba(28,28,30,0.72);backdrop-filter:blur(25px) saturate(150%);padding:4px 10px;border-radius:16px;display:flex;gap:6px;align-items:flex-end;box-shadow:0 8px 30px rgba(0,0,0,0.4);z-index:1000;border:0.5px solid rgba(255,255,255,0.12);transition:all 0.3s ease}
-.dock-icon{width:50px;height:50px;cursor:pointer;border-radius:11px;position:relative;transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1),margin 0.25s}
-.dock-icon:hover{transform:scale(1.55) translateY(-14px);margin:0 8px}
-.dock-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.6);margin:2px auto 0}
-.dock-tip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(30,30,30,0.92);color:#fff;font-size:12px;padding:4px 10px;border-radius:5px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.15s;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+/* ── DOCK ────────────────────────────────────────────────── */
+#dock{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(26,26,30,0.55);backdrop-filter:blur(36px) saturate(190%);-webkit-backdrop-filter:blur(36px) saturate(190%);padding:6px 10px;border-radius:20px;display:flex;gap:6px;align-items:flex-end;box-shadow:0 12px 36px rgba(0,0,0,0.45),0 0 0 0.5px rgba(255,255,255,0.1);z-index:1000;transition:opacity .25s ease,transform .25s ease}
+.dock-icon{width:50px;height:50px;cursor:pointer;border-radius:12px;position:relative;transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1),margin 0.2s;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))}
+.dock-icon:hover{transform:scale(1.6) translateY(-16px);margin:0 10px}
+.dock-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.7);margin:2px auto 0}
+.dock-tip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(28,28,30,0.85);backdrop-filter:blur(20px);color:#fff;font-size:12px;padding:4px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.15s;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,0.35);border:0.5px solid rgba(255,255,255,0.1)}
 .dock-icon:hover .dock-tip{opacity:1}
-.dock-sep{width:1px;height:36px;background:rgba(255,255,255,0.2);align-self:center;margin:0 3px}
+.dock-sep{width:1px;height:38px;background:rgba(255,255,255,0.18);align-self:center;margin:0 4px}
 
+/* ── WINDOWS ─────────────────────────────────────────────── */
 #win-box{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none}
-.win{position:absolute;min-width:320px;min-height:200px;background:rgba(30,30,32,0.97);backdrop-filter:blur(30px);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.5),0 0 0 0.5px rgba(255,255,255,0.1);pointer-events:auto;transition:border-radius 0.25s}
-/* UPDATED FULLSCREEN STYLING - now starts below the top bar */
-.win.fullscreen{
-  top:25px!important; /* Start below the top bar */
-  left:0!important;
-  width:100%!important;
-  height:calc(100% - 25px)!important; /* Subtract top bar height */
-  border-radius:0;
-}
+.win{position:absolute;min-width:320px;min-height:200px;background:rgba(28,28,30,0.85);backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,0.55),0 0 0 0.5px rgba(255,255,255,0.1);pointer-events:auto;transition:border-radius 0.2s}
+.win.fullscreen{top:26px!important;left:0!important;width:100%!important;height:calc(100% - 26px)!important;border-radius:0}
 .win.minimized{transform:scale(0.1);opacity:0;pointer-events:none}
-.win-bar{height:40px;background:rgba(50,50,52,0.98);display:flex;align-items:center;padding:0 14px;cursor:default;flex-shrink:0;border-bottom:1px solid rgba(0,0,0,0.3)}
-.win-bar .title{color:rgba(255,255,255,0.9);margin-left:8px;font-size:13px;font-weight:500;flex:1;text-align:center;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win-bar{height:40px;background:rgba(40,40,44,0.9);display:flex;align-items:center;padding:0 14px;cursor:default;flex-shrink:0;border-bottom:0.5px solid rgba(0,0,0,0.35)}
+.win-bar .title{color:rgba(255,255,255,0.92);margin-left:8px;font-size:13px;font-weight:500;flex:1;text-align:center;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lights{display:flex;gap:8px;flex-shrink:0}
 .lt{width:12px;height:12px;border-radius:50%;cursor:pointer;position:relative}
 .lt.r{background:#ff5f57;border:1px solid #e0443e}
 .lt.y{background:#febc2e;border:1px solid #dea123}
 .lt.g{background:#28c840;border:1px solid #1aab29}
-.lt i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:8px;color:rgba(0,0,0,0.55);opacity:0;font-weight:bold;font-style:normal}
+.lt i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:8px;color:rgba(0,0,0,0.6);opacity:0;font-weight:bold;font-style:normal}
 .lights:hover .lt i{opacity:1}
 .win-body{flex:1;overflow:hidden}
 .win-body iframe{width:100%;height:100%;border:none;display:block}
 
-#spot-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;display:none;align-items:flex-start;justify-content:center;padding-top:18vh;backdrop-filter:blur(8px)}
+/* ── SPOTLIGHT ───────────────────────────────────────────── */
+#spot-bg{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9999;display:none;align-items:flex-start;justify-content:center;padding-top:18vh;backdrop-filter:blur(12px)}
 #spot-bg.show{display:flex}
-#spot-box{width:640px;max-width:90vw;background:rgba(40,40,42,0.95);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 0 0.5px rgba(255,255,255,0.15)}
-#spot-in{width:100%;padding:16px 20px;background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:300;font-family:inherit;border-bottom:1px solid rgba(255,255,255,0.08)}
-#spot-in::placeholder{color:rgba(255,255,255,0.3)}
+#spot-box{width:640px;max-width:90vw;background:rgba(36,36,40,0.82);backdrop-filter:blur(50px) saturate(190%);border-radius:14px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,0.6),0 0 0 0.5px rgba(255,255,255,0.14)}
+#spot-in{width:100%;padding:16px 20px;background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:300;font-family:inherit;border-bottom:0.5px solid rgba(255,255,255,0.08)}
+#spot-in::placeholder{color:rgba(255,255,255,0.32)}
 #spot-out{max-height:300px;overflow-y:auto}
-.sp-item{padding:10px 20px;display:flex;align-items:center;gap:12px;cursor:default}
-.sp-item:hover,.sp-item.on{background:rgba(0,122,255,0.5)}
-.sp-item img{width:32px;height:32px;border-radius:6px}
+.sp-item{padding:10px 20px;display:flex;align-items:center;gap:12px;cursor:default;margin:2px 6px;border-radius:8px;width:calc(100% - 12px)}
+.sp-item:hover,.sp-item.on{background:rgba(10,132,255,0.55)}
+.sp-item img{width:32px;height:32px;border-radius:7px}
 .sp-item span{color:#fff;font-size:14px}
 
-#ctx{position:fixed;background:rgba(40,40,42,0.92);backdrop-filter:blur(40px);border-radius:8px;padding:4px 0;min-width:200px;box-shadow:0 12px 40px rgba(0,0,0,0.5),0 0 0 0.5px rgba(255,255,255,0.12);z-index:9999;display:none;overflow:hidden}
-#ctx .cm{padding:4px 16px;font-size:13px;color:#fff;cursor:default}
-#ctx .cm:hover{background:rgba(0,122,255,0.85)}
-#ctx .cs{height:1px;background:rgba(255,255,255,0.1);margin:4px 0}
+/* ── CONTEXT MENU ────────────────────────────────────────── */
+#ctx{position:fixed;background:rgba(34,34,38,0.8);backdrop-filter:blur(50px) saturate(180%);border-radius:9px;padding:5px 0;min-width:200px;box-shadow:0 16px 44px rgba(0,0,0,0.55),0 0 0 0.5px rgba(255,255,255,0.1);z-index:9999;display:none;overflow:hidden}
+#ctx .cm{padding:5px 16px;font-size:13px;color:#fff;cursor:default;border-radius:5px;margin:0 4px}
+#ctx .cm:hover{background:rgba(10,132,255,0.9)}
+#ctx .cs{height:1px;background:rgba(255,255,255,0.1);margin:5px 8px}
 
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(30,30,30,0.92);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:10px 24px;border-radius:24px;font-size:13px;font-weight:500;backdrop-filter:blur(20px);z-index:9999;opacity:0;transition:all 0.3s;pointer-events:none}
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(30,30,32,0.85);backdrop-filter:blur(30px);border:0.5px solid rgba(255,255,255,0.12);color:#fff;padding:10px 24px;border-radius:24px;font-size:13px;font-weight:500;z-index:9999;opacity:0;transition:all 0.3s;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
@@ -146,11 +146,24 @@ body{background:url('./Macbg.png') center/cover no-repeat;background-size:cover!
 <div class="toast" id="toast"></div>
 
 <script>
+(function(){
+'use strict';
+
+// Defensive global error net so one bad asset/script doesn't take the whole desktop down silently
+window.addEventListener('error', function(e){
+  console.error('Desktop caught an error:', e.message, e.filename, e.lineno);
+}, true);
+
 // ═══════════════════════════════════════════════════════════════
 // APPS
+// NOTE: Safari now points to the local browser app instead of an
+// external third-party domain. Pointing a dock/desktop icon at an
+// untrusted external site is risky: if that site can't be framed,
+// or runs a frame-busting script, it can hijack the whole tab and
+// look exactly like the desktop "crashing".
 // ═══════════════════════════════════════════════════════════════
 var APPS = [
-  { name:'Safari',   url:'https://randomshenanigans.extraquintanaroo.com/?/',   icon:'./images/Safari.png',   w:900, h:600 },
+  { name:'Safari',   url:'./apps/browser/index.html', icon:'./images/Safari.png',   w:1000, h:680 },
   { name:'YouTube',  url:'./yt.html',       icon:'./images/YouTube.png',  w:960, h:640 },
   { name:'ChatGPT',  url:'./GPT.html',      icon:'./images/ChatGPT.png',  w:800, h:560 },
   { name:'Settings', url:'./Settings.html',  icon:'./images/Settings.png', w:860, h:580 },
@@ -285,7 +298,7 @@ function dockItem(app, isOpen) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// DOCK VISIBILITY — uses inline style for reliability
+// DOCK VISIBILITY
 // ═══════════════════════════════════════════════════════════════
 function updateDock() {
   var dock = document.getElementById('dock');
@@ -343,11 +356,9 @@ function createWin(app, saved) {
   bar.querySelector('.lt.r').addEventListener('click', function(e) { e.stopPropagation(); closeWin(win); });
   bar.querySelector('.lt.y').addEventListener('click', function(e) { e.stopPropagation(); win.classList.toggle('minimized'); saveAll(); });
 
-  // GREEN = FULLSCREEN (UPDATED - now uses toggleFullscreen function)
   bar.querySelector('.lt.g').addEventListener('click', function(e) {
     e.stopPropagation();
-    // The toggleFullscreen function now handles everything
-    toggleFullscreen(win); // Pass the specific window to toggle
+    toggleFullscreen(win);
   });
 
   document.getElementById('win-box').appendChild(win);
@@ -368,7 +379,7 @@ function closeWin(win) {
     wins = wins.filter(function(w) { return w !== win; });
     var top = topWin(); setAppName(top ? top.dataset.name : null);
     buildDock();
-    updateDock(); // Make sure dock is updated when window is closed
+    updateDock();
     saveAll();
   }, 200);
 }
@@ -377,14 +388,12 @@ function bringFront(win) { win.style.zIndex = ++nextZ; setAppName(win.dataset.na
 function topWin() { if (!wins.length) return null; return wins.reduce(function(a, b) { return (parseInt(a.style.zIndex) || 0) > (parseInt(b.style.zIndex) || 0) ? a : b; }); }
 function minFront() { var w = topWin(); if (w) { w.classList.toggle('minimized'); saveAll(); } }
 
-// UPDATED toggleFullscreen function to accept an optional window parameter
 function toggleFullscreen(winToToggle) {
-  // If a specific window is provided, toggle it; otherwise toggle the top window
   var w = winToToggle || topWin();
   if (w) {
-    bringFront(w); // Bring window to front when toggling fullscreen
+    bringFront(w);
     w.classList.toggle('fullscreen');
-    updateDock(); // This is the key function that shows/hides the dock
+    updateDock();
     saveAll();
   }
 }
@@ -429,7 +438,7 @@ function restoreAll() {
     if (app) createWin(app, sw);
   });
   var top = topWin(); if (top) setAppName(top.dataset.name);
-  updateDock(); // Make sure dock is updated after restoring windows
+  updateDock();
 }
 
 window.addEventListener('beforeunload', saveAll);
@@ -526,9 +535,18 @@ function toast(msg) {
 // ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
+window.openApp = openApp;
+window.toggleDesktop = toggleDesktop;
+window.toggleFullscreen = toggleFullscreen;
+window.minFront = minFront;
+window.closeAllWins = closeAllWins;
+window.closeDD = closeDD;
+
 buildDesktop();
 buildDock();
 restoreAll();
+
+})();
 </script>
 </body>
 </html>
