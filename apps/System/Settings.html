@@ -7,126 +7,195 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+:root{
+  --bg:#1c1c1e;--bg2:#242426;--bg3:#2c2c2e;--bg4:#333335;
+  --line:rgba(255,255,255,0.08);--line-strong:rgba(255,255,255,0.14);
+  --text:#f5f5f7;--text2:rgba(255,255,255,0.55);--text3:rgba(255,255,255,0.32);
+  --accent:#0a72e0;--accent-hover:#1580ee;--danger:#ff453a;--danger-bg:rgba(255,69,58,0.12);
+  --success:#30d158;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
-body{font-family:'Inter',-apple-system,sans-serif;background:#1c1c1e;color:#f5f5f7;display:flex}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;font-size:13px}
 
 /* ─── Sidebar ─── */
-.sidebar{width:220px;background:rgba(44,44,46,0.8);border-right:1px solid rgba(255,255,255,0.06);overflow-y:auto;padding:8px 0;flex-shrink:0}
+.sidebar{width:210px;background:var(--bg2);border-right:1px solid var(--line);overflow-y:auto;padding:10px 0;flex-shrink:0}
 .sidebar::-webkit-scrollbar{width:0}
-.sb-section{padding:4px 12px 4px 16px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.6px;margin-top:8px}
-.sb-item{display:flex;align-items:center;gap:10px;padding:6px 12px;margin:1px 8px;border-radius:7px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.8);transition:background 0.12s}
-.sb-item:hover{background:rgba(255,255,255,0.06)}
-.sb-item.active{background:rgba(0,122,255,0.35);color:#fff}
-.sb-item .sb-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.sb-search{margin:4px 10px 10px;padding:7px 10px;background:var(--bg3);border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;gap:7px}
+.sb-search svg{width:13px;height:13px;color:var(--text3);flex-shrink:0}
+.sb-search input{background:transparent;border:none;outline:none;color:var(--text);font-size:12px;width:100%;font-family:inherit}
+.sb-search input::placeholder{color:var(--text3)}
+
+.sb-section{padding:14px 16px 5px;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:6px 12px;margin:1px 8px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--text2);transition:background 0.12s,color .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--accent);color:#fff}
+.sb-item .sb-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg4)}
+.sb-item.active .sb-icon{background:rgba(255,255,255,0.18)}
+.sb-item .sb-icon svg{width:13px;height:13px;color:var(--text)}
 
 /* ─── Content ─── */
-.content{flex:1;overflow-y:auto;padding:28px 36px}
-.content::-webkit-scrollbar{width:6px}
-.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+.content{flex:1;overflow-y:auto;padding:30px 40px 60px}
+.content::-webkit-scrollbar{width:7px}
+.content::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:4px}
 
-.section-title{font-size:22px;font-weight:700;letter-spacing:-0.5px;margin-bottom:4px}
-.section-desc{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:24px}
+.section-title{font-size:21px;font-weight:700;letter-spacing:-0.3px;margin-bottom:3px}
+.section-desc{font-size:12.5px;color:var(--text2);margin-bottom:26px}
+
+.group{background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.group-title{padding:12px 16px 0;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.row-label{font-size:13px;font-weight:500}
+.row-desc{font-size:11.5px;color:var(--text2);margin-top:2px}
 
 /* ─── Wallpaper ─── */
-.wp-preview{width:100%;height:180px;border-radius:12px;background:#333;margin-bottom:20px;position:relative;overflow:hidden;border:2px solid rgba(255,255,255,0.08);cursor:pointer;transition:border-color 0.15s}
-.wp-preview:hover{border-color:rgba(255,255,255,0.2)}
-.wp-preview .wp-label{position:absolute;bottom:10px;left:12px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);text-shadow:0 1px 4px rgba(0,0,0,0.5)}
+.wp-preview{width:100%;height:190px;border-radius:12px;background:var(--bg3);margin-bottom:18px;position:relative;overflow:hidden;border:1px solid var(--line-strong)}
+.wp-preview .wp-label{position:absolute;bottom:10px;left:12px;padding:4px 9px;font-size:11px;font-weight:600;color:#fff;background:rgba(0,0,0,0.45);border-radius:6px;backdrop-filter:blur(6px)}
 
-.wp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px}
-.wp-option{height:90px;border-radius:10px;cursor:pointer;border:2px solid rgba(255,255,255,0.06);transition:all 0.15s;position:relative}
-.wp-option:hover{border-color:rgba(255,255,255,0.2);transform:scale(1.03)}
-.wp-option.active{border-color:#0071e3;box-shadow:0 0 0 2px rgba(0,113,227,0.4)}
-.wp-option .check{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:#0071e3;display:none;align-items:center;justify-content:center;font-size:12px;color:#fff}
+.wp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:8px}
+.wp-option{height:76px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:all 0.15s;position:relative;outline:1px solid var(--line-strong);outline-offset:-1px}
+.wp-option:hover{transform:scale(1.02)}
+.wp-option.active{border-color:var(--accent)}
+.wp-option .check{position:absolute;top:5px;right:5px;width:17px;height:17px;border-radius:50%;background:var(--accent);display:none;align-items:center;justify-content:center}
+.wp-option .check svg{width:10px;height:10px;color:#fff}
 .wp-option.active .check{display:flex}
 
-.wp-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
-.wp-row label{font-size:13px;color:rgba(255,255,255,0.6);width:80px;flex-shrink:0}
-.wp-input{flex:1;padding:8px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:#fff;font-size:13px;font-family:inherit;outline:none}
-.wp-input:focus{border-color:#0071e3}
-.wp-input::placeholder{color:rgba(255,255,255,0.25)}
+.upload-zone{border:1.5px dashed var(--line-strong);border-radius:10px;padding:26px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.upload-zone:hover{border-color:var(--accent);background:rgba(10,114,224,0.05)}
+.upload-zone.drag{border-color:var(--accent);background:rgba(10,114,224,0.08)}
+.upload-zone svg{width:26px;height:26px;color:var(--text2);margin-bottom:8px}
+.upload-zone p{font-size:12.5px;color:var(--text);font-weight:500}
+.upload-zone span{font-size:11px;color:var(--text2);display:block;margin-top:3px}
 
-.wp-btn{padding:9px 20px;border-radius:9px;border:none;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:background 0.15s}
-.wp-btn-primary{background:#0071e3;color:#fff}
-.wp-btn-primary:hover{background:#0077ed}
-.wp-btn-secondary{background:rgba(255,255,255,0.08);color:#fff}
-.wp-btn-secondary:hover{background:rgba(255,255,255,0.12)}
-.wp-btn-danger{background:rgba(255,55,48,0.15);color:#ff453a}
-.wp-btn-danger:hover{background:rgba(255,55,48,0.25)}
+.wp-row{display:flex;align-items:center;gap:10px;padding:14px 16px}
+.wp-row label{font-size:12.5px;color:var(--text2);width:90px;flex-shrink:0}
+.wp-input{flex:1;padding:8px 11px;background:var(--bg3);border:1px solid var(--line-strong);border-radius:7px;color:#fff;font-size:12.5px;font-family:inherit;outline:none}
+.wp-input:focus{border-color:var(--accent)}
+.wp-input::placeholder{color:var(--text3)}
 
-hr{border:none;border-top:1px solid rgba(255,255,255,0.06);margin:20px 0}
+.btn{padding:8px 16px;border-radius:8px;border:none;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:background 0.15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-secondary{background:var(--bg4);color:var(--text)}
+.btn-secondary:hover{background:rgba(255,255,255,0.14)}
+.btn-danger{background:var(--danger-bg);color:var(--danger)}
+.btn-danger:hover{background:rgba(255,55,48,0.22)}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* ─── Toggle switch ─── */
+.switch{position:relative;width:38px;height:22px;border-radius:11px;background:var(--bg4);cursor:pointer;transition:background .15s;flex-shrink:0}
+.switch.on{background:var(--success)}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,0.3)}
+.switch.on::after{transform:translateX(16px)}
+
+/* ─── Profile / Lock screen ─── */
+.profile-hero{display:flex;align-items:center;gap:18px;padding:20px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;margin-bottom:20px}
+.avatar-wrap{position:relative;width:84px;height:84px;flex-shrink:0;border-radius:50%;overflow:hidden;background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--line-strong)}
+.avatar-wrap img{width:100%;height:100%;object-fit:cover}
+.avatar-wrap .avatar-fallback{font-size:28px;font-weight:600;color:var(--text2)}
+.avatar-wrap .avatar-edit{position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.avatar-wrap:hover .avatar-edit{opacity:1}
+.avatar-wrap .avatar-edit svg{width:20px;height:20px;color:#fff}
+.profile-info{flex:1;min-width:0}
+.profile-name{font-size:16px;font-weight:600;margin-bottom:3px}
+.profile-sub{font-size:12px;color:var(--text2)}
+.profile-actions{display:flex;gap:8px;margin-top:10px}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.field input{width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--line-strong);border-radius:8px;color:#fff;font-size:13px;font-family:inherit;outline:none}
+.field input:focus{border-color:var(--accent)}
+.field-hint{font-size:11px;color:var(--text2);margin-top:5px}
+
+.status-msg{font-size:11.5px;padding:8px 12px;border-radius:7px;margin-top:10px;display:none}
+.status-msg.show{display:block}
+.status-msg.ok{background:rgba(48,209,88,0.12);color:var(--success)}
+.status-msg.err{background:var(--danger-bg);color:var(--danger)}
+
+hr{border:none;border-top:1px solid var(--line);margin:22px 0}
+.section-sub{font-size:15px;font-weight:600;margin-bottom:14px}
+
+#file-input,#custom-avatar-input{display:none}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
+  <div class="sb-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input type="text" placeholder="Search" id="sb-search-input">
+  </div>
+
+  <div class="sb-section">Personal</div>
+  <div class="sb-item" data-tab="profile">
+    <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1"/></svg></div>
+    <span>Profile &amp; Lock Screen</span>
+  </div>
   <div class="sb-item active" data-tab="wallpaper">
-    <div class="sb-icon" style="background:linear-gradient(135deg,#667eea,#764ba2)">🎨</div>
+    <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
     <span>Wallpaper</span>
   </div>
   <div class="sb-item" data-tab="appearance">
-    <div class="sb-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c)">🌓</div>
+    <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 000 18z"/></svg></div>
     <span>Appearance</span>
   </div>
+
+  <div class="sb-section">System</div>
+  <div class="sb-item" data-tab="desktop">
+    <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg></div>
+    <span>Desktop &amp; Dock</span>
+  </div>
   <div class="sb-item" data-tab="about">
-    <div class="sb-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">ℹ️</div>
+    <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg></div>
     <span>About</span>
   </div>
 </div>
 
-<div class="content" id="content-area">
-  <!-- Content loaded dynamically -->
-</div>
+<div class="content" id="content-area"></div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// WALLPAPER OPTIONS
-// ═══════════════════════════════════════════════════════════════
-var WALLPAPERS = [
-  { name: 'Default macOS', bg: "url('Macbg.jpg') center/cover no-repeat", preview: "url('Macbg.jpg') center/cover no-repeat" },
-  { name: 'Sequoia Light', bg: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", preview: "linear-gradient(135deg, #667eea, #764ba2)" },
-  { name: 'Sonoma Sunset', bg: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", preview: "linear-gradient(135deg, #f093fb, #f5576c)" },
-  { name: 'Pacific Blue', bg: "linear-gradient(135deg, #0c3483 0%, #a2b6df 100%)", preview: "linear-gradient(135deg, #0c3483, #a2b6df)" },
-  { name: 'Forest', bg: "linear-gradient(135deg, #0f4c3a 0%, #1a6b4f 50%, #2d8f6a 100%)", preview: "linear-gradient(135deg, #0f4c3a, #2d8f6a)" },
-  { name: 'Midnight', bg: "linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 50%, #16213e 100%)", preview: "linear-gradient(135deg, #0d0d1a, #16213e)" },
-  { name: 'Warm Sand', bg: "linear-gradient(135deg, #f5d0a9 0%, #f7e2c5 50%, #e8c99b 100%)", preview: "linear-gradient(135deg, #f5d0a9, #e8c99b)" },
-  { name: 'Deep Ocean', bg: "linear-gradient(135deg, #0d2137 0%, #0a3d62 50%, #1e5f8b 100%)", preview: "linear-gradient(135deg, #0d2137, #1e5f8b)" },
-  { name: 'Rose Gold', bg: "linear-gradient(135deg, #e8b4b8 0%, #eed6d3 50%, #f0e0d6 100%)", preview: "linear-gradient(135deg, #e8b4b8, #f0e0d6)" },
-  { name: 'Aurora', bg: "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)", preview: "linear-gradient(135deg, #0f2027, #2c5364)" },
-  { name: 'Cosmic Purple', bg: "linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #44318d 100%)", preview: "linear-gradient(135deg, #1a0533, #44318d)" },
-  { name: 'Dark', bg: "#1c1c1e", preview: "#1c1c1e" },
-  { name: 'Charcoal', bg: "#2d2d2d", preview: "#2d2d2d" },
-  { name: 'Pure Black', bg: "#000000", preview: "#000000" },
-];
-
-// ═══════════════════════════════════════════════════════════════
-// STORAGE
+// STORAGE HELPERS
 // ═══════════════════════════════════════════════════════════════
 function load(key, fallback) {
-  try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  try { var v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : fallback; }
   catch(e) { return fallback; }
 }
 function save(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
 }
 
+// ═══════════════════════════════════════════════════════════════
+// WALLPAPER OPTIONS (solid / gradient presets only — images are uploaded)
+// ═══════════════════════════════════════════════════════════════
+var WALLPAPERS = [
+  { name: 'Default', bg: "url('Macbg.jpg') center/cover no-repeat" },
+  { name: 'Sequoia', bg: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
+  { name: 'Sunset', bg: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
+  { name: 'Pacific', bg: "linear-gradient(135deg, #0c3483 0%, #a2b6df 100%)" },
+  { name: 'Forest', bg: "linear-gradient(135deg, #0f4c3a 0%, #1a6b4f 50%, #2d8f6a 100%)" },
+  { name: 'Midnight', bg: "linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 50%, #16213e 100%)" },
+  { name: 'Sand', bg: "linear-gradient(135deg, #f5d0a9 0%, #f7e2c5 50%, #e8c99b 100%)" },
+  { name: 'Ocean', bg: "linear-gradient(135deg, #0d2137 0%, #0a3d62 50%, #1e5f8b 100%)" },
+  { name: 'Rose Gold', bg: "linear-gradient(135deg, #e8b4b8 0%, #eed6d3 50%, #f0e0d6 100%)" },
+  { name: 'Aurora', bg: "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)" },
+  { name: 'Cosmic', bg: "linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #44318d 100%)" },
+  { name: 'Dark', bg: "#1c1c1e" },
+  { name: 'Charcoal', bg: "#2d2d2d" },
+  { name: 'Black', bg: "#000000" },
+];
+
 var currentWallpaper = load('wallpaper', WALLPAPERS[0].bg);
 
-// ═══════════════════════════════════════════════════════════════
-// SEND MESSAGE TO PARENT
-// ═══════════════════════════════════════════════════════════════
 function sendWallpaper(bg) {
   currentWallpaper = bg;
-  // Save locally
   save('wallpaper', bg);
-  // Send to parent (index.html)
-  try {
-    window.parent.postMessage({ type: 'setWallpaper', wallpaper: bg }, '*');
-  } catch(e) {}
+  try { window.parent.postMessage({ type: 'setWallpaper', wallpaper: bg }, '*'); } catch(e) {}
 }
 
 // ═══════════════════════════════════════════════════════════════
-// SIDEBAR NAVIGATION
+// SIDEBAR NAV
 // ═══════════════════════════════════════════════════════════════
 document.querySelectorAll('.sb-item').forEach(function(item) {
   item.addEventListener('click', function() {
@@ -139,7 +208,9 @@ document.querySelectorAll('.sb-item').forEach(function(item) {
 function renderTab(tab) {
   var area = document.getElementById('content-area');
   if (tab === 'wallpaper') renderWallpaper(area);
+  else if (tab === 'profile') renderProfile(area);
   else if (tab === 'appearance') renderAppearance(area);
+  else if (tab === 'desktop') renderDesktop(area);
   else if (tab === 'about') renderAbout(area);
 }
 
@@ -149,49 +220,42 @@ function renderTab(tab) {
 function renderWallpaper(area) {
   area.innerHTML =
     '<div class="section-title">Wallpaper</div>' +
-    '<div class="section-desc">Choose a wallpaper for your desktop</div>' +
+    '<div class="section-desc">Choose a wallpaper for your desktop, or upload your own image.</div>' +
 
-    // Preview
-    '<div class="wp-preview" id="wp-preview">' +
-      '<div class="wp-label" id="wp-preview-label">Current</div>' +
-    '</div>' +
+    '<div class="wp-preview" id="wp-preview"><div class="wp-label" id="wp-preview-label">Current</div></div>' +
 
-    // Preset wallpapers
+    '<div class="section-sub" style="font-size:13px;margin-bottom:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:600">Presets</div>' +
     '<div class="wp-grid" id="wp-grid"></div>' +
 
     '<hr>' +
 
-    // Custom URL
-    '<div class="section-title" style="font-size:16px;margin-bottom:12px">Custom Image</div>' +
-    '<div class="wp-row">' +
-      '<label>Image URL</label>' +
+    '<div class="section-sub">Upload Image</div>' +
+    '<div class="upload-zone" id="upload-zone">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>' +
+      '<p>Click to choose an image, or drag and drop</p>' +
+      '<span>PNG, JPG, or WEBP — used only on this device</span>' +
+    '</div>' +
+    '<input type="file" id="file-input" accept="image/*">' +
+
+    '<hr>' +
+
+    '<div class="section-sub">Image URL</div>' +
+    '<div class="wp-row" style="padding:0">' +
       '<input type="text" class="wp-input" id="custom-url" placeholder="https://example.com/image.jpg">' +
-      '<button class="wp-btn wp-btn-primary" onclick="applyCustomUrl()">Apply</button>' +
+      '<button class="btn btn-primary" onclick="applyCustomUrl()">Apply</button>' +
     '</div>' +
 
     '<hr>' +
 
-    // Upload
-    '<div class="section-title" style="font-size:16px;margin-bottom:12px">Upload Image</div>' +
-    '<div class="wp-row">' +
-      '<input type="file" id="file-input" accept="image/*" style="display:none">' +
-      '<button class="wp-btn wp-btn-secondary" onclick="document.getElementById(\'file-input\').click()">Choose File...</button>' +
-      '<span style="font-size:12px;color:rgba(255,255,255,0.3)" id="file-name">No file chosen</span>' +
-    '</div>' +
+    '<button class="btn btn-danger" onclick="resetWallpaper()">Reset to Default</button>';
 
-    '<hr>' +
-
-    // Reset
-    '<button class="wp-btn wp-btn-danger" onclick="resetWallpaper()">Reset to Default</button>';
-
-  // Build grid
   var grid = document.getElementById('wp-grid');
-  WALLPAPERS.forEach(function(wp, i) {
+  WALLPAPERS.forEach(function(wp) {
     var opt = document.createElement('div');
     opt.className = 'wp-option' + (currentWallpaper === wp.bg ? ' active' : '');
-    opt.style.background = wp.preview;
+    opt.style.background = wp.bg.indexOf('url(') === 0 || wp.bg.indexOf("url('Macbg") === 0 ? "linear-gradient(135deg,#334,#557)" : wp.bg;
     opt.title = wp.name;
-    opt.innerHTML = '<div class="check">✓</div>';
+    opt.innerHTML = '<div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>';
     opt.addEventListener('click', function() {
       setWallpaper(wp.bg, wp.name);
       document.querySelectorAll('.wp-option').forEach(function(o) { o.classList.remove('active'); });
@@ -200,17 +264,43 @@ function renderWallpaper(area) {
     grid.appendChild(opt);
   });
 
-  // Update preview
   updatePreview();
 
-  // File input handler
-  document.getElementById('file-input').addEventListener('change', handleFileUpload);
+  var zone = document.getElementById('upload-zone');
+  var fileInput = document.getElementById('file-input');
+  zone.addEventListener('click', function() { fileInput.click(); });
+  fileInput.addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) handleWallpaperFile(e.target.files[0]);
+  });
+  ['dragenter','dragover'].forEach(function(evt) {
+    zone.addEventListener(evt, function(e) { e.preventDefault(); zone.classList.add('drag'); });
+  });
+  ['dragleave','drop'].forEach(function(evt) {
+    zone.addEventListener(evt, function(e) { e.preventDefault(); zone.classList.remove('drag'); });
+  });
+  zone.addEventListener('drop', function(e) {
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleWallpaperFile(e.dataTransfer.files[0]);
+  });
+}
+
+function handleWallpaperFile(file) {
+  if (!file.type.startsWith('image/')) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var bg = "url('" + ev.target.result + "') center/cover no-repeat";
+    setWallpaper(bg, file.name);
+    document.querySelectorAll('.wp-option').forEach(function(o) { o.classList.remove('active'); });
+  };
+  reader.readAsDataURL(file);
 }
 
 function setWallpaper(bg, name) {
   sendWallpaper(bg);
   updatePreview();
-  if (name) document.getElementById('wp-preview-label').textContent = name;
+  if (name) {
+    var label = document.getElementById('wp-preview-label');
+    if (label) label.textContent = name;
+  }
 }
 
 function updatePreview() {
@@ -222,21 +312,8 @@ function applyCustomUrl() {
   var url = document.getElementById('custom-url').value.trim();
   if (!url) return;
   var bg = "url('" + url + "') center/cover no-repeat";
-  setWallpaper(bg, 'Custom');
+  setWallpaper(bg, 'Custom URL');
   document.querySelectorAll('.wp-option').forEach(function(o) { o.classList.remove('active'); });
-}
-
-function handleFileUpload(e) {
-  var file = e.target.files[0];
-  if (!file) return;
-  document.getElementById('file-name').textContent = file.name;
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    var bg = "url('" + ev.target.result + "') center/cover no-repeat";
-    setWallpaper(bg, file.name);
-    document.querySelectorAll('.wp-option').forEach(function(o) { o.classList.remove('active'); });
-  };
-  reader.readAsDataURL(file);
 }
 
 function resetWallpaper() {
@@ -245,15 +322,274 @@ function resetWallpaper() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// PROFILE & LOCK SCREEN TAB
+// ═══════════════════════════════════════════════════════════════
+function renderProfile(area) {
+  var profile = load('gg-profile', { name: 'User', avatar: '', hasPassword: false });
+
+  area.innerHTML =
+    '<div class="section-title">Profile &amp; Lock Screen</div>' +
+    '<div class="section-desc">Manage your display name, profile picture, and lock screen password.</div>' +
+
+    '<div class="profile-hero">' +
+      '<div class="avatar-wrap" id="avatar-wrap">' +
+        (profile.avatar
+          ? '<img src="' + profile.avatar + '" id="avatar-img">'
+          : '<span class="avatar-fallback" id="avatar-fallback">' + (profile.name || 'U').charAt(0).toUpperCase() + '</span>') +
+        '<div class="avatar-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>' +
+      '</div>' +
+      '<div class="profile-info">' +
+        '<div class="profile-name" id="profile-name-display">' + esc(profile.name || 'User') + '</div>' +
+        '<div class="profile-sub">' + (profile.hasPassword ? 'Lock screen password is set' : 'No lock screen password set') + '</div>' +
+        '<div class="profile-actions">' +
+          '<button class="btn btn-secondary" id="change-photo-btn">Change Photo</button>' +
+          (profile.avatar ? '<button class="btn btn-secondary" id="remove-photo-btn">Remove</button>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<input type="file" id="custom-avatar-input" accept="image/*">' +
+
+    '<div class="group">' +
+      '<div class="group-title">Account</div>' +
+      '<div class="row" style="flex-direction:column;align-items:stretch;gap:8px">' +
+        '<div class="field" style="margin-bottom:0">' +
+          '<label>Display Name</label>' +
+          '<input type="text" id="profile-name-input" value="' + esc(profile.name || '') + '" placeholder="Your name">' +
+        '</div>' +
+      '</div>' +
+      '<div class="row">' +
+        '<div><div class="row-label">Save Name</div><div class="row-desc">Applies your display name across the system</div></div>' +
+        '<button class="btn btn-primary" id="save-name-btn">Save</button>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="group">' +
+      '<div class="group-title">Lock Screen Password</div>' +
+      '<div class="row" style="flex-direction:column;align-items:stretch;gap:10px">' +
+        '<div class="field" style="margin-bottom:0">' +
+          '<label>New Password</label>' +
+          '<input type="password" id="new-password-input" placeholder="Enter a new password" autocomplete="new-password">' +
+        '</div>' +
+        '<div class="field" style="margin-bottom:0">' +
+          '<label>Confirm Password</label>' +
+          '<input type="password" id="confirm-password-input" placeholder="Confirm password" autocomplete="new-password">' +
+        '</div>' +
+        '<div id="password-status" class="status-msg"></div>' +
+      '</div>' +
+      '<div class="row">' +
+        '<div><div class="row-label">Require Password on Lock Screen</div><div class="row-desc">' + (profile.hasPassword ? 'Enabled' : 'Disabled — set a password to enable') + '</div></div>' +
+        '<div class="switch ' + (profile.hasPassword ? 'on' : '') + '" id="password-toggle"></div>' +
+      '</div>' +
+      '<div class="row">' +
+        '<div><div class="row-label">Update Password</div><div class="row-desc">Requires both fields above to match</div></div>' +
+        '<button class="btn btn-primary" id="save-password-btn">Update Password</button>' +
+      '</div>' +
+      (profile.hasPassword ?
+      '<div class="row">' +
+        '<div><div class="row-label">Remove Password</div><div class="row-desc">Lock screen will no longer require a password</div></div>' +
+        '<button class="btn btn-danger" id="remove-password-btn">Remove</button>' +
+      '</div>' : '') +
+    '</div>';
+
+  // Avatar upload
+  var avatarInput = document.getElementById('custom-avatar-input');
+  document.getElementById('avatar-wrap').addEventListener('click', function() { avatarInput.click(); });
+  document.getElementById('change-photo-btn').addEventListener('click', function() { avatarInput.click(); });
+  var removePhotoBtn = document.getElementById('remove-photo-btn');
+  if (removePhotoBtn) removePhotoBtn.addEventListener('click', function() {
+    var p = load('gg-profile', {});
+    p.avatar = '';
+    save('gg-profile', p);
+    broadcastProfile(p);
+    renderProfile(area);
+  });
+  avatarInput.addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var p = load('gg-profile', {});
+      p.avatar = ev.target.result;
+      save('gg-profile', p);
+      broadcastProfile(p);
+      renderProfile(area);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Save name
+  document.getElementById('save-name-btn').addEventListener('click', function() {
+    var name = document.getElementById('profile-name-input').value.trim() || 'User';
+    var p = load('gg-profile', {});
+    p.name = name;
+    save('gg-profile', p);
+    broadcastProfile(p);
+    renderProfile(area);
+  });
+
+  // Password toggle (only meaningful once a password exists)
+  document.getElementById('password-toggle').addEventListener('click', function() {
+    var p = load('gg-profile', {});
+    if (!p.password) {
+      showPasswordStatus('Set a password below before enabling this.', false);
+      return;
+    }
+    p.hasPassword = !p.hasPassword;
+    save('gg-profile', p);
+    broadcastProfile(p);
+    renderProfile(area);
+  });
+
+  // Save / update password
+  document.getElementById('save-password-btn').addEventListener('click', async function() {
+    var pw = document.getElementById('new-password-input').value;
+    var cpw = document.getElementById('confirm-password-input').value;
+    if (!pw || pw.length < 4) { showPasswordStatus('Password must be at least 4 characters.', false); return; }
+    if (pw !== cpw) { showPasswordStatus('Passwords do not match.', false); return; }
+    var hash = await hashPassword(pw);
+    var p = load('gg-profile', {});
+    p.password = hash;
+    p.hasPassword = true;
+    save('gg-profile', p);
+    broadcastProfile(p);
+    showPasswordStatus('Password updated successfully.', true);
+    setTimeout(function() { renderProfile(area); }, 700);
+  });
+
+  var removePwBtn = document.getElementById('remove-password-btn');
+  if (removePwBtn) removePwBtn.addEventListener('click', function() {
+    var p = load('gg-profile', {});
+    delete p.password;
+    p.hasPassword = false;
+    save('gg-profile', p);
+    broadcastProfile(p);
+    renderProfile(area);
+  });
+}
+
+function showPasswordStatus(msg, ok) {
+  var el = document.getElementById('password-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'status-msg show ' + (ok ? 'ok' : 'err');
+}
+
+async function hashPassword(pw) {
+  try {
+    var enc = new TextEncoder().encode(pw);
+    var buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  } catch (e) {
+    return pw; // fallback, should not normally happen
+  }
+}
+
+function broadcastProfile(p) {
+  try { window.parent.postMessage({ type: 'setProfile', profile: p }, '*'); } catch(e) {}
+}
+
+function esc(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // APPEARANCE TAB
 // ═══════════════════════════════════════════════════════════════
 function renderAppearance(area) {
+  var cfg = load('gg-appearance', { theme: 'dark', reduceMotion: false, accentColor: '#0a72e0' });
+
   area.innerHTML =
     '<div class="section-title">Appearance</div>' +
-    '<div class="section-desc">Customize how your desktop looks</div>' +
-    '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.3);font-size:14px">' +
-      'More appearance options coming soon...' +
+    '<div class="section-desc">Customize how your desktop looks and feels.</div>' +
+
+    '<div class="group">' +
+      '<div class="group-title">Theme</div>' +
+      '<div class="row">' +
+        '<div><div class="row-label">Dark Mode</div><div class="row-desc">Use a dark system-wide appearance</div></div>' +
+        '<div class="switch ' + (cfg.theme === 'dark' ? 'on' : '') + '" id="theme-toggle"></div>' +
+      '</div>' +
+      '<div class="row">' +
+        '<div><div class="row-label">Reduce Motion</div><div class="row-desc">Minimize animations across the system</div></div>' +
+        '<div class="switch ' + (cfg.reduceMotion ? 'on' : '') + '" id="motion-toggle"></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="group">' +
+      '<div class="group-title">Accent Color</div>' +
+      '<div class="row" style="gap:10px;flex-wrap:wrap">' +
+        ['#0a72e0','#8b5cf6','#ff5ea8','#30d158','#febc2e','#ff5f57'].map(function(c) {
+          return '<div class="accent-dot" data-color="' + c + '" style="width:26px;height:26px;border-radius:50%;background:' + c + ';cursor:pointer;border:2px solid ' + (cfg.accentColor === c ? '#fff' : 'transparent') + '"></div>';
+        }).join('') +
+      '</div>' +
     '</div>';
+
+  document.getElementById('theme-toggle').addEventListener('click', function() {
+    cfg.theme = cfg.theme === 'dark' ? 'light' : 'dark';
+    save('gg-appearance', cfg);
+    renderAppearance(area);
+  });
+  document.getElementById('motion-toggle').addEventListener('click', function() {
+    cfg.reduceMotion = !cfg.reduceMotion;
+    save('gg-appearance', cfg);
+    renderAppearance(area);
+  });
+  document.querySelectorAll('.accent-dot').forEach(function(dot) {
+    dot.addEventListener('click', function() {
+      cfg.accentColor = dot.dataset.color;
+      save('gg-appearance', cfg);
+      try { window.parent.postMessage({ type: 'setAccent', color: cfg.accentColor }, '*'); } catch(e) {}
+      renderAppearance(area);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DESKTOP & DOCK TAB
+// ═══════════════════════════════════════════════════════════════
+function renderDesktop(area) {
+  var cfg = load('gg-desktop-cfg', { snapToGrid: true, gridSize: 108, dockMagnify: true });
+
+  area.innerHTML =
+    '<div class="section-title">Desktop &amp; Dock</div>' +
+    '<div class="section-desc">Configure icon arrangement and dock behavior.</div>' +
+
+    '<div class="group">' +
+      '<div class="group-title">Desktop Icons</div>' +
+      '<div class="row">' +
+        '<div><div class="row-label">Snap to Grid</div><div class="row-desc">Icons align to a fixed grid when moved</div></div>' +
+        '<div class="switch ' + (cfg.snapToGrid ? 'on' : '') + '" id="snap-toggle"></div>' +
+      '</div>' +
+      '<div class="row">' +
+        '<div><div class="row-label">Reset Icon Positions</div><div class="row-desc">Return all desktop icons to their default layout</div></div>' +
+        '<button class="btn btn-danger" id="reset-icons-btn">Reset</button>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="group">' +
+      '<div class="group-title">Dock</div>' +
+      '<div class="row">' +
+        '<div><div class="row-label">Magnification</div><div class="row-desc">Enlarge icons on hover</div></div>' +
+        '<div class="switch ' + (cfg.dockMagnify ? 'on' : '') + '" id="dock-magnify-toggle"></div>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('snap-toggle').addEventListener('click', function() {
+    cfg.snapToGrid = !cfg.snapToGrid;
+    save('gg-desktop-cfg', cfg);
+    try { window.parent.postMessage({ type: 'setDesktopConfig', config: cfg }, '*'); } catch(e) {}
+    renderDesktop(area);
+  });
+  document.getElementById('dock-magnify-toggle').addEventListener('click', function() {
+    cfg.dockMagnify = !cfg.dockMagnify;
+    save('gg-desktop-cfg', cfg);
+    try { window.parent.postMessage({ type: 'setDesktopConfig', config: cfg }, '*'); } catch(e) {}
+    renderDesktop(area);
+  });
+  document.getElementById('reset-icons-btn').addEventListener('click', function() {
+    try { window.parent.postMessage({ type: 'resetIcons' }, '*'); } catch(e) {}
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -263,25 +599,31 @@ function renderAbout(area) {
   area.innerHTML =
     '<div class="section-title">About</div>' +
     '<div class="section-desc">System information</div>' +
-    '<div style="text-align:center;padding:20px">' +
-      '<div style="font-size:48px;margin-bottom:16px">🖥️</div>' +
-      '<div style="font-size:18px;font-weight:600;margin-bottom:8px">macOS</div>' +
-      '<div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:4px">Version WebOS 26.0</div>' +
-      '<div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:20px">Built with ❤️</div>' +
-      '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;text-align:left;max-width:400px;margin:0 auto">' +
-        '<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:8px">System Specs</div>' +
-        '<div style="font-size:13px;line-height:2">' +
-          '<div>Processor: Virtual CPU</div>' +
-          '<div>Memory: 16 GB</div>' +
-          '<div>Graphics: Virtual GPU</div>' +
-          '<div>Serial: N/A</div>' +
-        '</div>' +
+    '<div class="group" style="padding:24px;text-align:center">' +
+      '<div style="font-size:18px;font-weight:700;margin-bottom:4px">macOS Golden Gate</div>' +
+      '<div style="font-size:12.5px;color:var(--text2);margin-bottom:20px">Version 26.0</div>' +
+      '<div class="group" style="text-align:left;max-width:360px;margin:0 auto">' +
+        '<div class="row"><div class="row-label">Processor</div><div class="row-desc" style="margin-top:0">Virtual CPU</div></div>' +
+        '<div class="row"><div class="row-label">Memory</div><div class="row-desc" style="margin-top:0">16 GB</div></div>' +
+        '<div class="row"><div class="row-label">Graphics</div><div class="row-desc" style="margin-top:0">Virtual GPU</div></div>' +
+        '<div class="row"><div class="row-label">Serial Number</div><div class="row-desc" style="margin-top:0">N/A</div></div>' +
       '</div>' +
     '</div>';
 }
 
 // ═══════════════════════════════════════════════════════════════
-// INIT — show wallpaper tab
+// SEARCH FILTER (simple client-side filter of sidebar items)
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('sb-search-input').addEventListener('input', function(e) {
+  var q = e.target.value.toLowerCase().trim();
+  document.querySelectorAll('.sb-item').forEach(function(item) {
+    var text = item.textContent.toLowerCase();
+    item.style.display = (!q || text.indexOf(q) !== -1) ? 'flex' : 'none';
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
 // ═══════════════════════════════════════════════════════════════
 renderTab('wallpaper');
 </script>
