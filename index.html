@@ -1049,13 +1049,13 @@ function buildControlCenter(){
   var el=$('#control-center');
   el.innerHTML=
     '<div class="cc-grid">'+
-      ccTile('wifi','📶','Wi-Fi',ccState.wifi?'GoldenGateNet':'Off',ccState.wifi)+
-      ccTile('bluetooth','🔵','Bluetooth',ccState.bluetooth?'On':'Off',ccState.bluetooth)+
-      ccTile('dnd','🌙','Focus',ccState.dnd?'Do Not Disturb':'Off',ccState.dnd)+
-      ccTile('airdrop','📡','AirDrop',ccState.airdrop?'Everyone':'Receiving Off',ccState.airdrop)+
+      ccTile('wifi','','Wi-Fi',ccState.wifi?'GoldenGateNet':'Off',ccState.wifi)+
+      ccTile('bluetooth','','Bluetooth',ccState.bluetooth?'On':'Off',ccState.bluetooth)+
+      ccTile('dnd','','Focus',ccState.dnd?'Do Not Disturb':'Off',ccState.dnd)+
+      ccTile('airdrop','','AirDrop',ccState.airdrop?'Everyone':'Receiving Off',ccState.airdrop)+
     '</div>'+
-    '<div class="cc-slider-card"><div class="cc-row"><span>☀️ Display</span><span id="cc-bright-val">'+ccState.brightness+'%</span></div><input type="range" id="cc-brightness" min="10" max="100" value="'+ccState.brightness+'"></div>'+
-    '<div class="cc-slider-card"><div class="cc-row"><span>🔊 Sound</span><span id="cc-vol-val">'+ccState.volume+'%</span></div><input type="range" id="cc-volume" min="0" max="100" value="'+ccState.volume+'"></div>';
+    '<div class="cc-slider-card"><div class="cc-row"><span>Display</span><span id="cc-bright-val">'+ccState.brightness+'%</span></div><input type="range" id="cc-brightness" min="10" max="100" value="'+ccState.brightness+'"></div>'+
+    '<div class="cc-slider-card"><div class="cc-row"><span>Sound</span><span id="cc-vol-val">'+ccState.volume+'%</span></div><input type="range" id="cc-volume" min="0" max="100" value="'+ccState.volume+'"></div>';
 
   $$('.cc-tile',el).forEach(function(t){
     t.onclick=function(){
