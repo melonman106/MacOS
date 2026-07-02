@@ -495,7 +495,7 @@ function initBattery(){
     $('#battery-wrap').style.display='flex';
     function render(){
       var pct=Math.round(b.level*100);
-      $('#batt-pct').textContent=pct+'%'+(b.charging?' ':'');
+      $('#batt-pct').textContent=pct+'%'+(b.charging?' ⚡':'');
       $('#batt-fill').style.width=pct+'%';
       $('#batt-fill').classList.toggle('low',pct<=20 && !b.charging);
     }
