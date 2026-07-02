@@ -56,6 +56,13 @@
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden}
+html{cursor:url('./images/cursor-arrow.png') 3 2, auto}
+a,button,.dock-item,.desktop-icon,.mb-btn,.mb-icon,.lt,.cc-tile,.sp-result,.lp-app,.menu-item,.toggle,.chip,[onclick]{cursor:url('./images/cursor-pointer.png') 8 2, pointer}
+input,textarea{cursor:url('./images/cursor-text.png') 8 10, text}
+.resize-handle.rz-e,.resize-handle.rz-w{cursor:url('./images/cursor-resize-ew.png') 12 12, ew-resize}
+.resize-handle.rz-s{cursor:url('./images/cursor-resize-ns.png') 12 12, ns-resize}
+.resize-handle.rz-se{cursor:url('./images/cursor-resize-nwse.png') 12 12, nwse-resize}
+.resize-handle.rz-sw{cursor:url('./images/cursor-resize-nesw.png') 12 12, nesw-resize}
 body{
   font-family:var(--font);
   color:var(--text);
@@ -175,7 +182,8 @@ button,input{font-family:inherit}
 /* ════════════════════════════════════════════════════════════════
    DOCK
 ════════════════════════════════════════════════════════════════ */
-#dock-wrap{position:fixed;left:0;right:0;bottom:0;height:96px;z-index:var(--z-dock);display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
+#dock-wrap{position:fixed;left:0;right:0;bottom:0;height:96px;z-index:var(--z-dock);display:flex;align-items:flex-end;justify-content:center;pointer-events:none;transition:transform .25s ease,opacity .25s ease}
+#dock-wrap.hidden{transform:translateY(120px);opacity:0;pointer-events:none}
 #dock{
   display:flex;align-items:flex-end;gap:6px;padding:8px 10px;margin-bottom:9px;
   border-radius:24px;background:rgba(245,247,255,.16);border:1px solid var(--glass-border);
@@ -322,12 +330,27 @@ button,input{font-family:inherit}
 .toast{padding:10px 20px;border-radius:999px;background:rgba(20,22,32,.9);border:1px solid var(--glass-border);opacity:0;transform:translateY(14px);transition:.22s;font-size:13px}
 .toast.show{opacity:1;transform:translateY(0)}
 
-#lock-screen{position:fixed;inset:0;z-index:var(--z-lock);display:none;align-items:center;justify-content:center;flex-direction:column;gap:18px;background:linear-gradient(135deg,#1b0f34,#0f2947 55%,#063c53);backdrop-filter:blur(4px)}
+#lock-screen{position:fixed;inset:0;z-index:var(--z-lock);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:linear-gradient(135deg,#1b0f34,#0f2947 55%,#063c53);backdrop-filter:blur(4px);background-size:cover}
 #lock-screen.show{display:flex}
+#lock-screen.stage-clock .lock-login{display:none}
 .lock-clock{font-size:78px;font-weight:300;font-variant-numeric:tabular-nums}
 .lock-date{font-size:17px;color:var(--muted);margin-top:-8px}
-.lock-hint{margin-top:26px;font-size:13px;color:var(--muted2);padding:10px 20px;border-radius:999px;background:rgba(255,255,255,.08);cursor:pointer}
-.lock-hint:hover{background:rgba(255,255,255,.14)}
+.lock-login{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:8px}
+.lock-avatar{width:96px;height:96px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.25)}
+.lock-avatar img{width:100%;height:100%;object-fit:cover}
+.lock-name{font-size:16px;font-weight:600;margin-top:2px}
+.lock-pass-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+#lock-password{width:200px;padding:9px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;font-size:13px;outline:none;text-align:center}
+#lock-password:focus{border-color:var(--accent)}
+.lock-submit{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
+.lock-submit:hover{background:rgba(255,255,255,.24)}
+.lock-error{font-size:12px;color:var(--red);min-height:16px}
+.lock-hint{margin-top:6px;font-size:12px;color:var(--muted2);padding:8px 18px;border-radius:999px;background:rgba(255,255,255,.06);cursor:pointer}
+.lock-hint:hover{background:rgba(255,255,255,.12)}
+
+#screensaver{position:fixed;inset:0;z-index:calc(var(--z-lock) - 10);display:none;background:#000;overflow:hidden;cursor:none}
+#screensaver.show{display:block}
+#screensaver .ss-clock{position:absolute;font-size:64px;font-weight:200;color:rgba(255,255,255,.85);font-variant-numeric:tabular-nums;transition:top 4s linear,left 4s linear}
 
 /* ════════════════════════════════════════════════════════════════
    RESPONSIVE
@@ -410,8 +433,19 @@ button,input{font-family:inherit}
 <div id="lock-screen">
   <div class="lock-clock" id="lock-clock"></div>
   <div class="lock-date" id="lock-date"></div>
-  <div class="lock-hint" id="lock-hint">Click to unlock</div>
+  <div class="lock-login">
+    <div class="lock-avatar" id="lock-avatar"><span id="lock-avatar-fallback">U</span></div>
+    <div class="lock-name" id="lock-name">User</div>
+    <div class="lock-pass-row">
+      <input type="password" id="lock-password" placeholder="Enter Password" autocomplete="off">
+      <button class="lock-submit" id="lock-submit">→</button>
+    </div>
+    <div class="lock-error" id="lock-error"></div>
+    <div class="lock-hint" id="lock-hint">No password set — click here to unlock</div>
+  </div>
 </div>
+
+<div id="screensaver"><div class="ss-clock" id="ss-clock"></div></div>
 
 <script>
 (function(){
@@ -439,16 +473,16 @@ if(load('gg-version')!==STORAGE_VERSION){
    APP REGISTRY
 ════════════════════════════════════════════════════════════════ */
 var APPS=[
-  {name:'Finder',   icon:'./images/Finder.png',    internal:'finder', w:900, h:610},
-  {name:'Safari',   icon:'./images/Safari.png',    internal:'browser',w:1040,h:680},
+  {name:'Finder',   icon:'./images/Finder.png',    url:'./apps/Finder/index.html',       w:900, h:610},
+  {name:'Safari',   icon:'./images/Safari.png',    url:'./apps/Browser/index.html',   w:1040,h:680},
   {name:'YouTube',  icon:'./images/Youtube.png',   url:'./apps/YouTube/yt.html',      w:1000,h:650},
   {name:'ChatGPT',  icon:'./images/ChatGPT.png',   url:'./apps/AI/GPT.html',          w:820, h:590},
   {name:'Settings', icon:'./images/Settings.png',  url:'./apps/System/Settings.html', w:900, h:620},
   {name:'Terminal', icon:'./images/Terminal.png',  url:'./apps/System/terminal.html', w:760, h:460},
   {name:'Steam',    icon:'./images/Steam.png',     url:'./apps/Steam/steam.html',     w:990, h:650},
-  {name:'Music',    icon:'./images/Music.png',     internal:'music',  w:900, h:610},
+  {name:'Music',    icon:'./images/Music.png',     url:'./apps/Music/index.html',       w:900, h:610},
   {name:'Ampler',   icon:'./images/Ampler.png',    url:'./apps/Ampler/index.html',    w:990, h:650},
-  {name:'App Tester',icon:'./images/AppTester.png',internal:'tester', w:760, h:520}
+  {name:'App Tester',icon:'./images/AppTester.png',url:'./apps/tester/index.html',       w:760, h:520}
 ];
 
 var MAX_WINDOWS=18;
@@ -470,6 +504,7 @@ function front(w){
   w.el.classList.add('active');
   w.el.style.zIndex=z;
   $('#mb-appname').textContent=w.app.name;
+  setDockVisible(!anyFullscreen());
   persist();
 }
 function renormalizeZ(){
@@ -495,7 +530,7 @@ function initBattery(){
     $('#battery-wrap').style.display='flex';
     function render(){
       var pct=Math.round(b.level*100);
-      $('#batt-pct').textContent=pct+'%'+(b.charging?' ':'');
+      $('#batt-pct').textContent=pct+'%'+(b.charging?' ⚡':'');
       $('#batt-fill').style.width=pct+'%';
       $('#batt-fill').classList.toggle('low',pct<=20 && !b.charging);
     }
@@ -665,11 +700,6 @@ function createWin(app,saved){
 
   var body=$('.win-body',el);
   var loadApp=function(){
-    if(app.internal){
-      var f=document.createElement('iframe'); f.setAttribute('sandbox','allow-scripts allow-forms allow-popups allow-same-origin allow-presentation'); f.srcdoc=internalSrcdoc(app);
-      body.innerHTML=''; body.appendChild(f);
-      return;
-    }
     fetch(app.url,{method:'HEAD'}).then(function(r){
       body.innerHTML='';
       if(r.ok){
@@ -701,8 +731,8 @@ function createWin(app,saved){
       e.stopPropagation();
       var act=lt.dataset.act;
       if(act==='close') closeWin(w);
-      else if(act==='min'){ el.classList.toggle('min'); persist(); buildDock(); }
-      else if(act==='full'){ el.classList.toggle('full'); persist(); }
+      else if(act==='min'){ el.classList.toggle('min'); persist(); buildDock(); setDockVisible(!anyFullscreen()); }
+      else if(act==='full'){ el.classList.toggle('full'); setDockVisible(!anyFullscreen()); persist(); }
     };
   });
 
@@ -711,7 +741,7 @@ function createWin(app,saved){
     drag={ w:w, dx:e.clientX-el.offsetLeft, dy:e.clientY-el.offsetTop };
     front(w); e.preventDefault();
   };
-  $('.winbar',el).ondblclick=function(e){ if(!e.target.closest('.lt')){ el.classList.toggle('full'); persist(); } };
+  $('.winbar',el).ondblclick=function(e){ if(!e.target.closest('.lt')){ el.classList.toggle('full'); setDockVisible(!anyFullscreen()); persist(); } };
 
   ['e','w','s','se','sw'].forEach(function(dir){
     $('.rz-'+dir,el).onmousedown=function(e){
@@ -739,7 +769,13 @@ function closeWin(w){
   wins=wins.filter(function(x){ return x!==w; });
   var t=wins[wins.length-1];
   $('#mb-appname').textContent=t?t.app.name:'Finder';
-  persist(); buildDock();
+  persist(); buildDock(); setDockVisible(!anyFullscreen());
+}
+function anyFullscreen(){
+  return wins.some(function(w){ return w.el.classList.contains('full') && !w.el.classList.contains('min'); });
+}
+function setDockVisible(visible){
+  $('#dock-wrap').classList.toggle('hidden',!visible);
 }
 
 function topWin(){
@@ -765,7 +801,7 @@ document.addEventListener('mousemove',function(e){
     var nx=Math.max(-el.offsetWidth+140,Math.min(e.clientX-drag.dx,innerWidth-90));
     var ny=Math.max(28,Math.min(e.clientY-drag.dy,innerHeight-50));
     el.style.left=nx+'px'; el.style.top=ny+'px';
-    showSnapPreview(e.clientX);
+    showSnapPreview(e.clientX,e.clientY);
   }
   if(resize && resize.w){
     var w=resize.w, el=w.el, dx=e.clientX-resize.sx, dy=e.clientY-resize.sy;
@@ -776,23 +812,53 @@ document.addEventListener('mousemove',function(e){
 });
 document.addEventListener('mouseup',function(e){
   if(drag){
-    applySnap(e.clientX,drag.w);
+    applySnap(e.clientX,e.clientY,drag.w);
     persist();
   }
   if(resize) persist();
   drag=null; resize=null;
   $('#snap-preview').style.display='none';
 });
-function showSnapPreview(x){
-  var edge=24, sp=$('#snap-preview');
-  if(x<edge){ sp.style.cssText='display:block;left:0;top:28px;width:50%;height:calc(100% - 28px)'; }
-  else if(x>innerWidth-edge){ sp.style.cssText='display:block;left:50%;top:28px;width:50%;height:calc(100% - 28px)'; }
-  else { sp.style.display='none'; }
+function getSnapZone(x,y){
+  var edge=28, corner=90;
+  if(y<edge){
+    if(x<corner) return 'tl';
+    if(x>innerWidth-corner) return 'tr';
+    return 'full';
+  }
+  if(x<edge){
+    if(y<innerHeight*0.35) return 'tl';
+    if(y>innerHeight*0.65) return 'bl';
+    return 'left';
+  }
+  if(x>innerWidth-edge){
+    if(y<innerHeight*0.35) return 'tr';
+    if(y>innerHeight*0.65) return 'br';
+    return 'right';
+  }
+  return null;
 }
-function applySnap(x,w){
-  var edge=24, el=w.el;
-  if(x<edge){ el.style.left='0px'; el.style.top='28px'; el.style.width='50%'; el.style.height='calc(100% - 28px)'; }
-  else if(x>innerWidth-edge){ el.style.left='50%'; el.style.top='28px'; el.style.width='50%'; el.style.height='calc(100% - 28px)'; }
+var SNAP_RECTS={
+  left:  {left:'0%',   top:'28px', width:'50%', height:'calc(100% - 28px)'},
+  right: {left:'50%',  top:'28px', width:'50%', height:'calc(100% - 28px)'},
+  tl:    {left:'0%',   top:'28px', width:'50%', height:'calc(50% - 14px)'},
+  tr:    {left:'50%',  top:'28px', width:'50%', height:'calc(50% - 14px)'},
+  bl:    {left:'0%',   top:'calc(50% + 14px)', width:'50%', height:'calc(50% - 14px)'},
+  br:    {left:'50%',  top:'calc(50% + 14px)', width:'50%', height:'calc(50% - 14px)'},
+  full:  {left:'0%',   top:'28px', width:'100%', height:'calc(100% - 28px)'}
+};
+function showSnapPreview(x,y){
+  var sp=$('#snap-preview'); var zone=getSnapZone(x,y);
+  if(!zone){ sp.style.display='none'; return; }
+  var r=SNAP_RECTS[zone];
+  sp.style.cssText='display:block;left:'+r.left+';top:'+r.top+';width:'+r.width+';height:'+r.height;
+}
+function applySnap(x,y,w){
+  var zone=getSnapZone(x,y); if(!zone) return;
+  var r=SNAP_RECTS[zone], el=w.el;
+  el.style.left=r.left; el.style.top=r.top; el.style.width=r.width; el.style.height=r.height;
+  el.classList.remove('full');
+  setDockVisible(!anyFullscreen());
 }
 
 window.addEventListener('resize',function(){
@@ -1098,12 +1164,80 @@ document.addEventListener('click',function(e){ if(!e.target.closest('#context-me
 document.addEventListener('contextmenu',function(e){ if(!e.target.closest('.desktop-icon')&&!e.target.closest('.win')&&!e.target.closest('.dock-item')) e.preventDefault(); });
 
 /* ════════════════════════════════════════════════════════════════
+   PROFILE (name / avatar / password) — settable via postMessage
+   from an app: window.parent.postMessage({type:'setProfile',
+   name, avatar, password}, '*')
+════════════════════════════════════════════════════════════════ */
+function applyProfile(){
+  var name=load('gg-profile-name','User');
+  var avatar=load('gg-profile-avatar',null);
+  $('#lock-name').textContent=name;
+  var av=$('#lock-avatar'), fb=$('#lock-avatar-fallback');
+  if(avatar){ av.style.backgroundImage='none'; av.innerHTML='<img src="'+esc(avatar)+'" alt="">'; }
+  else { av.innerHTML='<span id="lock-avatar-fallback">'+esc((name||'U').charAt(0).toUpperCase())+'</span>'; }
+  var pass=load('gg-profile-password','');
+  $('#lock-hint').style.display=pass?'none':'block';
+  $('.lock-pass-row').style.display=pass?'flex':'none';
+}
+
+/* ════════════════════════════════════════════════════════════════
    LOCK SCREEN
 ════════════════════════════════════════════════════════════════ */
-function showLock(){ $('#lock-screen').classList.add('show'); }
-function hideLock(){ $('#lock-screen').classList.remove('show'); }
+function showLock(){
+  applyProfile();
+  var wp=load('gg-wallpaper',null);
+  if(wp){ $('#lock-screen').style.background=wp; $('#lock-screen').style.backgroundSize='cover'; }
+  $('#lock-error').textContent='';
+  $('#lock-password').value='';
+  $('#lock-screen').classList.add('show');
+  hideScreensaver();
+  setTimeout(function(){ if(load('gg-profile-password','')) $('#lock-password').focus(); },50);
+}
+function hideLock(){
+  var pass=load('gg-profile-password','');
+  if(pass){
+    if($('#lock-password').value!==pass){ $('#lock-error').textContent='Wrong password'; $('#lock-password').value=''; $('#lock-password').focus(); return; }
+  }
+  $('#lock-screen').classList.remove('show');
+  restartIdleTimer();
+}
 $('#lock-hint').onclick=hideLock;
-$('#lock-screen').onclick=function(e){ if(e.target.id==='lock-screen') hideLock(); };
+$('#lock-submit').onclick=hideLock;
+$('#lock-password').addEventListener('keydown',function(e){ if(e.key==='Enter') hideLock(); });
+
+/* ════════════════════════════════════════════════════════════════
+   SCREEN SAVER
+════════════════════════════════════════════════════════════════ */
+var idleTimer=null, ssTimer=null, IDLE_MS=5*60*1000;
+function restartIdleTimer(){
+  clearTimeout(idleTimer);
+  if($('#lock-screen').classList.contains('show')) return;
+  idleTimer=setTimeout(showScreensaver,IDLE_MS);
+}
+function showScreensaver(){
+  var ss=$('#screensaver'); ss.classList.add('show');
+  moveClock();
+  ssTimer=setInterval(moveClock,4000);
+}
+function moveClock(){
+  var el=$('#ss-clock');
+  el.textContent=new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+  var maxX=Math.max(40,innerWidth-320), maxY=Math.max(40,innerHeight-120);
+  el.style.left=(20+Math.random()*maxX)+'px';
+  el.style.top=(20+Math.random()*maxY)+'px';
+}
+function hideScreensaver(){
+  $('#screensaver').classList.remove('show');
+  clearInterval(ssTimer); ssTimer=null;
+  restartIdleTimer();
+}
+['mousemove','mousedown','keydown','wheel','touchstart'].forEach(function(evt){
+  document.addEventListener(evt,function(){
+    if($('#screensaver').classList.contains('show')){ hideScreensaver(); return; }
+    restartIdleTimer();
+  });
+});
+$('#screensaver').addEventListener('click',hideScreensaver);
 
 /* ════════════════════════════════════════════════════════════════
    KEYBOARD SHORTCUTS
@@ -1130,7 +1264,16 @@ window.addEventListener('message',function(e){
     document.body.style.background=d.wallpaper;
     document.body.style.backgroundSize='cover';
     save('gg-wallpaper',d.wallpaper);
+    $('#lock-screen').style.background=d.wallpaper;
+    $('#lock-screen').style.backgroundSize='cover';
     toast('Wallpaper updated');
+  }
+  if(d.type==='setProfile'){
+    if(d.name){ save('gg-profile-name',d.name); }
+    if(d.avatar){ save('gg-profile-avatar',d.avatar); }
+    if(d.password!==undefined){ save('gg-profile-password',d.password); }
+    applyProfile();
+    toast('Profile updated');
   }
   if(d.type==='openWindow'){
     createWin({ name:d.title||'App', icon:d.icon||'./images/AppTester.png', url:d.url, w:d.w||860, h:d.h||560 });
@@ -1142,6 +1285,8 @@ window.addEventListener('message',function(e){
 ════════════════════════════════════════════════════════════════ */
 var wp=load('gg-wallpaper',null);
 if(wp){ document.body.style.background=wp; document.body.style.backgroundSize='cover'; }
+showLock();
+restartIdleTimer();
 buildDesktop();
 buildWidgets();
 buildDock();
