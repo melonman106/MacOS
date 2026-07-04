@@ -44,9 +44,6 @@
             position: relative;
         }
 
-        /* ============================================
-           Header
-           ============================================ */
         .header {
             padding: 16px 24px;
             border-bottom: 1px solid var(--border);
@@ -127,9 +124,9 @@
             background: var(--green);
         }
 
-        /* ============================================
-           Messages Area
-           ============================================ */
+        .status-dot.error { background: var(--red); }
+        .status-dot.pending { background: var(--orange); }
+
         .messages {
             flex: 1;
             overflow-y: auto;
@@ -200,6 +197,7 @@
             font-size: 13.5px;
             line-height: 1.65;
             color: var(--text-primary);
+            white-space: pre-wrap;
         }
 
         .message-text code {
@@ -223,7 +221,6 @@
             line-height: 1.6;
         }
 
-        /* Image attachments in messages */
         .message-images {
             display: flex;
             flex-wrap: wrap;
@@ -263,9 +260,6 @@
             opacity: 0.6;
         }
 
-        /* ============================================
-           Typing Indicator
-           ============================================ */
         .typing {
             display: flex; gap: 4px; padding: 2px 0;
         }
@@ -285,9 +279,6 @@
             50% { opacity: 1; transform: translateY(-3px); }
         }
 
-        /* ============================================
-           Welcome State
-           ============================================ */
         .welcome {
             flex: 1;
             display: flex;
@@ -352,9 +343,6 @@
             font-size: 11px; color: var(--text-tertiary); max-width: none;
         }
 
-        /* ============================================
-           Input Area
-           ============================================ */
         .input-area {
             padding: 16px 24px 20px;
             border-top: 1px solid var(--border);
@@ -362,7 +350,6 @@
             flex-shrink: 0;
         }
 
-        /* File preview strip */
         .file-previews {
             display: flex;
             flex-wrap: wrap;
@@ -481,7 +468,6 @@
             opacity: 1;
         }
 
-        /* Input wrapper */
         .input-wrapper {
             display: flex;
             align-items: flex-end;
@@ -585,9 +571,6 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
-        /* ============================================
-           Drag & Drop Overlay
-           ============================================ */
         .drop-overlay {
             position: absolute;
             inset: 0;
@@ -626,9 +609,6 @@
             color: var(--text-secondary);
         }
 
-        /* ============================================
-           Image Lightbox
-           ============================================ */
         .lightbox {
             position: fixed;
             inset: 0;
@@ -676,14 +656,12 @@
             background: rgba(255,255,255,0.2);
         }
 
-        /* Hidden file input */
         #fileInput { display: none; }
     </style>
 </head>
 <body>
 
     <div class="app" id="app">
-        <!-- Drop overlay -->
         <div class="drop-overlay" id="dropOverlay">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -694,7 +672,6 @@
             <span>Images and documents supported</span>
         </div>
 
-        <!-- Header -->
         <div class="header">
             <div class="header-left">
                 <div class="header-icon">
@@ -708,8 +685,8 @@
             </div>
             <div class="header-right">
                 <div class="status-indicator">
-                    <span class="status-dot"></span>
-                    Ready
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Ready</span>
                 </div>
                 <button class="header-btn" title="Clear chat" onclick="clearChat()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -719,7 +696,6 @@
             </div>
         </div>
 
-        <!-- Messages -->
         <div class="messages" id="messages">
             <div class="welcome" id="welcome">
                 <div class="welcome-icon">
@@ -752,7 +728,6 @@
             </div>
         </div>
 
-        <!-- Input -->
         <div class="input-area">
             <div class="file-previews" id="filePreviews"></div>
             <div class="input-wrapper">
@@ -776,22 +751,24 @@
         </div>
     </div>
 
-    <!-- Lightbox -->
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
         <button class="lightbox-close">&times;</button>
         <img id="lightboxImg" src="" alt="">
     </div>
 
-    <!-- Hidden file input -->
     <input type="file" id="fileInput" multiple accept="image/*,.pdf,.txt,.md,.json,.js,.py,.html,.css,.csv,.xml,.yaml,.yml,.log,.doc,.docx">
 
     <script>
         // ============================================
         // CONFIGURATION
+        // No API key here — requests go through the same-origin
+        // /api/chat Cloudflare Pages Function, which holds the key
+        // server-side (see functions/api/chat.js). This file is
+        // served from the domain root, so a relative path works
+        // whether this app is loaded directly or in an iframe.
         // ============================================
-        const API_KEY = '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';
-        const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-        const MODEL = 'nvidia/nemotron-3-nano-30b-a3b:free'; // Use gpt-4o for vision support
+        const API_URL = new URL('/api/chat', window.location.origin).toString();
+        const MODEL = 'nvidia/nemotron-3-nano-30b-a3b:free'; // swap for a vision model if you need image understanding
 
         // ============================================
         // DOM
@@ -808,6 +785,8 @@
         const dropOverlay = document.getElementById('dropOverlay');
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightboxImg');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
 
         // ============================================
         // State
@@ -817,6 +796,11 @@
         ];
         let hasStarted = false;
         let pendingFiles = []; // { type, data, name, size, mimeType }
+
+        function setStatus(state, label) {
+            statusDot.className = 'status-dot' + (state ? ' ' + state : '');
+            statusText.textContent = label;
+        }
 
         // ============================================
         // Textarea auto-resize & input handling
@@ -853,7 +837,7 @@
 
         fileInput.addEventListener('change', (e) => {
             handleFiles(e.target.files);
-            fileInput.value = ''; // Reset so same file can be selected again
+            fileInput.value = '';
         });
 
         // ============================================
@@ -892,34 +876,13 @@
         async function handleFiles(files) {
             for (const file of files) {
                 if (file.type.startsWith('image/')) {
-                    // Read as base64
                     const base64 = await readFileAsBase64(file);
-                    pendingFiles.push({
-                        type: 'image',
-                        data: base64,
-                        name: file.name,
-                        size: file.size,
-                        mimeType: file.type
-                    });
+                    pendingFiles.push({ type: 'image', data: base64, name: file.name, size: file.size, mimeType: file.type });
                 } else if (isTextFile(file)) {
-                    // Read as text
                     const text = await readFileAsText(file);
-                    pendingFiles.push({
-                        type: 'text',
-                        data: text,
-                        name: file.name,
-                        size: file.size,
-                        mimeType: file.type
-                    });
+                    pendingFiles.push({ type: 'text', data: text, name: file.name, size: file.size, mimeType: file.type });
                 } else {
-                    // Generic file - just store metadata
-                    pendingFiles.push({
-                        type: 'file',
-                        data: null,
-                        name: file.name,
-                        size: file.size,
-                        mimeType: file.type
-                    });
+                    pendingFiles.push({ type: 'file', data: null, name: file.name, size: file.size, mimeType: file.type });
                 }
             }
             renderFilePreviews();
@@ -933,7 +896,6 @@
                 'application/x-yaml', 'application/yaml'
             ];
             const textExts = ['.txt', '.md', '.json', '.js', '.py', '.html', '.css', '.csv', '.xml', '.yaml', '.yml', '.log', '.ts', '.jsx', '.tsx', '.sh', '.bash', '.rb', '.go', '.rs', '.java', '.c', '.cpp', '.h'];
-            
             if (textTypes.includes(file.type)) return true;
             const ext = '.' + file.name.split('.').pop().toLowerCase();
             return textExts.includes(ext);
@@ -960,14 +922,12 @@
         // ============================================
         function renderFilePreviews() {
             filePreviews.innerHTML = '';
-            
             pendingFiles.forEach((file, index) => {
                 const el = document.createElement('div');
-                
                 if (file.type === 'image') {
                     el.className = 'file-preview image-preview';
                     el.innerHTML = `
-                        <img src="${file.data}" alt="${file.name}">
+                        <img src="${file.data}" alt="${escapeHtml(file.name)}">
                         <button class="remove-file" onclick="removeFile(${index})" title="Remove">&times;</button>
                     `;
                     el.querySelector('img').addEventListener('click', () => {
@@ -985,17 +945,15 @@
                             </svg>
                         </div>
                         <div class="file-info">
-                            <div class="file-name">${file.name}</div>
+                            <div class="file-name">${escapeHtml(file.name)}</div>
                             <div class="file-size">${formatFileSize(file.size)}</div>
                         </div>
                         <button class="remove-file" onclick="removeFile(${index})" title="Remove">&times;</button>
                     `;
                 }
-                
                 filePreviews.appendChild(el);
             });
 
-            // Update file count
             if (pendingFiles.length > 0) {
                 fileCount.textContent = `${pendingFiles.length} file${pendingFiles.length > 1 ? 's' : ''}`;
             } else {
@@ -1079,21 +1037,16 @@
 
             let imagesHtml = '';
             let fileBadgesHtml = '';
-            let messageImages = [];
 
-            // Build image HTML and collect images for lightbox
             const imageFiles = files.filter(f => f.type === 'image');
             if (imageFiles.length > 0) {
                 imagesHtml = `<div class="message-images">`;
-                imageFiles.forEach((f, i) => {
-                    const id = `msg-img-${Date.now()}-${i}`;
-                    imagesHtml += `<img src="${f.data}" alt="${f.name}" id="${id}" onclick="openLightbox('${f.data}')">`;
+                imageFiles.forEach((f) => {
+                    imagesHtml += `<img src="${f.data}" alt="${escapeHtml(f.name)}" onclick="openLightbox('${f.data}')">`;
                 });
                 imagesHtml += `</div>`;
-                messageImages = imageFiles.map(f => f.data);
             }
 
-            // Build file badges
             const otherFiles = files.filter(f => f.type !== 'image');
             otherFiles.forEach(f => {
                 fileBadgesHtml += `
@@ -1162,41 +1115,34 @@
             conversationHistory = [
                 { role: 'system', content: 'You are a helpful AI assistant. Be clear, concise, and well-structured.' }
             ];
+            setStatus('', 'Ready');
         }
 
         // ============================================
-        // Send message
+        // Send message — now via same-origin proxy, no key in this file
         // ============================================
         async function sendMessage() {
             const text = userInput.value.trim();
             const files = [...pendingFiles];
-            
+
             if (!text && files.length === 0) return;
 
-            // Show user message
             addMessage('user', text || (files.length > 0 ? `[Sent ${files.length} file${files.length > 1 ? 's' : ''}]` : ''), files);
 
-            // Build API message content
             const messageContent = [];
 
-            // Add text if present
             if (text) {
                 messageContent.push({ type: 'text', text });
             }
 
-            // Add images to message
             const imageFiles = files.filter(f => f.type === 'image');
             imageFiles.forEach(f => {
                 messageContent.push({
                     type: 'image_url',
-                    image_url: {
-                        url: f.data,
-                        detail: 'auto'
-                    }
+                    image_url: { url: f.data, detail: 'auto' }
                 });
             });
 
-            // Add text file contents
             const textFiles = files.filter(f => f.type === 'text');
             textFiles.forEach(f => {
                 messageContent.push({
@@ -1205,7 +1151,6 @@
                 });
             });
 
-            // Add non-readable file names
             const otherFiles = files.filter(f => f.type === 'file');
             if (otherFiles.length > 0) {
                 const fileList = otherFiles.map(f => `${f.name} (${formatFileSize(f.size)})`).join(', ');
@@ -1215,7 +1160,6 @@
                 });
             }
 
-            // Add to conversation history
             conversationHistory.push({
                 role: 'user',
                 content: messageContent.length === 1 && messageContent[0].type === 'text'
@@ -1223,7 +1167,6 @@
                     : messageContent
             });
 
-            // Clear input
             userInput.value = '';
             userInput.style.height = 'auto';
             pendingFiles = [];
@@ -1231,16 +1174,13 @@
             updateSendButton();
             userInput.focus();
 
-            // Show typing
             addTyping();
+            setStatus('pending', 'Thinking…');
 
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer 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`
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         model: MODEL,
                         messages: conversationHistory,
@@ -1252,24 +1192,34 @@
                 removeTyping();
 
                 if (!response.ok) {
-                    const err = await response.json();
-                    addMessage('ai', `Error: ${err.error?.message || 'Something went wrong.'}`);
+                    let err;
+                    try { err = await response.json(); } catch (e) { err = {}; }
+                    const msg = err.error?.message || `Request failed (HTTP ${response.status}).`;
+                    addMessage('ai', `Error: ${msg}`);
+                    setStatus('error', 'Error');
                     return;
                 }
 
                 const data = await response.json();
-                const reply = data.choices[0].message.content;
+                const reply = data.choices?.[0]?.message?.content;
+
+                if (!reply) {
+                    addMessage('ai', 'Error: The server returned an unexpected response.');
+                    setStatus('error', 'Error');
+                    return;
+                }
 
                 addMessage('ai', reply);
                 conversationHistory.push({ role: 'assistant', content: reply });
+                setStatus('', 'Ready');
 
             } catch (err) {
                 removeTyping();
                 addMessage('ai', 'Connection failed. Check your network and try again.');
+                setStatus('error', 'Offline');
             }
         }
 
-        // Focus input on load
         userInput.focus();
     </script>
 
