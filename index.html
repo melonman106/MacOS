@@ -616,13 +616,26 @@ function attemptUnlock(){
   var lockEnabled = load('gg-lock-enabled', false);
   if(!lockEnabled){ hideLock(); return; }
   var hash = load('gg-lock-hash', null);
+  if(!hash){ hideLock(); return; } // no password ever set — don't block the user out
+  var pw = $('#lockPw').value;
+  sha256Hex(pw).then(function(h){
+    if(h===hash){ hideLock(); }
+    else { $('#lockError').textContent='Incorrect password'; $('#lockPw').value=''; $('#lockPw').focus(); }
+  });
+}
+  var lockEnabled = load('gg-lock-enabled', false);
+  if(!lockEnabled){ hideLock(); return; }
+  var hash = load('gg-lock-hash', null);
   var pw = $('#lockPw').value;
   sha256Hex(pw).then(function(h){
     if(!hash || h===hash){ hideLock(); }
     else { $('#lockError').textContent='Incorrect password'; $('#lockPw').value=''; }
   });
 }
-$('#lockPw').addEventListener('keydown',function(e){ if(e.key==='Enter') attemptUnlock(); });
+document.addEventListener('keydown', function(e){
+  if(!lockScreenOn) return;
+  if(e.key==='Enter'){ e.preventDefault(); attemptUnlock(); }
+});
 $('#lockBtn').onclick=showLock;
 
 /* first-load lock screen */
