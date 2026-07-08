@@ -224,18 +224,7 @@ if(load('gg-version')!==STORAGE_VERSION){
   save('gg-version',STORAGE_VERSION);
 }
 
-var APPS=[
-  {name:'Finder',icon:'./images/Finder.png',internal:'finder',w:900,h:610},
-  {name:'Safari',icon:'./images/Safari.png',internal:'browser',w:1040,h:680},
-  {name:'YouTube',icon:'./images/Youtube.png',url:'./apps/YouTube/yt.html',w:1000,h:650},
-  {name:'ChatGPT',icon:'./images/ChatGPT.png',url:'./apps/AI/GPT.html',w:820,h:590},
-  {name:'Settings',icon:'./images/Settings.png',url:'./apps/System/Settings.html',w:900,h:620},
-  {name:'Terminal',icon:'./images/Terminal.png',url:'./apps/System/terminal.html',w:760,h:460},
-  {name:'Steam',icon:'./images/Steam.png',url:'./apps/Steam/steam.html',w:990,h:650},
-  {name:'Music',icon:'./images/Music.png',internal:'music',w:900,h:610},
-  {name:'Ampler',icon:'./images/Ampler.png',url:'./apps/Ampler/index.html',w:990,h:650},
-  {name:'App Tester',icon:'./images/AppTester.png',internal:'tester',w:760,h:520}
-];
+var APPS=[{name:'Finder',icon:'./images/Finder.png',internal:'finder',w:900,h:610},{name:'Safari',icon:'./images/Safari.png',internal:'browser',w:1040,h:680},{name:'YouTube',icon:'./images/Youtube.png',url:'./apps/YouTube/yt.html',w:1000,h:650},{name:'ChatGPT',icon:'./images/ChatGPT.png',url:'./apps/AI/GPT.html',w:820,h:590},{name:'Settings',icon:'./images/Settings.png',url:'./apps/System/Settings.html',w:900,h:620},{name:'Terminal',icon:'./images/Terminal.png',url:'./apps/System/terminal.html',w:760,h:460},{name:'Steam',icon:'./images/Steam.png',url:'./apps/Steam/steam.html',w:990,h:650},{name:'Music',icon:'./images/Music.png',internal:'music',w:900,h:610},{name:'Ampler',icon:'./images/Ampler.png',url:'./apps/Ampler/index.html',w:990,h:650},{name:'App Tester',icon:'./images/AppTester.png',internal:'tester',w:760,h:520},{name:'Photos',icon:'./images/Photos.png',url:'./apps/Photos/index.html',w:960,h:640},{name:'Notes',icon:'./images/Notes.png',url:'./apps/Notes/index.html',w:820,h:580},{name:'Mail',icon:'./images/Mail.png',url:'./apps/Mail/index.html',w:1000,h:650},{name:'Calendar',icon:'./images/Calendar.png',url:'./apps/Calendar/index.html',w:900,h:620},{name:'Maps',icon:'./images/Maps.png',url:'./apps/Maps/index.html',w:960,h:640},{name:'Messages',icon:'./images/Messages.png',url:'./apps/Messages/index.html',w:880,h:600}];
 
 var wins=[], zBase=var_zBase(), z=zBase, pins=load('gg-pins',null)||APPS.reduce(function(o,a){o[a.name]=true;return o},{}),
     iconPos=load('gg-icons',{}), drag=null, resize=null, spotIndex=0;
