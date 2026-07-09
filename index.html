@@ -461,13 +461,7 @@ function persist(){
 }
 
 /* Desktop icon drag — cleaned up listeners */
-$('#desktop').addEventListener('mousedown',function(e){
-  var ic=e.target.closest('.desktop-icon'); if(!ic)return;
-  var ox=e.clientX-ic.offsetLeft, oy=e.clientY-ic.offsetTop;
-  var move=function(ev){
-    ic.style.left=Math.max(0,Math.min(ev.clientX-ox,innerWidth-94))+'px';
-    ic.style.top=Math.max(30,Math.min(ev.clientY-oy,innerHeight-160))+'px';
-  };
+$('#desktop').addEventListener('mousedown',function(e){var ic=e.target.closest('.desktop-icon');if(!ic||drag)return;var ox=e.clientX-ic.offsetLeft,oy=e.clientY-ic.offsetTop;var iconDrag={icon:ic,dx:ox,dy:oy};document.onmousemove=function(ev){if(!iconDrag)return;ic.style.left=Math.max(0,Math.min(ev.clientX-ox,innerWidth-94))+'px';ic.style.top=Math.max(30,Math.min(ev.clientY-oy,innerHeight-160))+'px'};document.onmouseup=function(){if(iconDrag){var a=APPS[+ic.dataset.i];iconPos[a.name]={x:parseInt(ic.style.left),y:parseInt(ic.style.top)};save('gg-icons',iconPos)}iconDrag=null;document.onmousemove=null;document.onmouseup=null}});
   var up=function(){
     var a=APPS[+ic.dataset.i];
     iconPos[a.name]={x:parseInt(ic.style.left),y:parseInt(ic.style.top)};
