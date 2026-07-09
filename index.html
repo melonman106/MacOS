@@ -8,137 +8,215 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--glass:rgba(255,255,255,.18);--glass-strong:rgba(255,255,255,.28);--dark:rgba(15,18,28,.72);--dark2:rgba(20,24,36,.86);--line:rgba(255,255,255,.18);--text:#f7f9ff;--muted:rgba(247,249,255,.68);--accent:#0a84ff;--purple:#8b5cf6;--pink:#ff5ea8;--green:#30d158;--red:#ff5f57;--yellow:#febc2e;--shadow:0 28px 80px rgba(0,0,0,.42);
-  /* z-index bands — non-overlapping, documented */
-  --z-desktop-icon:50; --z-win-min:100; --z-win-max:4999; --z-dock:60000; --z-menubar:70000; --z-menu-dropdown:70500; --z-panel:70500; --z-spotlight:71000; --z-launchpad:72000; --z-toast:80000; --z-dim:80500; --z-lock:90000;
+:root{
+  --glass:rgba(255,255,255,.18);--glass-strong:rgba(255,255,255,.28);
+  --dark:rgba(15,18,28,.72);--dark2:rgba(20,24,36,.86);--line:rgba(255,255,255,.18);
+  --text:#f7f9ff;--muted:rgba(247,249,255,.68);
+  --accent:#0a84ff;--purple:#8b5cf6;--pink:#ff5ea8;--green:#30d158;--red:#ff5f57;--yellow:#febc2e;
+  --shadow:0 28px 80px rgba(0,0,0,.42);
+  /* z-index architecture — bands, never incremented past cap */
+  --z-desktop:1;--z-win-min:100;--z-win-max:4999;--z-dock:60000;--z-menubar:70000;
+  --z-panel:70500;--z-spot:71000;--z-launchpad:71200;--z-toast:72000;--z-lock:90000;--z-screensaver:91000;
 }
-*{box-sizing:border-box;margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden}body{font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;color:var(--text);user-select:none;-webkit-user-select:none;background:#121726;background-image:radial-gradient(circle at 18% 16%,rgba(255,199,93,.95) 0 10%,transparent 28%),radial-gradient(circle at 72% 22%,rgba(255,94,168,.82) 0 12%,transparent 32%),radial-gradient(circle at 47% 74%,rgba(10,132,255,.9) 0 16%,transparent 38%),linear-gradient(135deg,#20103b 0%,#10294d 45%,#073f58 100%);background-size:cover;transition:background .4s ease}
-.scrim{position:fixed;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.12));pointer-events:none;z-index:1}.safe-hide{display:none!important}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden}
+body{
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;
+  color:var(--text);user-select:none;-webkit-user-select:none;
+  background:#121726;
+  background-image:
+    radial-gradient(circle at 18% 16%,rgba(255,199,93,.95) 0 10%,transparent 28%),
+    radial-gradient(circle at 72% 22%,rgba(255,94,168,.82) 0 12%,transparent 32%),
+    radial-gradient(circle at 47% 74%,rgba(10,132,255,.9) 0 16%,transparent 38%),
+    linear-gradient(135deg,#20103b 0%,#10294d 45%,#073f58 100%);
+  background-size:cover;background-position:center;transition:background-image .4s ease;
+}
+.scrim{position:fixed;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.12));pointer-events:none;z-index:var(--z-desktop)}
+.hidden{display:none!important}
+::selection{background:rgba(10,132,255,.4)}
 
-/* ============ TOP BAR — always above windows, below dim/lock ============ */
-#top-bar{position:fixed;top:0;left:0;right:0;height:30px;z-index:var(--z-menubar);display:flex;align-items:center;justify-content:space-between;padding:0 8px;background:rgba(18,20,30,.52);backdrop-filter:blur(34px) saturate(190%);-webkit-backdrop-filter:blur(34px) saturate(190%);border-bottom:1px solid rgba(255,255,255,.12)}
+/* ============ MENU BAR ============ */
+#top-bar{
+  position:fixed;top:0;left:0;right:0;height:30px;z-index:var(--z-menubar);
+  display:flex;align-items:center;justify-content:space-between;padding:0 8px;
+  background:rgba(18,20,30,.52);backdrop-filter:blur(34px) saturate(190%);-webkit-backdrop-filter:blur(34px) saturate(190%);
+  border-bottom:1px solid rgba(255,255,255,.12);
+  transition:transform .28s ease,opacity .28s ease;
+}
+#top-bar.hide{transform:translateY(-100%);opacity:0;pointer-events:none}
 .top-left,.top-right{display:flex;align-items:center;height:100%;gap:2px}
 .top-btn,.top-app,.top-icon,.clock{height:24px;display:flex;align-items:center;border-radius:7px;padding:0 9px;color:var(--text);font-size:13px;line-height:1;cursor:default}
 .top-btn:hover,.top-icon:hover,.clock:hover,.top-app:hover{background:rgba(255,255,255,.16)}
-.apple{width:30px;justify-content:center;padding:0}.apple img{width:14px;height:16px;filter:brightness(0) invert(1)}
-.top-app{font-weight:800}.top-icon{width:28px;justify-content:center;padding:0}.top-icon svg{width:15px;height:15px;fill:currentColor}
+.apple{width:30px;justify-content:center;padding:0}
+.apple img{width:14px;height:16px;filter:brightness(0) invert(1)}
+.top-app{font-weight:800}
+.top-icon{width:28px;justify-content:center;padding:0;position:relative}
+.top-icon svg{width:15px;height:15px;fill:currentColor}
+.top-icon .badge{position:absolute;top:2px;right:2px;width:6px;height:6px;border-radius:50%;background:var(--red)}
 .clock{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
-.menu{position:fixed;top:29px;min-width:230px;padding:7px;background:rgba(28,31,43,.75);border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(48px) saturate(200%);display:none;z-index:var(--z-menu-dropdown)}
-.menu.show{display:block}.mi{padding:8px 12px;border-radius:9px;font-size:13px;color:var(--text);display:flex;justify-content:space-between;gap:22px;cursor:default}.mi:hover{background:rgba(10,132,255,.9)}.sep{height:1px;background:rgba(255,255,255,.12);margin:6px 8px}
+
+.menu{position:absolute;top:29px;min-width:230px;padding:7px;background:rgba(28,31,43,.75);border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(48px) saturate(200%);display:none;z-index:var(--z-panel)}
+.menu.show{display:block}
+.mi{padding:8px 12px;border-radius:9px;font-size:13px;color:var(--text);display:flex;justify-content:space-between;gap:22px;cursor:default}
+.mi:hover{background:rgba(10,132,255,.9)}
+.mi.disabled{opacity:.35;pointer-events:none}
+.sep{height:1px;background:rgba(255,255,255,.12);margin:6px 8px}
 
 /* ============ DESKTOP ============ */
-#desktop{position:fixed;inset:30px 0 86px 0;z-index:var(--z-desktop-icon)}
-.desktop-icon{position:absolute;width:94px;padding:9px 7px;border-radius:14px;text-align:center;cursor:default;z-index:var(--z-desktop-icon)}
+#desktop{position:fixed;inset:30px 0 86px 0;z-index:var(--z-desktop)}
+.desktop-icon{position:absolute;width:94px;padding:9px 7px;border-radius:14px;text-align:center;cursor:default}
 .desktop-icon:hover,.desktop-icon.selected{background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
-.desktop-icon img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 6px 12px rgba(0,0,0,.36))}
-.desktop-icon span{display:block;margin-top:5px;font-size:11px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.8)}
+.desktop-icon img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 6px 12px rgba(0,0,0,.36));pointer-events:none}
+.desktop-icon .fallback-glyph{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple));margin:0 auto;box-shadow:0 6px 12px rgba(0,0,0,.36)}
+.desktop-icon span{display:block;margin-top:5px;font-size:11px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.8);word-break:break-word}
 
-/* ============ DOCK — above windows always ============ */
-#dock{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:var(--z-dock);display:flex;align-items:flex-end;gap:7px;padding:8px 11px;border-radius:26px;background:rgba(245,247,255,.18);border:1px solid rgba(255,255,255,.22);box-shadow:0 24px 70px rgba(0,0,0,.4);backdrop-filter:blur(34px) saturate(190%)}
+/* ============ DOCK ============ */
+#dock{
+  position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:var(--z-dock);
+  display:flex;align-items:flex-end;gap:7px;padding:8px 11px;border-radius:26px;
+  background:rgba(245,247,255,.18);border:1px solid rgba(255,255,255,.22);
+  box-shadow:0 24px 70px rgba(0,0,0,.4);backdrop-filter:blur(34px) saturate(190%);
+  transition:transform .32s ease,opacity .32s ease;
+}
+#dock.hide{transform:translateX(-50%) translateY(140%);opacity:0;pointer-events:none}
 .dock-item{width:54px;height:54px;border-radius:16px;position:relative;display:grid;place-items:center;transition:transform .18s ease,margin .18s ease;cursor:default}
 .dock-item:hover{transform:scale(1.42) translateY(-13px);margin:0 8px}
-.dock-item img{width:52px;height:52px;object-fit:contain}
-.dock-tip{position:absolute;bottom:68px;left:50%;transform:translateX(-50%);padding:5px 10px;border-radius:9px;background:rgba(20,24,36,.82);border:1px solid rgba(255,255,255,.14);font-size:12px;white-space:nowrap;opacity:0;pointer-events:none}
+.dock-item img{width:52px;height:52px;object-fit:contain;pointer-events:none}
+.dock-item .fallback-glyph{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple))}
+.dock-tip{position:absolute;bottom:68px;left:50%;transform:translateX(-50%);padding:5px 10px;border-radius:9px;background:rgba(20,24,36,.82);border:1px solid rgba(255,255,255,.14);font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s}
 .dock-item:hover .dock-tip{opacity:1}
-.dot{position:absolute;bottom:-6px;width:5px;height:5px;border-radius:50%;background:#fff}
-.dock-sep{width:1px;height:42px;background:rgba(255,255,255,.24);margin:0 3px}
+.dot{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#fff}
+.dock-sep{width:1px;height:42px;background:rgba(255,255,255,.24);margin:0 3px;align-self:center}
+.dock-trash{margin-left:2px}
 
-/* ============ WINDOWS — clamped z-index band 100–4999 ============ */
+/* ============ WINDOWS ============ */
 #win-layer{position:fixed;inset:0;pointer-events:none;z-index:var(--z-win-min)}
-.win{position:absolute;min-width:330px;min-height:230px;display:flex;flex-direction:column;overflow:hidden;border-radius:18px;background:rgba(244,247,255,.18);border:1px solid rgba(255,255,255,.2);box-shadow:var(--shadow);backdrop-filter:blur(44px) saturate(190%);pointer-events:auto}
+.win{
+  position:absolute;min-width:330px;min-height:230px;display:flex;flex-direction:column;overflow:hidden;
+  border-radius:18px;background:rgba(244,247,255,.18);border:1px solid rgba(255,255,255,.2);
+  box-shadow:var(--shadow);backdrop-filter:blur(44px) saturate(190%);pointer-events:auto;
+  transition:box-shadow .15s ease;
+}
 .win.active{border-color:rgba(255,255,255,.34)}
-.win.full{inset:30px 0 0 0!important;width:100%!important;height:calc(100% - 30px)!important;border-radius:0}
+.win.full{inset:30px 0 0 0!important;width:100%!important;height:calc(100% - 30px)!important;border-radius:0;transition:none}
 .win.min{transform:scale(.08) translateY(600px);opacity:0;pointer-events:none}
-.winbar{height:42px;display:flex;align-items:center;padding:0 14px;background:rgba(18,20,30,.28);border-bottom:1px solid rgba(255,255,255,.12);cursor:grab}
+.win.opening{animation:winOpen .22s ease}
+.win.snapping{transition:left .15s ease,top .15s ease,width .15s ease,height .15s ease}
+@keyframes winOpen{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.winbar{height:42px;display:flex;align-items:center;padding:0 14px;background:rgba(18,20,30,.28);border-bottom:1px solid rgba(255,255,255,.12);cursor:grab;flex-shrink:0}
 .winbar:active{cursor:grabbing}
-.lights{display:flex;gap:8px}.lt{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2);cursor:pointer}
+.lights{display:flex;gap:8px}
+.lt{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:8px;color:rgba(0,0,0,.55);opacity:.9}
+.lt svg{width:7px;height:7px;opacity:0;transition:opacity .1s}
+.lights:hover .lt svg{opacity:1}
 .r{background:var(--red)}.y{background:var(--yellow)}.g{background:var(--green)}
 .title{flex:1;text-align:center;font-weight:700;font-size:13px;color:rgba(255,255,255,.9);pointer-events:none}
 .body{flex:1;overflow:hidden;background:rgba(8,10,18,.2);position:relative}
-iframe{width:100%;height:100%;border:0;background:white}
-.resize{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize}
-.win-fallback{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:32px;color:#fff;background:linear-gradient(135deg,rgba(255,95,87,.18),rgba(139,92,246,.22))}
-.win-fallback h2{font-size:20px}.win-fallback p{color:var(--muted);font-size:13px;max-width:320px}
-.win-fallback button{padding:8px 18px;border-radius:999px;background:var(--accent);border:0;color:#fff;font-weight:700;cursor:pointer;font-family:inherit}
-.win-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,12,20,.35);color:var(--muted);font-size:12px;gap:8px}
-.spinner{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin .7s linear infinite}
+iframe{width:100%;height:100%;border:0;background:white;display:block}
+.iframe-veil{position:absolute;inset:0;z-index:2;background:transparent;display:none}
+.win.dragging .iframe-veil,.win.resizing-active .iframe-veil{display:block}
+.resize{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;z-index:3}
+.loadspin{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,14,24,.9);color:#fff;font-size:13px;gap:10px;flex-direction:column}
+.loadspin .ring{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:#fff;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.fallback-screen{height:100%;display:grid;place-items:center;text-align:center;padding:28px;color:#fff;background:linear-gradient(135deg,rgba(10,132,255,.25),rgba(139,92,246,.25))}
+.fallback-screen h1{font-size:26px;margin-bottom:8px}
+.fallback-screen p{color:var(--muted);max-width:360px;margin:0 auto 14px}
+.fallback-screen code{background:rgba(255,255,255,.12);padding:2px 8px;border-radius:6px;font-size:12px}
+.fallback-screen button{margin-top:6px;padding:9px 18px;border-radius:999px;background:var(--accent);color:#fff;border:0;font-weight:700;cursor:pointer;font-size:13px}
 
-/* ============ CONTROL CENTER / PANEL ============ */
+/* Snap preview overlay */
+.snap-preview{position:fixed;z-index:9500;background:rgba(10,132,255,.28);border:2px solid rgba(10,132,255,.85);border-radius:14px;pointer-events:none;display:none;transition:left .08s ease,top .08s ease,width .08s ease,height .08s ease}
+.snap-preview.show{display:block}
+
+/* ============ CONTROL CENTER ============ */
 .panel{position:fixed;right:12px;top:38px;width:360px;z-index:var(--z-panel);padding:14px;border-radius:24px;background:rgba(28,31,43,.74);border:1px solid rgba(255,255,255,.18);box-shadow:var(--shadow);backdrop-filter:blur(50px) saturate(200%);display:none}
 .panel.show{display:block}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tile{padding:13px;border-radius:18px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:background .15s}
-.tile:hover{background:rgba(255,255,255,.2)}
+.tile{padding:13px;border-radius:18px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.1);cursor:default}
 .tile.on{background:rgba(10,132,255,.55)}
-.tile b{display:block;font-size:13px}.tile small{color:var(--muted)}
-.slider-row{margin-top:12px}
-.slider-row label{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:6px}
-input[type=range].cc-slider{-webkit-appearance:none;width:100%;height:8px;border-radius:99px;background:rgba(255,255,255,.18);outline:0}
-input[type=range].cc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3)}
-input[type=range].cc-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:0;cursor:pointer}
+.tile b{display:block;font-size:13px}
+.tile small{color:var(--muted)}
+.slider-wrap{margin-top:12px;padding:8px 2px}
+.slider-track{height:8px;border-radius:99px;background:rgba(255,255,255,.18);position:relative;cursor:pointer}
+.slider-fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:#fff}
 
-/* Brightness dim overlay — above windows/dock, below toast/lock */
-#dim-overlay{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:var(--z-dim);transition:opacity .2s}
-
-.widgets{position:fixed;right:14px;top:96px;width:310px;display:grid;gap:12px;z-index:100;transition:.25s}
+/* ============ WIDGETS ============ */
+.widgets{position:fixed;right:14px;top:96px;width:310px;display:grid;gap:12px;z-index:10;transition:.25s}
+.widgets.hide{transform:translateX(340px);opacity:0;pointer-events:none}
 .widget{padding:15px;border-radius:24px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 40px rgba(0,0,0,.18);backdrop-filter:blur(36px)}
-.widget h3{font-size:13px;margin-bottom:8px}.widget .big{font-size:32px;font-weight:800}
+.widget h3{font-size:13px;margin-bottom:8px}
+.widget .big{font-size:32px;font-weight:800}
+
+/* ============ STAGE MANAGER ============ */
 .stage{position:fixed;left:10px;top:50%;transform:translateY(-50%);z-index:3000;display:grid;gap:10px}
-.stage-card{width:76px;height:54px;border-radius:14px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.16);display:grid;place-items:center;backdrop-filter:blur(25px);cursor:pointer}
-.stage-card img{width:30px;height:30px}
+.stage.hide{display:none}
+.stage-card{width:76px;height:54px;border-radius:14px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.16);display:grid;place-items:center;backdrop-filter:blur(25px);cursor:default}
+.stage-card img{width:30px;height:30px;pointer-events:none}
 
 /* ============ SPOTLIGHT ============ */
-.spot{position:fixed;inset:0;z-index:var(--z-spotlight);display:none;align-items:flex-start;justify-content:center;padding-top:16vh;background:rgba(0,0,0,.28);backdrop-filter:blur(10px)}
+.spot{position:fixed;inset:0;z-index:var(--z-spot);display:none;align-items:flex-start;justify-content:center;padding-top:16vh;background:rgba(0,0,0,.28);backdrop-filter:blur(10px)}
 .spot.show{display:flex}
 .spotbox{width:680px;max-width:92vw;border-radius:24px;overflow:hidden;background:rgba(28,31,43,.82);border:1px solid rgba(255,255,255,.18);box-shadow:var(--shadow)}
-#spotIn{width:100%;padding:20px 24px;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.12);outline:0;color:#fff;font-size:24px;font-family:inherit}
-.result{display:flex;align-items:center;gap:12px;padding:12px 18px;margin:6px;border-radius:15px;cursor:pointer}
+#spotIn{width:100%;padding:20px 24px;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.12);outline:0;color:#fff;font-size:24px}
+.result{display:flex;align-items:center;gap:12px;padding:12px 18px;margin:6px;border-radius:15px;cursor:default}
 .result.on,.result:hover{background:rgba(10,132,255,.72)}
 .result img{width:34px;height:34px}
+.result .fallback-glyph{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple))}
+.result .meta{flex:1;min-width:0}
+.result .meta small{display:block;color:var(--muted);font-size:11px}
+
+/* ============ LAUNCHPAD ============ */
+.launchpad{position:fixed;inset:0;z-index:var(--z-launchpad);display:none;background:rgba(0,0,0,.24);backdrop-filter:blur(28px) saturate(180%);padding:90px 8vw;overflow-y:auto}
+.launchpad.show{display:block}
+.lp-search{width:340px;max-width:80vw;margin:0 auto 40px;display:block;padding:10px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:14px;outline:0;text-align:center}
+.lpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:28px}
+.lpapp{text-align:center;font-weight:800;cursor:default}
+.lpapp img{width:74px;height:74px;pointer-events:none}
+.lpapp .fallback-glyph{width:74px;height:74px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple));margin:0 auto}
+.lpapp div{margin-top:8px;font-size:12px}
 
 /* ============ TOAST ============ */
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(18px);z-index:var(--z-toast);padding:11px 22px;border-radius:999px;background:rgba(20,24,36,.82);border:1px solid rgba(255,255,255,.16);opacity:0;transition:.25s}
 .toast.show{opacity:1;transform:translateX(-50%)}
 
-/* ============ LAUNCHPAD ============ */
-.launchpad{position:fixed;inset:0;z-index:var(--z-launchpad);display:none;background:rgba(0,0,0,.24);backdrop-filter:blur(28px) saturate(180%);padding:90px 8vw}
-.launchpad.show{display:block}
-.lpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:28px}
-.lpapp{text-align:center;font-weight:800;cursor:pointer}
-.lpapp img{width:74px;height:74px}
-.fallback{height:100%;display:grid;place-items:center;text-align:center;padding:28px;color:#fff;background:linear-gradient(135deg,rgba(10,132,255,.25),rgba(139,92,246,.25))}
-.fallback h1{font-size:30px;margin-bottom:8px}
-
-/* ============ LOCK SCREEN — always on top ============ */
-#lockscreen{position:fixed;inset:0;z-index:var(--z-lock);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background-size:cover;background-position:center;color:#fff;text-align:center}
+/* ============ LOCK SCREEN ============ */
+#lockscreen{position:fixed;inset:0;z-index:var(--z-lock);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  background-image:inherit;background:linear-gradient(135deg,#1a1030 0%,#0e2340 50%,#062e40 100%);background-size:cover;background-position:center;
+  color:#fff;text-align:center;backdrop-filter:blur(0px)}
 #lockscreen.show{display:flex}
-#lockscreen::before{content:'';position:absolute;inset:0;background:rgba(10,12,20,.38);backdrop-filter:blur(6px)}
-#lockscreen>*{position:relative;z-index:1}
-.lock-clock{font-size:76px;font-weight:300;line-height:1}
-.lock-date{font-size:18px;color:var(--muted)}
-.lock-avatar{width:88px;height:88px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);display:grid;place-items:center;font-size:32px;font-weight:800;margin-top:24px;overflow:hidden}
-.lock-avatar img{width:100%;height:100%;object-fit:cover}
-.lock-name{font-size:15px;font-weight:700}
-.lock-pw{margin-top:10px;padding:11px 16px;width:220px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;text-align:center;font-size:14px;outline:0;font-family:inherit}
-.lock-pw::placeholder{color:rgba(255,255,255,.5)}
-.lock-error{font-size:12px;color:#ff8a80;height:16px}
-.lock-hint{font-size:12px;color:var(--muted);margin-top:30px}
+.lock-clock{font-size:88px;font-weight:300;letter-spacing:-2px;line-height:1}
+.lock-date{font-size:19px;font-weight:500;color:rgba(255,255,255,.85)}
+.lock-profile{margin-top:26px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.lock-avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;box-shadow:0 12px 34px rgba(0,0,0,.4)}
+.lock-name{font-size:17px;font-weight:600}
+.lock-pass-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+#lockPassInput{width:220px;padding:11px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);color:#fff;font-size:14px;outline:0;text-align:center;backdrop-filter:blur(20px)}
+#lockPassInput:focus{border-color:var(--accent)}
+.lock-err{font-size:12px;color:var(--red);height:16px}
+.lock-hint{font-size:12px;color:rgba(255,255,255,.55);margin-top:2px}
 
 /* ============ SCREENSAVER ============ */
-#screensaver{position:fixed;inset:0;z-index:85000;display:none;background:#000;align-items:center;justify-content:center}
-#screensaver.show{display:flex}
-#ss-clock{position:absolute;font-size:64px;font-weight:200;color:rgba(255,255,255,.85);font-variant-numeric:tabular-nums}
+#screensaver{position:fixed;inset:0;z-index:var(--z-screensaver);display:none;background:#000;cursor:none}
+#screensaver.show{display:block}
+.ss-clock{position:absolute;color:#fff;font-size:64px;font-weight:200;font-variant-numeric:tabular-nums;transition:top 4s linear,left 4s linear}
 
-@media(max-width:760px){.top-btn{display:none}.widgets,.stage{display:none}#dock{max-width:96vw;overflow:auto}.dock-item{width:48px}.win{left:8px!important;top:40px!important;width:calc(100vw - 16px)!important;height:calc(100vh - 130px)!important}}
+@media(max-width:760px){
+  .top-btn{display:none}
+  .widgets,.stage{display:none}
+  #dock{max-width:96vw;overflow:auto}
+  .dock-item{width:48px}
+  .win{left:8px!important;top:40px!important;width:calc(100vw - 16px)!important;height:calc(100vh - 130px)!important}
+}
 </style>
-</head><body>
+</head>
+<body>
 <div class="scrim"></div>
-<div id="dim-overlay"></div>
 
+<!-- ============ MENU BAR ============ -->
 <div id="top-bar">
   <div class="top-left">
-    <div class="top-btn apple" id="apple"><img src="./apple.png" alt="Apple"></div>
+    <div class="top-btn apple" id="apple"><img src="./apple.png" alt="Apple" onerror="this.style.display='none'"></div>
     <div class="top-app" id="appName">Finder</div>
     <div class="top-btn" data-menu="file">File</div>
     <div class="top-btn" data-menu="edit">Edit</div>
@@ -147,573 +225,897 @@ input[type=range].cc-slider::-moz-range-thumb{width:18px;height:18px;border-radi
     <div class="top-btn" data-menu="help">Help</div>
   </div>
   <div class="top-right">
+    <div class="top-icon" id="netBtn" title="Network">
+      <svg viewBox="0 0 24 24"><path d="M12 21l-1.4-1.3C5.4 15 2 11.9 2 8.5 2 5.7 4.2 3.5 7 3.5c1.6 0 3.1.8 4 2 .9-1.2 2.4-2 4-2 2.8 0 5 2.2 5 5 0 3.4-3.4 6.5-8.6 11.2L12 21z" opacity="0"/><path d="M2 15h3l2-6 3 12 2-9 1.5 3H22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="top-icon" id="batteryBtn" title="Battery">
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="21" y="10" width="2" height="4" fill="currentColor"/><rect x="4" y="9" width="14" height="6" fill="currentColor" id="battFill"/></svg>
+    </div>
     <div class="top-icon" id="stageBtn" title="Stage Manager">▦</div>
-    <div class="top-icon" id="spotBtn" title="Spotlight"><svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 105.3 14.7l4.2 4.2a1 1 0 001.4-1.4l-4.2-4.2A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/></svg></div>
+    <div class="top-icon" id="spotBtn" title="Spotlight">
+      <svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 105.3 14.7l4.2 4.2a1 1 0 001.4-1.4l-4.2-4.2A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/></svg>
+    </div>
     <div class="top-icon" id="ccBtn" title="Control Center">☰</div>
-    <div class="top-icon" id="lockBtn" title="Lock Screen">🔒</div>
     <div class="clock" id="clock"></div>
   </div>
 </div>
 
 <div class="menu" id="menu"></div>
+
 <div id="desktop"></div>
 <div class="stage" id="stage"></div>
+
 <div class="widgets" id="widgets">
   <div class="widget"><h3>Golden Gate Weather</h3><div class="big">68°</div><p>Clear, gentle bay breeze</p></div>
   <div class="widget"><h3>Privacy Shield</h3><p>Camera, microphone, and location are idle.</p></div>
   <div class="widget"><h3>Continuity</h3><p>Handoff, AirDrop, Universal Clipboard, and Focus are ready.</p></div>
 </div>
+
 <div id="dock"></div>
 <div id="win-layer"></div>
+<div class="snap-preview" id="snapPreview"></div>
 
+<!-- ============ CONTROL CENTER ============ -->
 <div class="panel" id="cc">
   <div class="grid">
-    <div class="tile" id="tile-wifi"><b>Wi‑Fi</b><small>GoldenGateNet</small></div>
-    <div class="tile" id="tile-bt"><b>Bluetooth</b><small>On</small></div>
-    <div class="tile" id="tile-focus"><b>Focus</b><small>Off</small></div>
-    <div class="tile" id="tile-airdrop"><b>AirDrop</b><small>Contacts Only</small></div>
+    <div class="tile on" id="tileWifi"><b>Wi‑Fi</b><small>GoldenGateNet</small></div>
+    <div class="tile on" id="tileBt"><b>Bluetooth</b><small>On</small></div>
+    <div class="tile" id="tileFocus"><b>Focus</b><small>Off</small></div>
+    <div class="tile on" id="tileAirdrop"><b>AirDrop</b><small>Contacts Only</small></div>
   </div>
   <div class="tile" style="margin-top:10px">
-    <div class="slider-row"><label><span>Display</span><span id="brightVal">100%</span></label>
-      <input type="range" class="cc-slider" id="brightSlider" min="10" max="100" value="100"></div>
+    <b>Display</b>
+    <div class="slider-wrap"><div class="slider-track" id="brightSlider"><div class="slider-fill" id="brightFill" style="width:80%"></div></div></div>
   </div>
   <div class="tile" style="margin-top:10px">
-    <div class="slider-row"><label><span>Sound</span><span id="volVal">70%</span></label>
-      <input type="range" class="cc-slider" id="volSlider" min="0" max="100" value="70"></div>
-  </div>
-  <div class="grid" style="margin-top:10px">
-    <div class="tile" id="tile-magnify"><b>Dock Magnify</b><small id="magnifyState">On</small></div>
-    <div class="tile" id="tile-snap"><b>Snap to Grid</b><small id="snapState">Off</small></div>
+    <b>Sound</b>
+    <div class="slider-wrap"><div class="slider-track" id="volSlider"><div class="slider-fill" id="volFill" style="width:65%"></div></div></div>
   </div>
 </div>
 
 <div class="spot" id="spot"><div class="spotbox"><input id="spotIn" placeholder="Spotlight Search" autocomplete="off"><div id="spotOut"></div></div></div>
-<div class="launchpad" id="launchpad"><div class="lpgrid" id="lpgrid"></div></div>
+
+<div class="launchpad" id="launchpad">
+  <input class="lp-search" id="lpSearch" placeholder="Search apps">
+  <div class="lpgrid" id="lpgrid"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
+<!-- ============ LOCK SCREEN ============ -->
 <div id="lockscreen">
   <div class="lock-clock" id="lockClock">--:--</div>
   <div class="lock-date" id="lockDate">Loading…</div>
-  <div class="lock-avatar" id="lockAvatar">U</div>
-  <div class="lock-name" id="lockName">User</div>
-  <input type="password" class="lock-pw" id="lockPw" placeholder="Enter Password" autocomplete="off">
-  <div class="lock-error" id="lockError"></div>
-  <div class="lock-hint">Press Enter to unlock</div>
+  <div class="lock-profile">
+    <div class="lock-avatar" id="lockAvatar">A</div>
+    <div class="lock-name" id="lockName">Alexander</div>
+    <div class="lock-pass-row" id="lockPassRow">
+      <input type="password" id="lockPassInput" placeholder="Enter Password" autocomplete="off">
+    </div>
+    <div class="lock-err" id="lockErr"></div>
+    <div class="lock-hint" id="lockHint">Press Enter or click to unlock</div>
+  </div>
 </div>
 
-<div id="screensaver"><div id="ss-clock">00:00</div></div>
+<!-- ============ SCREENSAVER ============ -->
+<div id="screensaver"><div class="ss-clock" id="ssClock">--:--</div></div>
 
 <script>
 (function(){'use strict';
-var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
-function safe(fn,fb){try{return fn()}catch(e){console.error(e); toast('Recovered from a desktop error'); return fb}}
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+function safe(fn,fb){try{return fn()}catch(e){console.error('[Golden Gate]',e);toast('Recovered from a desktop error');return fb}}
 function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function load(k,d){return safe(function(){var v=localStorage.getItem(k);return v?JSON.parse(v):d},d)}
+function load(k,d){return safe(function(){var v=localStorage.getItem(k);return v!==null?JSON.parse(v):d},d)}
 function save(k,v){safe(function(){localStorage.setItem(k,JSON.stringify(v))})}
 
-window.addEventListener('error',function(e){console.error('Recovered global error',e.message)},true);
-window.addEventListener('unhandledrejection',function(e){console.error('Recovered promise error',e.reason)});
+window.addEventListener('error',function(e){console.error('[Golden Gate] Recovered global error:',e.message)},true);
+window.addEventListener('unhandledrejection',function(e){console.error('[Golden Gate] Recovered promise error:',e.reason)});
 
 /* ============================================================
-   STORAGE MIGRATION — bump STORAGE_VERSION on breaking changes
+   STORAGE KEYS — version-keyed, migrate stale data on change
    ============================================================ */
-var STORAGE_VERSION = 'golden-gate-2';
-var STORAGE_KEYS = ['gg-windows','gg-icons','gg-pins','gg-wallpaper','gg-profile','gg-lock-hash','gg-lock-enabled','gg-cc-state'];
-if(load('gg-version')!==STORAGE_VERSION){
-  STORAGE_KEYS.forEach(function(k){localStorage.removeItem(k)});
-  save('gg-version',STORAGE_VERSION);
-}
-
-var APPS=[
-  {name:'Finder',icon:'./images/Finder.png',internal:'finder',w:900,h:610},
-  {name:'Safari',icon:'./images/Safari.png',internal:'browser',w:1040,h:680},
-  {name:'YouTube',icon:'./images/Youtube.png',url:'./apps/YouTube/yt.html',w:1000,h:650},
-  {name:'ChatGPT',icon:'./images/ChatGPT.png',url:'./apps/AI/GPT.html',w:820,h:590},
-  {name:'Settings',icon:'./images/Settings.png',url:'./apps/System/Settings.html',w:900,h:620},
-  {name:'Terminal',icon:'./images/Terminal.png',url:'./apps/System/terminal.html',w:760,h:460},
-  {name:'Steam',icon:'./images/Steam.png',url:'./apps/Steam/steam.html',w:990,h:650},
-  {name:'Music',icon:'./images/Music.png',internal:'music',w:900,h:610},
-  {name:'Ampler',icon:'./images/Ampler.png',url:'./apps/Ampler/index.html',w:990,h:650},
-  {name:'App Tester',icon:'./images/AppTester.png',internal:'tester',w:760,h:520},
-  {name:'Photos',icon:'./images/Photos.png',url:'./apps/Photos/index.html',w:960,h:640},
-  {name:'Notes',icon:'./images/Notes.png',url:'./apps/Notes/index.html',w:820,h:580},
-  {name:'Mail',icon:'./images/Mail.png',url:'./apps/Mail/index.html',w:1000,h:650},
-  {name:'Calendar',icon:'./images/Calendar.png',url:'./apps/Calendar/index.html',w:900,h:620},
-  {name:'Maps',icon:'./images/Maps.png',url:'./apps/Maps/index.html',w:960,h:640},
-  {name:'Messages',icon:'./images/Messages.png',url:'./apps/Messages/index.html',w:880,h:600}];
-
-var wins=[], zBase=var_zBase(), z=zBase, pins=load('gg-pins',null)||APPS.reduce(function(o,a){o[a.name]=true;return o},{}),
-    iconPos=load('gg-icons',{}), drag=null, resize=null, spotIndex=0;
-
-function var_zBase(){
-  var v = getComputedStyle(document.documentElement).getPropertyValue('--z-win-min').trim();
-  return parseInt(v,10) || 100;
-}
-var Z_WIN_MAX = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--z-win-max').trim(),10) || 4999;
-
-/* clamp z so repeated focusing never escapes the window band */
-function nextZ(){
-  z++;
-  if(z >= Z_WIN_MAX){
-    // renumber all windows compactly, keep relative order
-    var ordered = wins.slice().sort(function(a,b){return (+a.el.style.zIndex||0)-(+b.el.style.zIndex||0)});
-    var base = zBase;
-    ordered.forEach(function(w){ w.el.style.zIndex = ++base; });
-    z = base;
+var STORAGE_VERSION='golden-gate-2';
+var STORAGE_KEYS=['gg-windows','gg-icons','gg-pins','gg-wallpaper','gg-profile','gg-lockhash','gg-cc-state','gg-brightness','gg-volume'];
+(function migrate(){
+  if(load('gg-version',null)!==STORAGE_VERSION){
+    // Only clear layout/window state, not user content like wallpaper/profile, unless this is truly a fresh scheme.
+    safe(function(){localStorage.removeItem('gg-windows')});
+    save('gg-version',STORAGE_VERSION);
   }
-  return z;
+})();
+
+/* ============================================================
+   APP REGISTRY — all paths editable; each entry independent
+   ============================================================ */
+var APPS=[
+  {name:'Finder',      icon:'./images/Finder.png',   internal:'finder', w:900, h:610},
+  {name:'Safari',      icon:'./images/Safari.png',   internal:'browser',w:1040,h:680},
+  {name:'YouTube',     icon:'./images/Youtube.png',  url:'./apps/YouTube/yt.html', w:1000,h:650},
+  {name:'ChatGPT',     icon:'./images/ChatGPT.png',  url:'./apps/AI/GPT.html', w:820, h:590},
+  {name:'Settings',    icon:'./images/Settings.png', url:'./apps/System/Settings.html', w:900,h:620},
+  {name:'Terminal',    icon:'./images/Terminal.png', url:'./apps/System/terminal.html', w:760,h:460},
+  {name:'Steam',       icon:'./images/Steam.png',    url:'./apps/Steam/steam.html', w:990,h:650},
+  {name:'Music',       icon:'./images/Music.png',    internal:'music', w:900, h:610},
+  {name:'Ampler',      icon:'./images/Ampler.png',   url:'./apps/Ampler/index.html', w:990,h:650},
+  {name:'App Tester',  icon:'./images/AppTester.png',internal:'tester', w:760,h:520}
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+var wins=[];
+var zCounter=100;
+var Z_MIN=100, Z_MAX=4999;
+var pins=load('gg-pins',null) || APPS.reduce(function(o,a){o[a.name]=true;return o},{});
+var iconPos=load('gg-icons',{});
+var drag=null, resize=null, iconDrag=null;
+var spotIndex=0;
+var profile=load('gg-profile',{name:'Alexander',avatar:''});
+var lockHash=load('gg-lockhash',null);
+var idleTimer=null, IDLE_MS=180000;
+var lockScreenOn=false;
+
+/* ============================================================
+   Z-INDEX MANAGEMENT — clamp + renormalize band (100–4999)
+   ============================================================ */
+function nextZ(){
+  zCounter++;
+  if(zCounter>=Z_MAX){ renormalizeZ(); }
+  return zCounter;
+}
+function renormalizeZ(){
+  var ordered=wins.slice().sort(function(a,b){return (parseInt(a.el.style.zIndex)||0)-(parseInt(b.el.style.zIndex)||0)});
+  zCounter=Z_MIN;
+  ordered.forEach(function(w){ zCounter++; w.el.style.zIndex=zCounter; });
 }
 
 /* ============================================================
-   FILE EXISTENCE CHECK — friendly fallback instead of blank iframe
+   CLOCK
    ============================================================ */
-function checkAppFile(url){
-  return fetch(url, {method:'HEAD'}).then(function(r){ return r.ok; }).catch(function(){ return false; });
+function tick(){
+  var d=new Date();
+  var timeStr=d.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})+'  '+d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+  var clockEl=$('#clock'); if(clockEl) clockEl.textContent=timeStr;
+  var lc=$('#lockClock'); if(lc) lc.textContent=d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+  var ld=$('#lockDate'); if(ld) ld.textContent=d.toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'});
+  var ss=$('#ssClock'); if(ss) ss.textContent=d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+}
+setInterval(tick,1000); tick();
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function toast(msg){
+  var t=$('#toast'); if(!t)return;
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(function(){t.classList.remove('show')},2200);
 }
 
+/* ============================================================
+   ICON RENDER HELPER — image with graceful glyph fallback
+   ============================================================ */
+function iconMarkup(app, sizeClass){
+  var initial=esc((app.name||'?').charAt(0).toUpperCase());
+  return '<img src="'+esc(app.icon)+'" alt="" draggable="false" '+
+    'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'+
+    '<div class="fallback-glyph" style="display:none">'+initial+'</div>';
+}
+
+/* ============================================================
+   BUILD DESKTOP ICONS
+   ============================================================ */
+function buildDesktop(){
+  var d=$('#desktop'); if(!d) return;
+  d.innerHTML='';
+  APPS.forEach(function(a,i){
+    var p=iconPos[a.name] || {x:28+(i%3)*108, y:24+Math.floor(i/3)*108};
+    var el=document.createElement('div');
+    el.className='desktop-icon';
+    el.style.left=p.x+'px'; el.style.top=p.y+'px';
+    el.dataset.i=i;
+    el.innerHTML=iconMarkup(a)+'<span>'+esc(a.name)+'</span>';
+    el.ondblclick=function(){ openApp(i); };
+    el.onclick=function(e){
+      e.stopPropagation();
+      $$('.desktop-icon').forEach(function(x){x.classList.remove('selected')});
+      el.classList.add('selected');
+    };
+    d.appendChild(el);
+  });
+}
+
+/* ============================================================
+   BUILD DOCK
+   ============================================================ */
+function buildDock(){
+  var d=$('#dock'); if(!d) return;
+  var open={};
+  wins.forEach(function(w){ open[w.app.name]=true; });
+  d.innerHTML='';
+  var shown=APPS.filter(function(a){ return pins[a.name] || open[a.name]; });
+  shown.forEach(function(a){
+    var item=document.createElement('div');
+    item.className='dock-item';
+    item.innerHTML=iconMarkup(a)+
+      '<div class="dock-tip">'+esc(a.name)+'</div>'+
+      (open[a.name] ? '<div class="dot"></div>' : '');
+    item.onclick=function(e){
+      if(e.shiftKey){
+        pins[a.name]=!pins[a.name];
+        save('gg-pins',pins);
+        buildDock();
+      } else {
+        openApp(APPS.indexOf(a));
+      }
+    };
+    d.appendChild(item);
+  });
+  // trash / launchpad quick access
+  if(shown.length){
+    var sep=document.createElement('div');
+    sep.className='dock-sep';
+    d.appendChild(sep);
+  }
+  var lp=document.createElement('div');
+  lp.className='dock-item dock-trash';
+  lp.innerHTML='<div class="fallback-glyph" style="background:linear-gradient(135deg,#555,#222)">▦</div><div class="dock-tip">Launchpad</div>';
+  lp.onclick=toggleLaunch;
+  d.appendChild(lp);
+}
+
+/* ============================================================
+   STAGE MANAGER
+   ============================================================ */
+function buildStage(){
+  var s=$('#stage'); if(!s) return;
+  s.innerHTML='';
+  wins.slice().sort(function(a,b){return (parseInt(b.el.style.zIndex)||0)-(parseInt(a.el.style.zIndex)||0)})
+    .forEach(function(w){
+      var c=document.createElement('div');
+      c.className='stage-card';
+      c.innerHTML=iconMarkup(w.app);
+      c.onclick=function(){ w.el.classList.remove('min'); front(w); updateFullscreenState(); };
+      s.appendChild(c);
+    });
+}
+
+/* ============================================================
+   FULLSCREEN STATE — hide dock/menu bar when any window is full
+   ============================================================ */
+function updateFullscreenState(){
+  var anyFull=wins.some(function(w){ return w.el.classList.contains('full') && !w.el.classList.contains('min'); });
+  $('#top-bar').classList.toggle('hide', anyFull);
+  $('#dock').classList.toggle('hide', anyFull);
+}
+
+/* ============================================================
+   INTERNAL APP CONTENT (srcdoc)
+   ============================================================ */
 function srcdoc(app){
   var title=esc(app.name);
   var cards={
     finder:['AirDrop','Applications','Desktop','Documents','Downloads','Golden Gate'],
     browser:['Favorites','Privacy Report','Reader','Profiles','Passkeys','Tab Groups'],
     music:['Library','Radio','Spatial Audio','Recently Added','Golden Gate Mix','Now Playing'],
-    ampler:['Projects','Loops','Mixer','Automation','Exports','Templates'],
     tester:['Crash Guard','Storage Check','Iframe Fallback','Responsive Layout','Keyboard Shortcuts','Window Restore']
-  }[app.internal]||[];
-  return '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;height:100vh;font-family:-apple-system,Inter,sans-serif;color:white;background:linear-gradient(135deg,#172033,#18294c 50%,#40306d);overflow:auto}.wrap{padding:28px}.hero{padding:24px;border-radius:24px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(25px)}h1{margin:0 0 8px;font-size:34px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:18px}.card{padding:18px;border-radius:18px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.12);min-height:92px}.pill{display:inline-block;margin-top:14px;padding:8px 12px;border-radius:999px;background:#0a84ff;font-weight:700}</style></head><body><div class="wrap"><div class="hero"><h1>'+title+'</h1><p>Built-in Golden Gate experience with safe local content, glass controls, and crash-resistant rendering.</p><span class="pill">Ready</span></div><div class="grid">'+cards.map(function(c){return '<div class="card"><b>'+esc(c)+'</b><p>Available</p></div>'}).join('')+'</div></div></body></html>';
+  }[app.internal] || [];
+  return '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">'+
+    '<style>body{margin:0;height:100vh;font-family:-apple-system,Inter,sans-serif;color:white;'+
+    'background:linear-gradient(135deg,#172033,#18294c 50%,#40306d);overflow:auto}'+
+    '.wrap{padding:28px}.hero{padding:24px;border-radius:24px;background:rgba(255,255,255,.12);'+
+    'border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(25px)}h1{margin:0 0 8px;font-size:34px}'+
+    '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:18px}'+
+    '.card{padding:18px;border-radius:18px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.12);min-height:92px}'+
+    '.pill{display:inline-block;margin-top:14px;padding:8px 12px;border-radius:999px;background:#0a84ff;font-weight:700}</style>'+
+    '</head><body><div class="wrap"><div class="hero"><h1>'+title+'</h1>'+
+    '<p>Built-in Golden Gate experience with safe local content, glass controls, and crash-resistant rendering.</p>'+
+    '<span class="pill">Ready</span></div><div class="grid">'+
+    cards.map(function(c){return '<div class="card"><b>'+esc(c)+'</b><p>Available</p></div>'}).join('')+
+    '</div></div></body></html>';
 }
 
-function fallbackScreen(app, reason){
-  return '<div class="win-fallback"><h2>'+esc(app.name)+' couldn\'t load</h2><p>'+esc(reason||'The app file could not be found at the configured path.')+'</p><button onclick="parent.postMessage({type:\'retryApp\',name:\''+esc(app.name)+'\'},\'*\')">Retry</button></div>';
-}
-
-function tick(){
-  var d=new Date();
-  $('#clock').textContent=d.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})+'  '+d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
-  if(lockScreenOn){
-    $('#lockClock').textContent = d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
-    $('#lockDate').textContent = d.toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'});
-  }
-  if(screensaverOn){
-    $('#ss-clock').textContent = d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'});
-  }
-}
-setInterval(tick,1000);tick();
-
-function buildDesktop(){
-  var d=$('#desktop');d.innerHTML='';
-  APPS.forEach(function(a,i){
-    var p=iconPos[a.name]||{x:28+(i%3)*108,y:24+Math.floor(i/3)*108};
-    var el=document.createElement('div');
-    el.className='desktop-icon';el.style.left=p.x+'px';el.style.top=p.y+'px';el.dataset.i=i;
-    el.innerHTML='<img src="'+esc(a.icon)+'" onerror="this.style.opacity=.25"><span>'+esc(a.name)+'</span>';
-    el.ondblclick=function(){openApp(i)};
-    el.onclick=function(){$$('.desktop-icon').forEach(function(x){x.classList.remove('selected')});el.classList.add('selected')};
-    d.appendChild(el);
-  });
-}
-
-function buildDock(){
-  var d=$('#dock'),open={};
-  wins.forEach(function(w){open[w.app.name]=true});
-  d.innerHTML='';
-  var magnify = load('gg-dock-magnify', true);
-  APPS.filter(function(a){return pins[a.name]||open[a.name]}).forEach(function(a){
-    var item=document.createElement('div');
-    item.className='dock-item';
-    if(!magnify) item.style.transition='none';
-    item.innerHTML='<img src="'+esc(a.icon)+'" onerror="this.style.opacity=.25"><div class="dock-tip">'+esc(a.name)+'</div>'+(open[a.name]?'<div class="dot"></div>':'');
-    item.onclick=function(e){
-      if(e.shiftKey){ pins[a.name]=!pins[a.name]; save('gg-pins',pins); buildDock(); }
-      else openApp(APPS.indexOf(a));
-    };
-    d.appendChild(item);
-  });
-}
-
-function buildStage(){
-  var s=$('#stage');s.innerHTML='';
-  wins.slice().sort(function(a,b){return (+b.el.style.zIndex)-(+a.el.style.zIndex)}).forEach(function(w){
-    var c=document.createElement('div');
-    c.className='stage-card';
-    c.innerHTML='<img src="'+esc(w.app.icon)+'">';
-    c.onclick=function(){w.el.classList.remove('min');front(w)};
-    s.appendChild(c);
-  });
-}
-
+/* ============================================================
+   WINDOW MANAGEMENT
+   ============================================================ */
 function openApp(i){
-  var app=APPS[i]; if(!app)return;
-  var ex=wins.find(function(w){return w.app.name===app.name});
-  if(ex){ ex.el.classList.remove('min'); front(ex); return; }
+  var app=APPS[i]; if(!app) return;
+  var ex=wins.find(function(w){ return w.app.name===app.name; });
+  if(ex){ ex.el.classList.remove('min'); front(ex); updateFullscreenState(); return; }
   createWin(app);
 }
 
-function createWin(app,saved){
-  saved=saved||{};
-  var el=document.createElement('div');
-  el.className='win';
-  el.style.width=(saved.w||app.w||820)+'px';
-  el.style.height=(saved.h||app.h||560)+'px';
-  el.style.left=(saved.x!=null?saved.x:Math.max(12,(innerWidth-(app.w||820))/2))+'px';
-  el.style.top=(saved.y!=null?saved.y:Math.max(42,(innerHeight-(app.h||560))/2-25))+'px';
-  if(saved.full)el.classList.add('full');
-  if(saved.min)el.classList.add('min');
-  el.innerHTML='<div class="winbar"><div class="lights"><div class="lt r" title="Close"></div><div class="lt y" title="Minimize"></div><div class="lt g" title="Fullscreen"></div></div><div class="title">'+esc(app.name)+'</div><div style="width:44px"></div></div><div class="body"></div><div class="resize"></div>';
+function fileExistenceCheck(url, onResult){
+  if(!url){ onResult(true); return; } // internal apps: no check needed
+  fetch(url, {method:'HEAD'}).then(function(r){
+    onResult(r.ok);
+  }).catch(function(){
+    // Some static hosts don't support HEAD well; try GET as fallback before giving up.
+    fetch(url).then(function(r){ onResult(r.ok); }).catch(function(){ onResult(false); });
+  });
+}
 
-  var body = $('.body', el);
-  var w={el:el,app:app};
-  wins.push(w);
+function createWin(app, saved){
+  saved = saved || {};
+  var el=document.createElement('div');
+  el.className='win opening';
+  var w=(saved.w||app.w||820), h=(saved.h||app.h||560);
+  el.style.width=w+'px'; el.style.height=h+'px';
+  el.style.left=(saved.x!=null ? saved.x : Math.max(12,(innerWidth-w)/2))+'px';
+  el.style.top=(saved.y!=null ? saved.y : Math.max(42,(innerHeight-h)/2-25))+'px';
+  if(saved.full) el.classList.add('full');
+  if(saved.min) el.classList.add('min');
+
+  el.innerHTML=
+    '<div class="winbar">'+
+      '<div class="lights">'+
+        '<div class="lt r" data-act="close"><svg viewBox="0 0 8 8"><path d="M1 1l6 6M7 1L1 7" stroke="#4d0000" stroke-width="1.4"/></svg></div>'+
+        '<div class="lt y" data-act="min"><svg viewBox="0 0 8 8"><path d="M1 4h6" stroke="#5c4400" stroke-width="1.4"/></svg></div>'+
+        '<div class="lt g" data-act="full"><svg viewBox="0 0 8 8"><path d="M1 1h6v6H1z" fill="none" stroke="#003d13" stroke-width="1.2"/></svg></div>'+
+      '</div>'+
+      '<div class="title">'+esc(app.name)+'</div>'+
+      '<div style="width:44px"></div>'+
+    '</div>'+
+    '<div class="body">'+
+      '<div class="loadspin"><div class="ring"></div><span>Loading '+esc(app.name)+'…</span></div>'+
+      '<div class="iframe-veil"></div>'+
+    '</div>'+
+    '<div class="resize"></div>';
+
   $('#win-layer').appendChild(el);
+  var wObj={el:el, app:app};
+  wins.push(wObj);
+
+  var bodyEl=$('.body',el);
+  var loadEl=$('.loadspin',el);
 
   function mountFrame(){
     var frame=document.createElement('iframe');
     frame.setAttribute('sandbox','allow-scripts allow-forms allow-popups allow-same-origin allow-presentation');
     frame.allowFullscreen=true;
-    if(app.url){ frame.src=app.url; }
-    else { frame.srcdoc=srcdoc(app); }
-    frame.onerror=function(){ frame.srcdoc=srcdoc(app); };
-    body.appendChild(frame);
+    frame.onload=function(){ if(loadEl) loadEl.remove(); };
+    frame.onerror=function(){ showFallback(); };
+    if(app.url) frame.src=app.url; else frame.srcdoc=srcdoc(app);
+    bodyEl.insertBefore(frame, bodyEl.firstChild);
+    // Safety: if iframe never fires onload (some sandboxed same-origin cases), clear spinner after a beat.
+    setTimeout(function(){ if(loadEl && loadEl.parentNode) loadEl.remove(); }, 2500);
   }
 
-  if(app.url){
-    var loadingEl = document.createElement('div');
-    loadingEl.className='win-loading';
-    loadingEl.innerHTML='<div class="spinner"></div><span>Loading '+esc(app.name)+'…</span>';
-    body.appendChild(loadingEl);
-    checkAppFile(app.url).then(function(ok){
-      loadingEl.remove();
-      if(ok){ mountFrame(); }
-      else { body.innerHTML = fallbackScreen(app); }
+  function showFallback(){
+    if(loadEl) loadEl.remove();
+    bodyEl.innerHTML='<div class="fallback-screen"><h1>'+esc(app.name)+' isn\'t available</h1>'+
+      '<p>Couldn\'t load <code>'+esc(app.url||'')+'</code>. The file may be missing or the path may need updating in the app registry.</p>'+
+      '<button data-retry="1">Try Again</button></div>';
+    var btn=$('[data-retry]',bodyEl);
+    if(btn) btn.onclick=function(){ bodyEl.innerHTML='<div class="loadspin"><div class="ring"></div><span>Loading '+esc(app.name)+'…</span></div><div class="iframe-veil"></div>'; verifyAndMount(); };
+  }
+
+  function verifyAndMount(){
+    if(!app.url){ mountFrame(); return; }
+    fileExistenceCheck(app.url, function(ok){
+      if(ok) mountFrame(); else showFallback();
     });
-  } else {
-    mountFrame();
   }
+  verifyAndMount();
 
-  $('.r',el).onclick=function(e){e.stopPropagation();closeWin(w)};
-  $('.y',el).onclick=function(e){e.stopPropagation();el.classList.toggle('min');persist();buildDock();buildStage()};
-  $('.g',el).onclick=function(e){e.stopPropagation();el.classList.toggle('full');persist()};
+  // Traffic lights
+  $('[data-act="close"]',el).onclick=function(e){ e.stopPropagation(); closeWin(wObj); };
+  $('[data-act="min"]',el).onclick=function(e){ e.stopPropagation(); el.classList.toggle('min'); persist(); buildDock(); buildStage(); };
+  $('[data-act="full"]',el).onclick=function(e){ e.stopPropagation(); el.classList.toggle('full'); persist(); updateFullscreenState(); };
 
-  var mouseMoveHandler=null, mouseUpHandler=null;
-  $('.winbar',el).onmousedown=function(e){
-    if(e.target.classList.contains('lt')||el.classList.contains('full'))return;
-    var dx=e.clientX-el.offsetLeft, dy=e.clientY-el.offsetTop;
-    front(w);
-    mouseMoveHandler=function(ev){
-      el.style.left=Math.max(-el.offsetWidth+120,Math.min(ev.clientX-dx,innerWidth-80))+'px';
-      el.style.top=Math.max(30,Math.min(ev.clientY-dy,innerHeight-60))+'px';
-    };
-    mouseUpHandler=function(){
-      document.removeEventListener('mousemove',mouseMoveHandler);
-      document.removeEventListener('mouseup',mouseUpHandler);
-      persist();
-    };
-    document.addEventListener('mousemove',mouseMoveHandler);
-    document.addEventListener('mouseup',mouseUpHandler);
+  // Drag via winbar — single delegated pattern per window, cleaned up on close
+  $('.winbar',el).addEventListener('mousedown', function(e){
+    if(e.target.closest('.lt') || el.classList.contains('full')) return;
+    drag={ w:wObj, dx:e.clientX-el.offsetLeft, dy:e.clientY-el.offsetTop, moved:false };
+    el.classList.add('dragging');
+    front(wObj);
     e.preventDefault();
-  };
+  });
 
-  var resMoveHandler=null, resUpHandler=null;
-  $('.resize',el).onmousedown=function(e){
-    var sx=e.clientX, sy=e.clientY, sw=el.offsetWidth, sh=el.offsetHeight;
-    front(w);
-    resMoveHandler=function(ev){
-      el.style.width=Math.max(330,sw+ev.clientX-sx)+'px';
-      el.style.height=Math.max(230,sh+ev.clientY-sy)+'px';
-    };
-    resUpHandler=function(){
-      document.removeEventListener('mousemove',resMoveHandler);
-      document.removeEventListener('mouseup',resUpHandler);
-      persist();
-    };
-    document.addEventListener('mousemove',resMoveHandler);
-    document.addEventListener('mouseup',resUpHandler);
+  $('.resize',el).addEventListener('mousedown', function(e){
+    resize={ w:wObj, sx:e.clientX, sy:e.clientY, sw:el.offsetWidth, sh:el.offsetHeight };
+    el.classList.add('resizing-active');
+    front(wObj);
     e.preventDefault();
-  };
+  });
 
-  el.onmousedown=function(){front(w)};
-  front(w); persist(); buildDock(); buildStage();
+  el.addEventListener('mousedown', function(){ front(wObj); });
+
+  el.classList.remove('opening');
+  front(wObj);
+  persist();
+  buildDock();
+  buildStage();
+  updateFullscreenState();
 }
 
 function front(w){
-  wins.forEach(function(x){x.el.classList.remove('active')});
+  wins.forEach(function(x){ x.el.classList.remove('active'); });
   w.el.classList.add('active');
   w.el.style.zIndex=nextZ();
-  $('#appName').textContent=w.app.name;
+  var nameEl=$('#appName'); if(nameEl) nameEl.textContent=w.app.name;
   persist();
 }
 
 function closeWin(w){
   w.el.remove();
-  wins=wins.filter(function(x){return x!==w});
+  wins=wins.filter(function(x){ return x!==w; });
   var t=wins[wins.length-1];
-  $('#appName').textContent=t?t.app.name:'Finder';
-  persist(); buildDock(); buildStage();
+  var nameEl=$('#appName'); if(nameEl) nameEl.textContent = t ? t.app.name : 'Finder';
+  persist(); buildDock(); buildStage(); updateFullscreenState();
 }
 
 function persist(){
-  save('gg-windows',wins.map(function(w){
-    return{name:w.app.name,x:parseInt(w.el.style.left)||0,y:parseInt(w.el.style.top)||40,
-      w:parseInt(w.el.style.width)||800,h:parseInt(w.el.style.height)||500,
-      full:w.el.classList.contains('full'),min:w.el.classList.contains('min'),
-      z:parseInt(w.el.style.zIndex)||100};
+  save('gg-windows', wins.map(function(w){
+    return {
+      name:w.app.name,
+      x:parseInt(w.el.style.left)||0,
+      y:parseInt(w.el.style.top)||40,
+      w:parseInt(w.el.style.width)||800,
+      h:parseInt(w.el.style.height)||500,
+      full:w.el.classList.contains('full'),
+      min:w.el.classList.contains('min'),
+      z:parseInt(w.el.style.zIndex)||100
+    };
   }));
 }
 
-/* Desktop icon drag — cleaned up listeners */
-$('#desktop').addEventListener('mousedown',function(e){var ic=e.target.closest('.desktop-icon');if(!ic||drag)return;var ox=e.clientX-ic.offsetLeft,oy=e.clientY-ic.offsetTop;var iconDrag={icon:ic,dx:ox,dy:oy};document.onmousemove=function(ev){if(!iconDrag)return;ic.style.left=Math.max(0,Math.min(ev.clientX-ox,innerWidth-94))+'px';ic.style.top=Math.max(30,Math.min(ev.clientY-oy,innerHeight-160))+'px'};document.onmouseup=function(){if(iconDrag){var a=APPS[+ic.dataset.i];iconPos[a.name]={x:parseInt(ic.style.left),y:parseInt(ic.style.top)};save('gg-icons',iconPos)}iconDrag=null;document.onmousemove=null;document.onmouseup=null}});
-  var up=function(){
-    var a=APPS[+ic.dataset.i];
-    iconPos[a.name]={x:parseInt(ic.style.left),y:parseInt(ic.style.top)};
-    save('gg-icons',iconPos);
-    document.removeEventListener('mousemove',move);
-    document.removeEventListener('mouseup',up);
-  };
-  document.addEventListener('mousemove',move);
-  document.addEventListener('mouseup',up);
+/* ============================================================
+   SNAP-TO-GRID — 7 zones with live preview
+   ============================================================ */
+var SNAP_MARGIN=6;
+function getSnapZone(x, y){
+  var w=innerWidth, h=innerHeight, edge=24, corner=90;
+  if(y < edge) return {type:'full'};
+  if(x < corner && y < corner) return {type:'tl'};
+  if(x > w-corner && y < corner) return {type:'tr'};
+  if(x < corner && y > h-corner) return {type:'bl'};
+  if(x > w-corner && y > h-corner) return {type:'br'};
+  if(x < edge) return {type:'left'};
+  if(x > w-edge) return {type:'right'};
+  return null;
+}
+function zoneRect(type){
+  var w=innerWidth, h=innerHeight-30;
+  switch(type){
+    case 'full': return {x:0,y:30,w:w,h:h};
+    case 'left': return {x:0,y:30,w:w/2,h:h};
+    case 'right':return {x:w/2,y:30,w:w/2,h:h};
+    case 'tl':   return {x:0,y:30,w:w/2,h:h/2};
+    case 'tr':   return {x:w/2,y:30,w:w/2,h:h/2};
+    case 'bl':   return {x:0,y:30+h/2,w:w/2,h:h/2};
+    case 'br':   return {x:w/2,y:30+h/2,w:w/2,h:h/2};
+  }
+  return null;
+}
+function showSnapPreview(type){
+  var r=zoneRect(type); var sp=$('#snapPreview');
+  if(!r || !sp){ if(sp) sp.classList.remove('show'); return; }
+  sp.style.left=r.x+'px'; sp.style.top=r.y+'px'; sp.style.width=r.w+'px'; sp.style.height=r.h+'px';
+  sp.classList.add('show');
+}
+function hideSnapPreview(){ var sp=$('#snapPreview'); if(sp) sp.classList.remove('show'); }
+function applySnap(w, type){
+  var r=zoneRect(type); if(!r) return;
+  w.el.classList.add('snapping');
+  w.el.classList.remove('full');
+  w.el.style.left=r.x+'px'; w.el.style.top=r.y+'px'; w.el.style.width=r.w+'px'; w.el.style.height=r.h+'px';
+  setTimeout(function(){ w.el.classList.remove('snapping'); }, 180);
+  persist();
+}
+
+/* ============================================================
+   DELEGATED DRAG / RESIZE — single document listener pair
+   ============================================================ */
+document.addEventListener('mousemove', function(e){
+  if(drag && drag.w){
+    var el=drag.w.el;
+    drag.moved=true;
+    var nx=Math.max(-el.offsetWidth+120, Math.min(e.clientX-drag.dx, innerWidth-80));
+    var ny=Math.max(30, Math.min(e.clientY-drag.dy, innerHeight-60));
+    el.style.left=nx+'px'; el.style.top=ny+'px';
+    var zone=getSnapZone(e.clientX, e.clientY);
+    if(zone) showSnapPreview(zone.type); else hideSnapPreview();
+  }
+  if(resize){
+    resize.w.el.style.width=Math.max(330, resize.sw+e.clientX-resize.sx)+'px';
+    resize.w.el.style.height=Math.max(230, resize.sh+e.clientY-resize.sy)+'px';
+  }
+  if(iconDrag){
+    var ic=iconDrag.icon;
+    ic.style.left=Math.max(0, Math.min(e.clientX-iconDrag.dx, innerWidth-94))+'px';
+    ic.style.top=Math.max(30, Math.min(e.clientY-iconDrag.dy, innerHeight-160))+'px';
+  }
+  resetIdle();
 });
 
-/* ============ MENUS ============ */
-function showMenu(name,x){
-  var items={
-    file:[['New Finder Window',function(){openApp(0)}],['Launchpad',toggleLaunch],['Close Window',function(){var t=topWin();if(t)closeWin(t)}]],
-    edit:[['Copy','⌘C'],['Paste','⌘V'],['Select All','⌘A']],
-    view:[['Toggle Widgets',function(){$('#widgets').classList.toggle('safe-hide')}],['Toggle Stage Manager',function(){$('#stage').classList.toggle('safe-hide')}],['Reset Layout',resetLayout]],
-    window:[['Minimize',function(){var t=topWin();if(t)t.el.classList.toggle('min')}],['Fullscreen',function(){var t=topWin();if(t)t.el.classList.toggle('full')}],['Close All',function(){wins.slice().forEach(closeWin)}]],
-    help:[['About macOS Golden Gate',function(){toast('macOS Golden Gate simulator — crash guarded')}]]
-  }[name]||[];
-  $('#menu').innerHTML=items.map(function(it,i){
-    return it==='sep'?'<div class="sep"></div>':'<div class="mi" data-i="'+i+'"><span>'+esc(it[0])+'</span><span>'+esc(typeof it[1]==='string'?it[1]:'')+'</span></div>';
-  }).join('');
-  $('#menu').style.left=x+'px';
-  $('#menu').classList.add('show');
-  $$('.mi',$('#menu')).forEach(function(el){
-    el.onclick=function(){
-      var fn=items[+el.dataset.i][1];
-      $('#menu').classList.remove('show');
-      if(typeof fn==='function')fn();
-    };
-  });
-}
-function topWin(){return wins.slice().sort(function(a,b){return(+b.el.style.zIndex)-(+a.el.style.zIndex)})[0]}
-$$('[data-menu]').forEach(function(b){b.onclick=function(e){e.stopPropagation();showMenu(b.dataset.menu,b.getBoundingClientRect().left)}});
-document.addEventListener('click',function(e){
-  if(!e.target.closest('.menu'))$('#menu').classList.remove('show');
-  if(!e.target.closest('#cc')&&!e.target.closest('#ccBtn'))$('#cc').classList.remove('show');
+document.addEventListener('mouseup', function(e){
+  if(drag){
+    var zone=getSnapZone(e.clientX, e.clientY);
+    if(zone && drag.moved) applySnap(drag.w, zone.type);
+    drag.w.el.classList.remove('dragging');
+    hideSnapPreview();
+    persist();
+  }
+  if(resize){
+    resize.w.el.classList.remove('resizing-active');
+    persist();
+  }
+  if(iconDrag){
+    var ic=iconDrag.icon;
+    var app=APPS[+ic.dataset.i];
+    if(app){
+      iconPos[app.name]={x:parseInt(ic.style.left), y:parseInt(ic.style.top)};
+      save('gg-icons', iconPos);
+    }
+  }
+  drag=null; resize=null; iconDrag=null;
 });
 
-/* ============ SPOTLIGHT ============ */
-function renderSpot(q){
-  var m=APPS.filter(function(a){return !q||a.name.toLowerCase().includes(q.toLowerCase())});
-  $('#spotOut').innerHTML=m.map(function(a,i){
-    return '<div class="result '+(i===spotIndex?'on':'')+'" data-name="'+esc(a.name)+'"><img src="'+esc(a.icon)+'"><b>'+esc(a.name)+'</b></div>';
-  }).join('');
-  $$('.result',$('#spotOut')).forEach(function(r){
-    r.onclick=function(){openApp(APPS.findIndex(function(a){return a.name===r.dataset.name}));closeSpot()};
-  });
-}
-function openSpot(){$('#spot').classList.add('show');$('#spotIn').value='';spotIndex=0;renderSpot('');setTimeout(function(){$('#spotIn').focus()},20)}
-function closeSpot(){$('#spot').classList.remove('show')}
-$('#spotBtn').onclick=openSpot;
-$('#spot').onclick=function(e){if(e.target.id==='spot')closeSpot()};
-$('#spotIn').oninput=function(){spotIndex=0;renderSpot(this.value)};
-$('#spotIn').onkeydown=function(e){
-  var r=$$('.result');
-  if(e.key==='ArrowDown'){spotIndex=Math.min(spotIndex+1,r.length-1);renderSpot($('#spotIn').value);e.preventDefault()}
-  if(e.key==='ArrowUp'){spotIndex=Math.max(spotIndex-1,0);renderSpot($('#spotIn').value);e.preventDefault()}
-  if(e.key==='Enter'&&r[spotIndex])r[spotIndex].click();
-};
-
-/* ============ LAUNCHPAD ============ */
-function toggleLaunch(){
-  var lp=$('#launchpad');
-  lp.classList.toggle('show');
-  $('#lpgrid').innerHTML=APPS.map(function(a,i){
-    return '<div class="lpapp" data-i="'+i+'"><img src="'+esc(a.icon)+'"><div>'+esc(a.name)+'</div></div>';
-  }).join('');
-  $$('.lpapp').forEach(function(a){a.onclick=function(){openApp(+a.dataset.i);lp.classList.remove('show')}});
-}
-
-function toast(msg){
-  var t=$('#toast');t.textContent=msg;t.classList.add('show');
-  clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove('show')},2200);
-}
-
-function resetLayout(){
-  STORAGE_KEYS.forEach(function(k){localStorage.removeItem(k)});
-  location.reload();
-}
-
-$('#apple').onclick=function(){openApp(4)};
-$('#ccBtn').onclick=function(e){e.stopPropagation();$('#cc').classList.toggle('show')};
-$('#stageBtn').onclick=function(){$('#stage').classList.toggle('safe-hide')};
-
-document.addEventListener('keydown',function(e){
-  if((e.metaKey||e.ctrlKey)&&e.key===' '){e.preventDefault();openSpot()}
-  if(e.key==='Escape'){closeSpot();$('#launchpad').classList.remove('show');$('#menu').classList.remove('show');$('#cc').classList.remove('show')}
-  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='w'){var t=topWin();if(t)closeWin(t);e.preventDefault()}
-  if(e.key==='F4')toggleLaunch();
-  resetIdleTimer();
+$('#desktop').addEventListener('mousedown', function(e){
+  var ic=e.target.closest('.desktop-icon');
+  if(!ic) return;
+  var ox=e.clientX-ic.offsetLeft, oy=e.clientY-ic.offsetTop;
+  iconDrag={ icon:ic, dx:ox, dy:oy };
 });
 
 /* ============================================================
-   CONTROL CENTER — brightness / volume / toggles wired
+   MENU BAR DROPDOWNS
    ============================================================ */
-var ccState = load('gg-cc-state', {wifi:true, bt:true, focus:false, airdrop:false, brightness:100, volume:70, magnify:true, snap:false});
-
-function applyCC(){
-  $('#tile-wifi').classList.toggle('on', ccState.wifi);
-  $('#tile-bt').classList.toggle('on', ccState.bt);
-  $('#tile-focus').classList.toggle('on', ccState.focus);
-  $('#tile-airdrop').classList.toggle('on', ccState.airdrop);
-  $('#tile-magnify').classList.toggle('on', ccState.magnify);
-  $('#tile-snap').classList.toggle('on', ccState.snap);
-  $('#magnifyState').textContent = ccState.magnify ? 'On' : 'Off';
-  $('#snapState').textContent = ccState.snap ? 'On' : 'Off';
-  $('#brightSlider').value = ccState.brightness;
-  $('#volSlider').value = ccState.volume;
-  $('#brightVal').textContent = ccState.brightness + '%';
-  $('#volVal').textContent = ccState.volume + '%';
-  $('#dim-overlay').style.opacity = (1 - ccState.brightness/100) * 0.85;
-  $('#dim-overlay').style.pointerEvents = ccState.brightness < 100 ? 'none' : 'none';
-  save('gg-cc-state', ccState);
-  save('gg-dock-magnify', ccState.magnify);
+function topWin(){
+  return wins.slice().sort(function(a,b){ return (parseInt(b.el.style.zIndex)||0)-(parseInt(a.el.style.zIndex)||0); })[0];
 }
-['wifi','bt','focus','airdrop'].forEach(function(k){
-  $('#tile-'+k).onclick=function(){ ccState[k]=!ccState[k]; applyCC(); };
+function showMenu(name, x){
+  var items={
+    file:[['New Finder Window', function(){ openApp(0); }], ['Launchpad', toggleLaunch], ['Close Window', function(){ var t=topWin(); if(t) closeWin(t); }]],
+    edit:[['Copy','⌘C'], ['Paste','⌘V'], ['Select All','⌘A']],
+    view:[
+      ['Toggle Widgets', function(){ $('#widgets').classList.toggle('hide'); }],
+      ['Toggle Stage Manager', function(){ $('#stage').classList.toggle('hide'); }],
+      ['Reset Layout', resetLayout]
+    ],
+    window:[
+      ['Minimize', function(){ var t=topWin(); if(t){ t.el.classList.toggle('min'); persist(); buildDock(); buildStage(); } }],
+      ['Fullscreen', function(){ var t=topWin(); if(t){ t.el.classList.toggle('full'); persist(); updateFullscreenState(); } }],
+      ['Close All', function(){ wins.slice().forEach(closeWin); }]
+    ],
+    help:[['About macOS Golden Gate', function(){ toast('macOS Golden Gate simulator — crash guarded'); }]]
+  }[name] || [];
+  var menu=$('#menu');
+  menu.innerHTML=items.map(function(it,i){
+    return '<div class="mi" data-i="'+i+'"><span>'+esc(it[0])+'</span><span>'+esc(typeof it[1]==='string'?it[1]:'')+'</span></div>';
+  }).join('');
+  menu.style.left=x+'px';
+  menu.classList.add('show');
+  $$('.mi',menu).forEach(function(el){
+    el.onclick=function(){
+      var fn=items[+el.dataset.i][1];
+      menu.classList.remove('show');
+      if(typeof fn==='function') fn();
+    };
+  });
+}
+$$('[data-menu]').forEach(function(b){
+  b.onclick=function(e){ e.stopPropagation(); showMenu(b.dataset.menu, b.getBoundingClientRect().left); };
 });
-$('#tile-magnify').onclick=function(){ ccState.magnify=!ccState.magnify; applyCC(); buildDock(); };
-$('#tile-snap').onclick=function(){ ccState.snap=!ccState.snap; applyCC(); };
-$('#brightSlider').oninput=function(){ ccState.brightness=+this.value; applyCC(); };
-$('#volSlider').oninput=function(){ ccState.volume=+this.value; applyCC(); };
-applyCC();
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.menu')) $('#menu').classList.remove('show');
+  if(!e.target.closest('#cc') && !e.target.closest('#ccBtn')) $('#cc').classList.remove('show');
+});
+
+/* ============================================================
+   SPOTLIGHT
+   ============================================================ */
+function renderSpot(q){
+  var m=APPS.filter(function(a){ return !q || a.name.toLowerCase().indexOf(q.toLowerCase())!==-1; });
+  $('#spotOut').innerHTML=m.map(function(a,i){
+    return '<div class="result '+(i===spotIndex?'on':'')+'" data-name="'+esc(a.name)+'">'+iconMarkup(a)+
+      '<div class="meta"><b>'+esc(a.name)+'</b><small>Application</small></div></div>';
+  }).join('');
+  $$('.result',$('#spotOut')).forEach(function(r){
+    r.onclick=function(){
+      openApp(APPS.findIndex(function(a){ return a.name===r.dataset.name; }));
+      closeSpot();
+    };
+  });
+}
+function openSpot(){
+  $('#spot').classList.add('show');
+  $('#spotIn').value=''; spotIndex=0; renderSpot('');
+  setTimeout(function(){ $('#spotIn').focus(); },20);
+}
+function closeSpot(){ $('#spot').classList.remove('show'); }
+$('#spotBtn').onclick=openSpot;
+$('#spot').onclick=function(e){ if(e.target.id==='spot') closeSpot(); };
+$('#spotIn').oninput=function(){ spotIndex=0; renderSpot(this.value); };
+$('#spotIn').onkeydown=function(e){
+  var r=$$('.result');
+  if(e.key==='ArrowDown'){ spotIndex=Math.min(spotIndex+1, r.length-1); renderSpot($('#spotIn').value); e.preventDefault(); }
+  if(e.key==='ArrowUp'){ spotIndex=Math.max(spotIndex-1, 0); renderSpot($('#spotIn').value); e.preventDefault(); }
+  if(e.key==='Enter' && r[spotIndex]) r[spotIndex].click();
+};
+
+/* ============================================================
+   LAUNCHPAD
+   ============================================================ */
+function toggleLaunch(){
+  var lp=$('#launchpad');
+  lp.classList.toggle('show');
+  if(lp.classList.contains('show')){
+    $('#lpSearch').value='';
+    renderLaunchpad('');
+    setTimeout(function(){ $('#lpSearch').focus(); },20);
+  }
+}
+function renderLaunchpad(q){
+  var m=APPS.filter(function(a){ return !q || a.name.toLowerCase().indexOf(q.toLowerCase())!==-1; });
+  $('#lpgrid').innerHTML=m.map(function(a){
+    return '<div class="lpapp" data-name="'+esc(a.name)+'">'+iconMarkup(a)+'<div>'+esc(a.name)+'</div></div>';
+  }).join('');
+  $$('.lpapp').forEach(function(el){
+    el.onclick=function(){
+      openApp(APPS.findIndex(function(a){ return a.name===el.dataset.name; }));
+      $('#launchpad').classList.remove('show');
+    };
+  });
+}
+$('#lpSearch').oninput=function(){ renderLaunchpad(this.value); };
+
+/* ============================================================
+   CONTROL CENTER — brightness/volume + toggles
+   ============================================================ */
+var ccState=load('gg-cc-state',{wifi:true,bt:true,focus:false,airdrop:true});
+function applyCCState(){
+  $('#tileWifi').classList.toggle('on', ccState.wifi);
+  $('#tileWifi small').textContent = ccState.wifi ? 'GoldenGateNet' : 'Off';
+  $('#tileBt').classList.toggle('on', ccState.bt);
+  $('#tileBt small').textContent = ccState.bt ? 'On' : 'Off';
+  $('#tileFocus').classList.toggle('on', ccState.focus);
+  $('#tileFocus small').textContent = ccState.focus ? 'Personal' : 'Off';
+  $('#tileAirdrop').classList.toggle('on', ccState.airdrop);
+  $('#tileAirdrop small').textContent = ccState.airdrop ? 'Contacts Only' : 'Off';
+}
+['Wifi','Bt','Focus','Airdrop'].forEach(function(key){
+  var el=$('#tile'+key);
+  el.onclick=function(){
+    var k=key.toLowerCase();
+    ccState[k]=!ccState[k];
+    save('gg-cc-state', ccState);
+    applyCCState();
+  };
+});
+applyCCState();
+
+var brightness=load('gg-brightness',80);
+var volume=load('gg-volume',65);
+function paintSliders(){
+  $('#brightFill').style.width=brightness+'%';
+  $('#volFill').style.width=volume+'%';
+}
+function sliderDrag(trackEl, onChange){
+  trackEl.addEventListener('mousedown', function(e){
+    move(e);
+    function move(ev){
+      var r=trackEl.getBoundingClientRect();
+      var pct=Math.max(0, Math.min(100, ((ev.clientX-r.left)/r.width)*100));
+      onChange(pct);
+    }
+    function mm(ev){ move(ev); }
+    function up(){ document.removeEventListener('mousemove',mm); document.removeEventListener('mouseup',up); }
+    document.addEventListener('mousemove',mm);
+    document.addEventListener('mouseup',up);
+  });
+}
+sliderDrag($('#brightSlider'), function(pct){ brightness=pct; paintSliders(); save('gg-brightness',brightness); });
+sliderDrag($('#volSlider'), function(pct){ volume=pct; paintSliders(); save('gg-volume',volume); });
+paintSliders();
+
+$('#ccBtn').onclick=function(e){ e.stopPropagation(); $('#cc').classList.toggle('show'); };
+$('#stageBtn').onclick=function(){ $('#stage').classList.toggle('hide'); };
+
+/* ============================================================
+   NETWORK / BATTERY (Battery API removed for privacy per browser support)
+   ============================================================ */
+function updateNetIcon(){
+  var el=$('#netBtn');
+  if(!el) return;
+  el.style.opacity = navigator.onLine ? '1' : '.4';
+  el.title = navigator.onLine ? 'Online' : 'Offline';
+}
+window.addEventListener('online', updateNetIcon);
+window.addEventListener('offline', updateNetIcon);
+updateNetIcon();
+// Battery Status API is unavailable on Safari/Firefox and was removed for privacy;
+// we show a static indicator rather than querying navigator.getBattery().
+var battFill=$('#battFill'); if(battFill) battFill.setAttribute('width','12');
+
+/* ============================================================
+   RESET LAYOUT
+   ============================================================ */
+function resetLayout(){
+  safe(function(){
+    localStorage.removeItem('gg-windows');
+    localStorage.removeItem('gg-icons');
+  });
+  location.reload();
+}
+
+/* ============================================================
+   WALLPAPER / postMessage BRIDGE (from Settings app iframe)
+   ============================================================ */
+window.addEventListener('message', function(e){
+  var d=e.data||{};
+  if(d.type==='setWallpaper' && d.wallpaper){
+    document.body.style.background=d.wallpaper;
+    save('gg-wallpaper', d.wallpaper);
+    toast('Wallpaper updated');
+  }
+  if(d.type==='openWindow'){
+    createWin({ name:d.title||'App', icon:d.icon||'./images/AppTester.png', url:d.url, w:d.w||860, h:d.h||560 });
+  }
+  if(d.type==='setProfile'){
+    if(d.name) profile.name=d.name;
+    if(typeof d.avatar==='string') profile.avatar=d.avatar;
+    save('gg-profile', profile);
+    updateLockProfile();
+  }
+  if(d.type==='setLockPassword'){
+    lockHash=d.hash || null;
+    save('gg-lockhash', lockHash);
+  }
+});
 
 /* ============================================================
    LOCK SCREEN
    ============================================================ */
-var lockScreenOn = false;
-function sha256Hex(str){
-  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function(buf){
-    return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
-  });
+function updateLockProfile(){
+  var initial=(profile.name||'A').charAt(0).toUpperCase();
+  $('#lockName').textContent=profile.name || 'User';
+  var av=$('#lockAvatar');
+  if(profile.avatar){
+    av.innerHTML='<img src="'+esc(profile.avatar)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.remove()">';
+  } else {
+    av.textContent=initial;
+  }
+}
+async function sha256(text){
+  var enc=new TextEncoder().encode(text);
+  var buf=await crypto.subtle.digest('SHA-256', enc);
+  return Array.prototype.map.call(new Uint8Array(buf), function(b){ return b.toString(16).padStart(2,'0'); }).join('');
 }
 function showLock(){
-  var profile = load('gg-profile', {name:'User', avatar:null});
-  $('#lockName').textContent = profile.name || 'User';
-  var av = $('#lockAvatar');
-  if(profile.avatar){ av.innerHTML = '<img src="'+esc(profile.avatar)+'">'; }
-  else { av.textContent = (profile.name||'U').charAt(0).toUpperCase(); }
-  $('#lockPw').value=''; $('#lockError').textContent='';
-  var lockEnabled = load('gg-lock-enabled', false);
-  $('#lockPw').style.display = lockEnabled ? 'block' : 'none';
+  lockScreenOn=true;
   $('#lockscreen').classList.add('show');
-  lockScreenOn = true;
-  setTimeout(function(){ if(lockEnabled) $('#lockPw').focus(); },50);
+  $('#lockErr').textContent='';
+  var hasPass=!!lockHash;
+  $('#lockPassRow').style.display = hasPass ? 'flex' : 'none';
+  $('#lockHint').textContent = hasPass ? 'Enter your password to continue' : 'Click anywhere or press Enter to unlock';
+  if(hasPass){
+    $('#lockPassInput').value='';
+    setTimeout(function(){ $('#lockPassInput').focus(); },30);
+  }
 }
-function hideLock(){ $('#lockscreen').classList.remove('show'); lockScreenOn=false; }
-function attemptUnlock(){
-  var lockEnabled = load('gg-lock-enabled', false);
-  if(!lockEnabled){ hideLock(); return; }
-  var hash = load('gg-lock-hash', null);
-  if(!hash){ hideLock(); return; } // no password ever set — don't block the user out
-  var pw = $('#lockPw').value;
-  sha256Hex(pw).then(function(h){
-    if(h===hash){ hideLock(); }
-    else { $('#lockError').textContent='Incorrect password'; $('#lockPw').value=''; $('#lockPw').focus(); }
-  });
+function hideLock(){
+  lockScreenOn=false;
+  $('#lockscreen').classList.remove('show');
 }
-  var lockEnabled = load('gg-lock-enabled', false);
-  if(!lockEnabled){ hideLock(); return; }
-  var hash = load('gg-lock-hash', null);
-  var pw = $('#lockPw').value;
-  sha256Hex(pw).then(function(h){
-    if(!hash || h===hash){ hideLock(); }
-    else { $('#lockError').textContent='Incorrect password'; $('#lockPw').value=''; }
-  });
+async function attemptUnlock(){
+  if(!lockHash){ hideLock(); return; }
+  var val=$('#lockPassInput').value;
+  var h=await sha256(val);
+  if(h===lockHash){ hideLock(); }
+  else { $('#lockErr').textContent='Incorrect password'; $('#lockPassInput').value=''; }
 }
+$('#lockscreen').addEventListener('click', function(e){
+  if(!lockHash && e.target.closest('#lockscreen')) hideLock();
+});
+// Document-level Enter handler, gated on lockScreenOn — passthrough when no hash set
 document.addEventListener('keydown', function(e){
   if(!lockScreenOn) return;
+  if(e.key==='Enter'){
+    if(!lockHash){ hideLock(); }
+    else { attemptUnlock(); }
+  }
+});
+$('#lockPassInput') && $('#lockPassInput').addEventListener('keydown', function(e){
   if(e.key==='Enter'){ e.preventDefault(); attemptUnlock(); }
 });
-$('#lockBtn').onclick=showLock;
-
-/* first-load lock screen */
-if(load('gg-lock-enabled', false)) showLock();
+updateLockProfile();
 
 /* ============================================================
-   SCREENSAVER — 5 min idle
+   IDLE / SCREENSAVER
    ============================================================ */
-var screensaverOn = false, idleTimer = null;
-var IDLE_MS = 5*60*1000;
-function resetIdleTimer(){
-  if(screensaverOn){ hideScreensaver(); }
-  clearTimeout(idleTimer);
-  idleTimer = setTimeout(showScreensaver, IDLE_MS);
+function moveSSClock(){
+  var el=$('#ssClock'); if(!el) return;
+  var maxX=innerWidth-260, maxY=innerHeight-100;
+  el.style.left=Math.max(20, Math.random()*maxX)+'px';
+  el.style.top=Math.max(20, Math.random()*maxY)+'px';
 }
-function showScreensaver(){ if(lockScreenOn) return; $('#screensaver').classList.add('show'); screensaverOn=true; }
-function hideScreensaver(){ $('#screensaver').classList.remove('show'); screensaverOn=false; }
-['mousemove','mousedown','touchstart','wheel'].forEach(function(ev){
-  document.addEventListener(ev, resetIdleTimer, {passive:true});
+var ssInterval=null;
+function startScreensaver(){
+  if(lockScreenOn) return;
+  $('#screensaver').classList.add('show');
+  moveSSClock();
+  ssInterval=setInterval(moveSSClock, 4000);
+}
+function stopScreensaver(){
+  $('#screensaver').classList.remove('show');
+  if(ssInterval){ clearInterval(ssInterval); ssInterval=null; }
+}
+function resetIdle(){
+  clearTimeout(idleTimer);
+  stopScreensaver();
+  idleTimer=setTimeout(startScreensaver, IDLE_MS);
+}
+['mousemove','mousedown','keydown','touchstart','wheel'].forEach(function(ev){
+  document.addEventListener(ev, resetIdle, {passive:true});
 });
-resetIdleTimer();
+$('#screensaver').addEventListener('mousemove', stopScreensaver);
+$('#screensaver').addEventListener('click', stopScreensaver);
+$('#screensaver').addEventListener('keydown', stopScreensaver);
 
 /* ============================================================
-   POST MESSAGE BRIDGE — from child apps (Settings, Terminal, etc)
+   KEYBOARD SHORTCUTS
    ============================================================ */
-window.addEventListener('message',function(e){
-  var d=e.data||{};
-  if(d.type==='setWallpaper'&&d.wallpaper){
-    document.body.style.background=d.wallpaper; save('gg-wallpaper',d.wallpaper); toast('Wallpaper updated');
+document.addEventListener('keydown', function(e){
+  if(lockScreenOn) return; // lock screen owns input while active
+  if((e.metaKey||e.ctrlKey) && e.key===' '){ e.preventDefault(); openSpot(); }
+  if(e.key==='Escape'){
+    closeSpot();
+    $('#launchpad').classList.remove('show');
+    $('#menu').classList.remove('show');
+    $('#cc').classList.remove('show');
   }
-  if(d.type==='setProfile'&&d.profile){
-    save('gg-profile', d.profile); toast('Profile updated');
+  if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='w'){
+    var t=topWin(); if(t) closeWin(t);
+    e.preventDefault();
   }
-  if(d.type==='setDesktopConfig'&&d.config){
-    if(d.config.magnify!==undefined){ ccState.magnify=d.config.magnify; applyCC(); buildDock(); }
-  }
-  if(d.type==='resetIcons'){
-    iconPos={}; save('gg-icons',iconPos); buildDesktop();
-  }
-  if(d.type==='setAccent'&&d.accent){
-    document.documentElement.style.setProperty('--accent', d.accent);
-  }
-  if(d.type==='setLockPassword'&&d.hash){
-    save('gg-lock-hash', d.hash); save('gg-lock-enabled', true);
-  }
-  if(d.type==='disableLock'){
-    save('gg-lock-enabled', false);
-  }
-  if(d.type==='lockNow'){
-    showLock();
-  }
-  if(d.type==='openWindow'){
-    createWin({name:d.title||'App',icon:d.icon||'./images/AppTester.png',url:d.url,w:d.w||860,h:d.h||560});
-  }
-  if(d.type==='retryApp'){
-    var w = wins.find(function(x){return x.app.name===d.name});
-    if(w){ closeWin(w); var app=APPS.find(function(a){return a.name===d.name}); if(app) createWin(app); }
-  }
+  if(e.key==='F4') toggleLaunch();
+  if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='l'){ e.preventDefault(); showLock(); }
 });
 
-window.addEventListener('resize',function(){
+/* ============================================================
+   WINDOW RESIZE — keep windows on screen
+   ============================================================ */
+window.addEventListener('resize', function(){
   wins.forEach(function(w){
-    w.el.style.left=Math.min(parseInt(w.el.style.left)||0,innerWidth-120)+'px';
-    w.el.style.top=Math.min(parseInt(w.el.style.top)||40,innerHeight-80)+'px';
+    w.el.style.left=Math.min(parseInt(w.el.style.left)||0, innerWidth-120)+'px';
+    w.el.style.top=Math.min(parseInt(w.el.style.top)||40, innerHeight-80)+'px';
   });
 });
 
-/* ============ INIT ============ */
-var wp=load('gg-wallpaper',null); if(wp)document.body.style.background=wp;
-buildDesktop();
-buildDock();
-(load('gg-windows',[])||[]).forEach(function(s){
-  var a=APPS.find(function(x){return x.name===s.name});
-  if(a)createWin(a,s);
-});
-buildStage();
-
+/* ============================================================
+   INIT
+   ============================================================ */
+$('#apple').onclick=function(){ openApp(4); };
 window.openApp=openApp;
 window.toggleLaunchpad=toggleLaunch;
-window.closeAllWins=function(){wins.slice().forEach(closeWin)};
+window.closeAllWins=function(){ wins.slice().forEach(closeWin); };
+window.showLockScreen=showLock;
+
+var wp=load('gg-wallpaper', null);
+if(wp) document.body.style.background=wp;
+
+buildDesktop();
+buildDock();
+(load('gg-windows',[]) || []).forEach(function(s){
+  var a=APPS.find(function(x){ return x.name===s.name; });
+  if(a) createWin(a, s);
+});
+buildStage();
+updateFullscreenState();
+resetIdle();
+
+// Show lock screen on first load of a session, per spec — only if this tab hasn't unlocked yet.
+if(!sessionStorage.getItem('gg-unlocked-session')){
+  showLock();
+  var origHide=hideLock;
+  hideLock=function(){ origHide(); sessionStorage.setItem('gg-unlocked-session','1'); };
+}
+
 })();
-</script></body></html>
+</script>
+</body>
+</html>
