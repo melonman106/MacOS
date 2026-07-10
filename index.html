@@ -487,7 +487,6 @@ function buildStage(){
    ============================================================ */
 function updateFullscreenState(){
   var anyFull=wins.some(function(w){ return w.el.classList.contains('full') && !w.el.classList.contains('min'); });
-  $('#top-bar').classList.toggle('hide', anyFull);
   $('#dock').classList.toggle('hide', anyFull);
 }
 
