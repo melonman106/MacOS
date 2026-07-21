@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#141416;--bg2:#1c1c1f;--bg3:#232326;--elevated:#2b2b2f;
+  --border:rgba(255,255,255,.08);--text:#f0f0f2;--text2:rgba(255,255,255,.5);--text3:rgba(255,255,255,.28);
+  --accent:#0a84ff;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+.toolbar{height:48px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.tab-filter{display:flex;gap:2px;background:var(--bg3);border-radius:8px;padding:3px}
+.tab-filter button{border:none;background:transparent;color:var(--text2);padding:5px 12px;border-radius:6px;font-size:12.5px;cursor:pointer}
+.tab-filter button.active{background:var(--elevated);color:var(--text)}
+.spacer{flex:1}
+.search-box{width:200px;padding:6px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12.5px;outline:none}
+.btn{padding:6px 13px;border-radius:7px;border:none;background:var(--elevated);color:var(--text);font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn:hover{background:#38383c}
+.btn.primary{background:var(--accent)}
+.btn.primary:hover{background:#3aa0ff}
+
+.content{flex:1;overflow-y:auto;padding:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.card{border-radius:12px;overflow:hidden;background:var(--bg3);border:1px solid var(--border);cursor:pointer;transition:transform .12s}
+.card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.18)}
+.thumb{width:100%;aspect-ratio:1;background:var(--elevated);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:34px;position:relative}
+.thumb img,.thumb video{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .kind-badge{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;padding:2px 6px;border-radius:5px;font-weight:600}
+.card-name{padding:8px 10px;font-size:11.5px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text3);text-align:center;padding:40px}
+.empty .ei{font-size:56px}
+.empty .eb{max-width:320px;font-size:13px;line-height:1.5}
+
+/* Viewer overlay */
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:100;display:none;align-items:center;justify-content:center;flex-direction:column}
+.viewer.show{display:flex}
+.viewer-top{position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:linear-gradient(rgba(0,0,0,.6),transparent)}
+.viewer-title{font-size:13px;color:rgba(255,255,255,.85)}
+.viewer-close{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:18px;cursor:pointer}
+.viewer-close:hover{background:rgba(255,255,255,.2)}
+.viewer-stage{flex:1;width:100%;display:flex;align-items:center;justify-content:center;padding:60px 70px}
+.viewer-stage img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.viewer-stage video{max-width:100%;max-height:100%;border-radius:6px}
+.viewer-stage audio{width:60%;max-width:520px}
+.viewer-stage iframe{width:90%;height:100%;border:none;border-radius:6px;background:#fff}
+.viewer-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.viewer-nav:hover{background:rgba(255,255,255,.2)}
+.viewer-nav.prev{left:16px}
+.viewer-nav.next{right:16px}
+
+#uploadInput{display:none}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="tab-filter" id="filterTabs">
+    <button data-f="all" class="active">All</button>
+    <button data-f="image">Images</button>
+    <button data-f="video">Videos</button>
+    <button data-f="audio">Sounds</button>
+    <button data-f="pdf">Documents</button>
+  </div>
+  <div class="spacer"></div>
+  <input class="search-box" id="searchBox" placeholder="Search media">
+  <button class="btn primary" id="btnUpload">⬆ Add Media</button>
+</div>
+
+<div class="content" id="content"></div>
+
+<div class="viewer" id="viewer">
+  <div class="viewer-top">
+    <div class="viewer-title" id="viewerTitle"></div>
+    <button class="viewer-close" id="viewerClose">✕</button>
+  </div>
+  <button class="viewer-nav prev" id="viewerPrev">‹</button>
+  <div class="viewer-stage" id="viewerStage"></div>
+  <button class="viewer-nav next" id="viewerNext">›</button>
+</div>
+
+<input type="file" id="uploadInput" multiple accept="image/*,video/*,audio/*,.pdf">
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+/* Gallery reads/writes the SAME virtual filesystem as the Files app so
+   files added in either place show up in both. */
+var FS_KEY='files_app_fs_v1';
+var GALLERY_ROOT='/Pictures';
+
+function loadFS(){ try{ var v=localStorage.getItem(FS_KEY); return v?JSON.parse(v):{}; }catch(e){ return {}; } }
+function saveFS(fs){ try{ localStorage.setItem(FS_KEY, JSON.stringify(fs)); }catch(e){} }
+
+var fs=loadFS();
+if(!fs[GALLERY_ROOT]) fs[GALLERY_ROOT]={type:'folder',mtime:Date.now()};
+
+var IMG_EXT=['png','jpg','jpeg','webp','gif','bmp','svg'];
+var VID_EXT=['mp4','mov','webm','m4v'];
+var AUD_EXT=['mp3','wav','m4a','ogg'];
+var PDF_EXT=['pdf'];
+
+function extOf(p){ return (p.split('.').pop()||'').toLowerCase(); }
+function kindOf(p){
+  var e=extOf(p);
+  if(IMG_EXT.includes(e)) return 'image';
+  if(VID_EXT.includes(e)) return 'video';
+  if(AUD_EXT.includes(e)) return 'audio';
+  if(PDF_EXT.includes(e)) return 'pdf';
+  return null;
+}
+function baseName(p){ var parts=p.split('/').filter(Boolean); return parts[parts.length-1]||p; }
+function esc(s){ var d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+
+function allMedia(){
+  return Object.keys(fs).filter(function(p){
+    return fs[p].type==='file' && kindOf(p);
+  }).sort(function(a,b){ return (fs[b].mtime||0)-(fs[a].mtime||0); });
+}
+
+var currentFilter='all';
+var currentList=[];
+var viewerIdx=-1;
+
+function matchesFilter(p){
+  if(currentFilter==='all') return true;
+  return kindOf(p)===currentFilter;
+}
+
+function render(){
+  var q=$('#searchBox').value.trim().toLowerCase();
+  var media = allMedia().filter(function(p){
+    if(!matchesFilter(p)) return false;
+    if(q && !baseName(p).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  currentList = media;
+
+  var content=$('#content');
+  if(!media.length){
+    content.innerHTML = '<div class="empty"><div class="ei">🖼️</div><div class="eb">No media yet. Add photos, videos, sounds, or PDFs with <b>Add Media</b>, or drop files into the Files app&rsquo;s Pictures folder.</div></div>';
+    return;
+  }
+
+  content.innerHTML = '<div class="grid">' + media.map(function(p, i){
+    var e=fs[p], k=kindOf(p);
+    var thumbInner='';
+    if(k==='image') thumbInner = '<img src="'+e.dataUrl+'" alt="" loading="lazy">';
+    else if(k==='video') thumbInner = '<video src="'+e.dataUrl+'" muted preload="metadata"></video><span class="kind-badge">VIDEO</span>';
+    else if(k==='audio') thumbInner = '<span>🎵</span><span class="kind-badge">AUDIO</span>';
+    else if(k==='pdf') thumbInner = '<span>📕</span><span class="kind-badge">PDF</span>';
+    return '<div class="card" data-idx="'+i+'"><div class="thumb">'+thumbInner+'</div><div class="card-name">'+esc(baseName(p))+'</div></div>';
+  }).join('') + '</div>';
+
+  $$('.card', content).forEach(function(el){
+    el.addEventListener('click', function(){ openViewer(+el.dataset.idx); });
+  });
+}
+
+$$('#filterTabs button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    $$('#filterTabs button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    currentFilter=btn.dataset.f;
+    render();
+  });
+});
+$('#searchBox').addEventListener('input', render);
+
+/* ============================================================
+   VIEWER
+============================================================ */
+function openViewer(idx){
+  viewerIdx=idx;
+  renderViewer();
+  $('#viewer').classList.add('show');
+}
+function closeViewer(){ $('#viewer').classList.remove('show'); $('#viewerStage').innerHTML=''; }
+function renderViewer(){
+  var p=currentList[viewerIdx]; if(!p) return;
+  var e=fs[p], k=kindOf(p);
+  $('#viewerTitle').textContent = baseName(p);
+  var stage=$('#viewerStage');
+  if(k==='image') stage.innerHTML='<img src="'+e.dataUrl+'" alt="">';
+  else if(k==='video') stage.innerHTML='<video src="'+e.dataUrl+'" controls autoplay></video>';
+  else if(k==='audio') stage.innerHTML='<div style="text-align:center;color:#fff"><div style="font-size:64px;margin-bottom:20px">🎵</div><div style="margin-bottom:16px;font-size:15px">'+esc(baseName(p))+'</div><audio src="'+e.dataUrl+'" controls autoplay></audio></div>';
+  else if(k==='pdf') stage.innerHTML='<iframe src="'+e.dataUrl+'"></iframe>';
+}
+$('#viewerClose').addEventListener('click', closeViewer);
+$('#viewer').addEventListener('click', function(e){ if(e.target.id==='viewer') closeViewer(); });
+$('#viewerPrev').addEventListener('click', function(){ if(!currentList.length) return; viewerIdx=(viewerIdx-1+currentList.length)%currentList.length; renderViewer(); });
+$('#viewerNext').addEventListener('click', function(){ if(!currentList.length) return; viewerIdx=(viewerIdx+1)%currentList.length; renderViewer(); });
+document.addEventListener('keydown', function(e){
+  if(!$('#viewer').classList.contains('show')) return;
+  if(e.key==='Escape') closeViewer();
+  if(e.key==='ArrowLeft') $('#viewerPrev').click();
+  if(e.key==='ArrowRight') $('#viewerNext').click();
+});
+
+/* ============================================================
+   UPLOAD — writes new files into the shared FS under /Pictures
+   (or a type-appropriate default folder) so Files app sees them too.
+============================================================ */
+function defaultFolderFor(kind){
+  if(kind==='video') return '/Pictures';
+  if(kind==='audio') return '/Music';
+  if(kind==='pdf') return '/Documents';
+  return '/Pictures';
+}
+$('#btnUpload').addEventListener('click', function(){ $('#uploadInput').click(); });
+$('#uploadInput').addEventListener('change', function(e){
+  var files=Array.from(e.target.files||[]);
+  var remaining=files.length;
+  if(!remaining) return;
+  files.forEach(function(file){
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var k = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : file.type.startsWith('audio/') ? 'audio' : (extOf(file.name)==='pdf' ? 'pdf' : null);
+      var folder = defaultFolderFor(k||'image');
+      if(!fs[folder]) fs[folder]={type:'folder',mtime:Date.now()};
+      var path=folder+'/'+file.name;
+      fs[path]={type:'file', mtime:Date.now(), size:file.size, mime:file.type, dataUrl:ev.target.result};
+      remaining--;
+      if(remaining===0){ saveFS(fs); render(); }
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value='';
+});
+
+/* ============================================================
+   DEEP LINK: Files app can open a specific item directly via
+   ?open=/encoded/path — used when double-clicking a media file.
+============================================================ */
+function checkDeepLink(){
+  var params=new URLSearchParams(location.search);
+  var openPath=params.get('open');
+  if(!openPath) return;
+  fs=loadFS(); // refresh in case Files just wrote it
+  render();
+  var idx=currentList.indexOf(openPath);
+  if(idx===-1){
+    // item might not match current filter; switch to "all" and retry
+    currentFilter='all';
+    $$('#filterTabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.f==='all'); });
+    render();
+    idx=currentList.indexOf(openPath);
+  }
+  if(idx>-1) openViewer(idx);
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+saveFS(fs);
+render();
+checkDeepLink();
+})();
+</script>
+</body>
+</html>
