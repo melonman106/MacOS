@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1e1e1e;--bg2:#252525;--bg3:#2a2a2a;--elevated:#303030;
+  --border:#3a3a3a;--text:#e6e6e6;--text2:#8a8a8a;--text3:#565656;
+  --accent:#0a84ff;--green:#30d158;--red:#ff453a;--yellow:#ffd60a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+/* Toolbar */
+.toolbar{height:46px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:4px;padding:0 10px;overflow-x:auto}
+.tb-group{display:flex;align-items:center;gap:2px;padding:0 6px;border-right:1px solid var(--border)}
+.tb-group:last-child{border-right:none}
+.tb-btn{width:30px;height:30px;border-radius:6px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;transition:background .12s}
+.tb-btn:hover{background:var(--elevated);color:var(--text)}
+.tb-btn.active{background:rgba(10,132,255,.25);color:var(--accent)}
+.tb-btn svg{width:16px;height:16px}
+.tb-select{height:28px;background:var(--elevated);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:0 6px;outline:none;flex-shrink:0}
+.tb-color{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:0;background:none;flex-shrink:0}
+
+/* Tab bar */
+.tabbar{height:34px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;padding:0 6px;gap:2px;overflow-x:auto}
+.tab{height:30px;padding:0 10px;border-radius:8px 8px 0 0;background:var(--bg3);border:1px solid var(--border);border-bottom:none;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.tab.active{background:var(--bg);color:var(--text)}
+.tab .dot{width:6px;height:6px;border-radius:50%;background:var(--yellow);display:none}
+.tab.dirty .dot{display:block}
+.tab .x{width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.tab .x:hover{background:rgba(255,255,255,.1)}
+.tab-new{width:26px;height:26px;border-radius:6px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-size:16px;flex-shrink:0}
+.tab-new:hover{background:var(--elevated)}
+
+/* Editor */
+.editor-wrap{flex:1;min-height:0;display:flex}
+.gutter{width:48px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;color:var(--text3);text-align:right;padding:16px 8px 16px 0}
+#editor{flex:1;padding:16px 20px;background:var(--bg);color:var(--text);border:none;outline:none;resize:none;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;overflow-y:auto}
+#editor.rich{font-family:'Inter',sans-serif;font-size:14.5px;white-space:normal}
+#editor:empty:before{content:attr(data-placeholder);color:var(--text3)}
+
+/* Status bar */
+.statusbar{height:26px;flex-shrink:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:11px;color:var(--text2)}
+.statusbar .right{display:flex;gap:14px}
+
+/* Find & Replace panel */
+.find-panel{position:absolute;top:80px;right:20px;width:300px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 34px rgba(0,0,0,.4);padding:12px;display:none;z-index:50}
+.find-panel.show{display:block}
+.find-row{display:flex;gap:6px;margin-bottom:8px}
+.find-row input{flex:1;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;outline:none}
+.find-row input:focus{border-color:var(--accent)}
+.find-btn{padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;cursor:pointer;white-space:nowrap}
+.find-btn:hover{background:var(--bg)}
+.find-count{font-size:11px;color:var(--text2);margin-bottom:6px}
+
+/* File input hidden */
+#fileOpen{display:none}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="tb-group">
+    <button class="tb-btn" id="btnNew" title="New (Ctrl+N)">N</button>
+    <button class="tb-btn" id="btnOpen" title="Open file">O</button>
+    <button class="tb-btn" id="btnSave" title="Save (Ctrl+S)">S</button>
+    <button class="tb-btn" id="btnSaveAs" title="Save As / Rename">⋯</button>
+  </div>
+  <div class="tb-group">
+    <button class="tb-btn" id="btnUndo" title="Undo (Ctrl+Z)">↶</button>
+    <button class="tb-btn" id="btnRedo" title="Redo (Ctrl+Shift+Z)">↷</button>
+  </div>
+  <div class="tb-group">
+    <button class="tb-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+    <button class="tb-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+    <button class="tb-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+    <button class="tb-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+  </div>
+  <div class="tb-group">
+    <select class="tb-select" id="fontSize" title="Font size">
+      <option value="1">Small</option><option value="3" selected>Normal</option><option value="5">Large</option><option value="7">Huge</option>
+    </select>
+    <input type="color" class="tb-color" id="textColor" title="Text color" value="#e6e6e6">
+  </div>
+  <div class="tb-group">
+    <button class="tb-btn" data-cmd="justifyLeft" title="Align left">⯇</button>
+    <button class="tb-btn" data-cmd="justifyCenter" title="Align center">≡</button>
+    <button class="tb-btn" data-cmd="justifyRight" title="Align right">⯈</button>
+  </div>
+  <div class="tb-group">
+    <button class="tb-btn" data-cmd="insertUnorderedList" title="Bullet list">•≡</button>
+    <button class="tb-btn" data-cmd="insertOrderedList" title="Numbered list">1≡</button>
+  </div>
+  <div class="tb-group">
+    <button class="tb-btn" id="btnRichToggle" title="Toggle Plain / Rich text">Aa</button>
+    <button class="tb-btn" id="btnFind" title="Find & Replace (Ctrl+F)">🔍</button>
+  </div>
+  <div class="tb-group">
+    <button class="tb-btn" id="btnDownload" title="Download as .txt">⬇</button>
+  </div>
+</div>
+
+<div class="tabbar" id="tabbar"></div>
+
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column">
+  <div class="find-panel" id="findPanel">
+    <div class="find-row"><input id="findInput" placeholder="Find"><button class="find-btn" id="findPrev">↑</button><button class="find-btn" id="findNext">↓</button></div>
+    <div class="find-row"><input id="replaceInput" placeholder="Replace with"><button class="find-btn" id="replaceOne">Replace</button><button class="find-btn" id="replaceAll">All</button></div>
+    <div class="find-count" id="findCount"></div>
+  </div>
+
+  <div class="editor-wrap">
+    <div id="editor" contenteditable="true" data-placeholder="Start typing..." spellcheck="false"></div>
+  </div>
+</div>
+
+<div class="statusbar">
+  <div id="fileNameStatus">Untitled</div>
+  <div class="right">
+    <span id="wordCount">0 words</span>
+    <span id="charCount">0 characters</span>
+    <span id="saveStatus">Saved</span>
+  </div>
+</div>
+
+<input type="file" id="fileOpen" accept=".txt,.md,.html,.rtf,text/plain">
+
+<script>
+(function(){
+'use strict';
+
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+var editor=$('#editor');
+var STORE_KEY='text_app_docs_v1';
+
+/* ============================================================
+   NOTIFICATOR BRIDGE — talk to the macOS shell for save/rename dialogs
+   instead of native prompt()/confirm() so it matches the system look.
+   Falls back to native prompt/confirm if not running inside the shell
+   (e.g. previewed standalone) after a short timeout.
+============================================================ */
+var notifCounter=0, notifResolvers={};
+function inIframe(){ try { return window.self !== window.top; } catch(e){ return true; } }
+
+window.addEventListener('message', function(e){
+  var d=e.data||{};
+  if(d.type==='notificatorResult' && notifResolvers[d.id]){
+    var resolve=notifResolvers[d.id];
+    delete notifResolvers[d.id];
+    resolve({confirmed:d.confirmed, value:d.value});
+  }
+});
+
+function notificatorTextBox(message, placeholder, value){
+  return new Promise(function(resolve){
+    if(!inIframe()){
+      var v=window.prompt(message, value||'');
+      resolve(v===null?{confirmed:false}:{confirmed:true,value:v});
+      return;
+    }
+    var id='notif-'+(++notifCounter)+'-'+Date.now();
+    var settled=false;
+    notifResolvers[id]=function(res){ settled=true; resolve(res); };
+    window.parent.postMessage({type:'notificatorTextBox', id:id, message:message, placeholder:placeholder||'', value:value||''}, '*');
+    setTimeout(function(){ if(!settled){ delete notifResolvers[id]; var v=window.prompt(message,value||''); resolve(v===null?{confirmed:false}:{confirmed:true,value:v}); } }, 4000);
+  });
+}
+function notificatorNormal(message){
+  return new Promise(function(resolve){
+    if(!inIframe()){ resolve({confirmed:window.confirm(message)}); return; }
+    var id='notif-'+(++notifCounter)+'-'+Date.now();
+    var settled=false;
+    notifResolvers[id]=function(res){ settled=true; resolve(res); };
+    window.parent.postMessage({type:'notificatorNormal', id:id, message:message}, '*');
+    setTimeout(function(){ if(!settled){ delete notifResolvers[id]; resolve({confirmed:window.confirm(message)}); } }, 4000);
+  });
+}
+
+/* ============================================================
+   DOCUMENT / TAB STATE
+============================================================ */
+function loadDocs(){ try{ var v=localStorage.getItem(STORE_KEY); return v?JSON.parse(v):null; }catch(e){ return null; } }
+function saveDocs(docs){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(docs)); }catch(e){} }
+
+var state = loadDocs() || {
+  docs:[{id:'doc-1', name:'Untitled', content:'', rich:false, dirty:false}],
+  activeId:'doc-1'
+};
+
+function activeDoc(){ return state.docs.find(function(d){ return d.id===state.activeId; }); }
+
+var undoStack={}, redoStack={};
+
+function renderTabs(){
+  var bar=$('#tabbar');
+  bar.innerHTML = state.docs.map(function(d){
+    return '<div class="tab'+(d.id===state.activeId?' active':'')+(d.dirty?' dirty':'')+'" data-id="'+d.id+'">'+
+           '<span class="dot"></span><span class="tname">'+escHtml(d.name)+'</span><span class="x" data-close="'+d.id+'">×</span></div>';
+  }).join('') + '<button class="tab-new" id="tabNewBtn" title="New tab">+</button>';
+
+  $$('.tab', bar).forEach(function(t){
+    t.addEventListener('click', function(e){
+      if(e.target.dataset.close) return;
+      switchTo(t.dataset.id);
+    });
+  });
+  $$('.x', bar).forEach(function(x){
+    x.addEventListener('click', function(e){ e.stopPropagation(); closeTab(x.dataset.close); });
+  });
+  var nb=$('#tabNewBtn'); if(nb) nb.addEventListener('click', newDoc);
+}
+
+function switchTo(id){
+  saveCurrentEditorContent();
+  state.activeId=id;
+  loadActiveIntoEditor();
+  renderTabs();
+  persist();
+}
+
+function loadActiveIntoEditor(){
+  var d=activeDoc(); if(!d) return;
+  editor.classList.toggle('rich', !!d.rich);
+  editor.innerHTML = d.rich ? (d.content||'') : '';
+  if(!d.rich) editor.textContent = d.content||'';
+  updateStatus();
+  $('#fileNameStatus').textContent = d.name;
+}
+
+function saveCurrentEditorContent(){
+  var d=activeDoc(); if(!d) return;
+  d.content = d.rich ? editor.innerHTML : editor.textContent;
+}
+
+function newDoc(){
+  saveCurrentEditorContent();
+  var n=state.docs.length+1;
+  var d={id:'doc-'+Date.now(), name:'Untitled '+n, content:'', rich:false, dirty:false};
+  state.docs.push(d);
+  state.activeId=d.id;
+  loadActiveIntoEditor();
+  renderTabs();
+  persist();
+}
+
+function closeTab(id){
+  var idx=state.docs.findIndex(function(d){ return d.id===id; });
+  if(idx===-1) return;
+  state.docs.splice(idx,1);
+  if(state.docs.length===0){
+    state.docs.push({id:'doc-'+Date.now(), name:'Untitled', content:'', rich:false, dirty:false});
+  }
+  if(state.activeId===id){
+    state.activeId = state.docs[Math.max(0, idx-1)].id;
+  }
+  loadActiveIntoEditor();
+  renderTabs();
+  persist();
+}
+
+function persist(){
+  saveCurrentEditorContent();
+  saveDocs(state);
+  $('#saveStatus').textContent='Saved';
+}
+
+function markDirty(){
+  var d=activeDoc(); if(!d) return;
+  d.dirty=true;
+  renderTabs();
+  $('#saveStatus').textContent='Editing…';
+}
+
+/* Debounced autosave */
+var saveTimer=null;
+function scheduleAutosave(){
+  markDirty();
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(function(){
+    var d=activeDoc(); if(d) d.dirty=false;
+    persist();
+    renderTabs();
+  }, 700);
+}
+
+function updateStatus(){
+  var text = editor.classList.contains('rich') ? editor.innerText : editor.textContent;
+  var words = text.trim().length ? text.trim().split(/\s+/).length : 0;
+  $('#wordCount').textContent = words + (words===1?' word':' words');
+  $('#charCount').textContent = text.length + (text.length===1?' character':' characters');
+}
+
+editor.addEventListener('input', function(){ scheduleAutosave(); updateStatus(); });
+
+/* ============================================================
+   TOOLBAR ACTIONS
+============================================================ */
+$('#btnNew').addEventListener('click', newDoc);
+
+$('#btnOpen').addEventListener('click', function(){ $('#fileOpen').click(); });
+$('#fileOpen').addEventListener('change', function(e){
+  var file=e.target.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    saveCurrentEditorContent();
+    var d={id:'doc-'+Date.now(), name:file.name.replace(/\.[^.]+$/,''), content:ev.target.result, rich:false, dirty:false};
+    state.docs.push(d);
+    state.activeId=d.id;
+    loadActiveIntoEditor();
+    renderTabs();
+    persist();
+  };
+  reader.readAsText(file);
+  e.target.value='';
+});
+
+$('#btnSave').addEventListener('click', function(){ persist(); renderTabs(); flashStatus('Saved'); });
+
+$('#btnSaveAs').addEventListener('click', function(){
+  var d=activeDoc(); if(!d) return;
+  notificatorTextBox('Rename document', 'Document name', d.name).then(function(res){
+    if(res.confirmed && res.value && res.value.trim()){
+      d.name = res.value.trim();
+      renderTabs();
+      $('#fileNameStatus').textContent=d.name;
+      persist();
+    }
+  });
+});
+
+$('#btnUndo').addEventListener('click', function(){ document.execCommand('undo'); });
+$('#btnRedo').addEventListener('click', function(){ document.execCommand('redo'); });
+
+$$('.tb-btn[data-cmd]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var d=activeDoc();
+    if(d && !d.rich){ setRich(true); }
+    editor.focus();
+    document.execCommand(btn.dataset.cmd, false, null);
+    scheduleAutosave();
+  });
+});
+
+$('#fontSize').addEventListener('change', function(){
+  var d=activeDoc(); if(d && !d.rich) setRich(true);
+  editor.focus();
+  document.execCommand('fontSize', false, this.value);
+  scheduleAutosave();
+});
+$('#textColor').addEventListener('input', function(){
+  var d=activeDoc(); if(d && !d.rich) setRich(true);
+  editor.focus();
+  document.execCommand('foreColor', false, this.value);
+  scheduleAutosave();
+});
+
+function setRich(rich){
+  var d=activeDoc(); if(!d) return;
+  saveCurrentEditorContent();
+  if(rich && !d.rich){
+    d.content = escHtml(d.content||'').replace(/\n/g,'<br>');
+  } else if(!rich && d.rich){
+    var tmp=document.createElement('div'); tmp.innerHTML=d.content||'';
+    d.content = tmp.innerText;
+  }
+  d.rich=rich;
+  loadActiveIntoEditor();
+}
+$('#btnRichToggle').addEventListener('click', function(){
+  var d=activeDoc(); if(!d) return;
+  setRich(!d.rich);
+  this.classList.toggle('active', d.rich);
+  scheduleAutosave();
+});
+
+$('#btnDownload').addEventListener('click', function(){
+  var d=activeDoc(); if(!d) return;
+  saveCurrentEditorContent();
+  var text = d.rich ? (function(){ var t=document.createElement('div'); t.innerHTML=d.content; return t.innerText; })() : d.content;
+  var blob=new Blob([text], {type:'text/plain'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download=(d.name||'Untitled')+'.txt'; a.click();
+  URL.revokeObjectURL(url);
+  flashStatus('Downloaded');
+});
+
+function flashStatus(msg){
+  var el=$('#saveStatus'); el.textContent=msg;
+  setTimeout(function(){ el.textContent='Saved'; }, 1500);
+}
+
+function escHtml(s){ var d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+
+/* ============================================================
+   FIND & REPLACE
+============================================================ */
+var findMatches=[], findIdx=-1;
+$('#btnFind').addEventListener('click', function(){ $('#findPanel').classList.toggle('show'); if($('#findPanel').classList.contains('show')) $('#findInput').focus(); });
+function runFind(){
+  var q=$('#findInput').value;
+  var text = editor.classList.contains('rich') ? editor.innerText : editor.textContent;
+  findMatches=[]; findIdx=-1;
+  if(q){
+    var idx=0;
+    while(true){ var pos=text.indexOf(q, idx); if(pos===-1) break; findMatches.push(pos); idx=pos+q.length; }
+  }
+  $('#findCount').textContent = q ? (findMatches.length + ' match' + (findMatches.length===1?'':'es')) : '';
+}
+$('#findInput').addEventListener('input', runFind);
+$('#findNext').addEventListener('click', function(){ if(!findMatches.length) return; findIdx=(findIdx+1)%findMatches.length; $('#findCount').textContent=(findIdx+1)+' of '+findMatches.length; });
+$('#findPrev').addEventListener('click', function(){ if(!findMatches.length) return; findIdx=(findIdx-1+findMatches.length)%findMatches.length; $('#findCount').textContent=(findIdx+1)+' of '+findMatches.length; });
+$('#replaceOne').addEventListener('click', function(){
+  var q=$('#findInput').value, r=$('#replaceInput').value;
+  if(!q) return;
+  var d=activeDoc(); if(!d) return;
+  if(d.rich){
+    editor.innerHTML = editor.innerHTML.replace(q, escHtml(r));
+  } else {
+    editor.textContent = editor.textContent.replace(q, r);
+  }
+  scheduleAutosave(); updateStatus(); runFind();
+});
+$('#replaceAll').addEventListener('click', function(){
+  var q=$('#findInput').value, r=$('#replaceInput').value;
+  if(!q) return;
+  var d=activeDoc(); if(!d) return;
+  var esc=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  if(d.rich){
+    editor.innerHTML = editor.innerHTML.split(new RegExp(esc,'g')).join(escHtml(r));
+  } else {
+    editor.textContent = editor.textContent.split(q).join(r);
+  }
+  scheduleAutosave(); updateStatus(); runFind();
+  flashStatus('Replaced all');
+});
+
+/* ============================================================
+   KEYBOARD SHORTCUTS
+============================================================ */
+document.addEventListener('keydown', function(e){
+  var mod=e.metaKey||e.ctrlKey;
+  if(mod && e.key.toLowerCase()==='s'){ e.preventDefault(); persist(); renderTabs(); flashStatus('Saved'); }
+  if(mod && e.key.toLowerCase()==='n'){ e.preventDefault(); newDoc(); }
+  if(mod && e.key.toLowerCase()==='f'){ e.preventDefault(); $('#findPanel').classList.add('show'); $('#findInput').focus(); }
+  if(mod && e.key==='Escape'){ $('#findPanel').classList.remove('show'); }
+  if(e.key==='Escape'){ $('#findPanel').classList.remove('show'); }
+});
+
+/* ============================================================
+   INIT
+============================================================ */
+renderTabs();
+loadActiveIntoEditor();
+updateStatus();
+
+})();
+</script>
+</body>
+</html>
