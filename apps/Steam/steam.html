@@ -640,55 +640,6 @@
         .friend-game-card .game-name { font-size: 13px; font-weight: 600; }
         .friend-game-card .game-time { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
 
-        #game-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 2000;
-            flex-direction: column;
-        }
-
-        .game-titlebar {
-            height: var(--titlebar-h);
-            background: #111116;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
-            padding: 0 14px;
-            flex-shrink: 0;
-        }
-
-        .game-title-text {
-            text-align: center;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-dim);
-        }
-
-        .game-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .game-tag {
-            font-size: 10px;
-            background: rgba(26,159,255,0.15);
-            color: var(--accent);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
-
-        #game-frame {
-            border: none;
-            width: 100%;
-            flex: 1;
-            min-height: 0;
-        }
-
         .modal {
             display: none;
             position: fixed;
@@ -894,23 +845,6 @@
     </style>
 </head>
 <body>
-
-<!-- ═══════════════════════════════ GAME OVERLAY ═══════════════════════════════ -->
-<div id="game-overlay">
-    <div class="game-titlebar">
-        <div class="traffic-lights">
-            <div class="dot" onclick="closeGame()" style="background:var(--mac-red)" title="Close"></div>
-            <div class="dot" onclick="toggleMinimize()" style="background:var(--mac-yellow)" title="Minimize"></div>
-            <div class="dot" onclick="toggleFullscreen()" style="background:var(--mac-green)" title="Fullscreen"></div>
-        </div>
-        <div class="game-title-text" id="active-game-title">Loading...</div>
-        <div class="game-actions">
-            <span class="game-tag" id="play-timer-tag">PLAYING • 0:00</span>
-        </div>
-    </div>
-    <iframe id="game-frame" src="" allowfullscreen
-        allow="autoplay; fullscreen; gamepad; microphone; camera"></iframe>
-</div>
 
 <!-- ═══════════════════════════════ MODAL: PROFILE / CLOUD ═══════════════════════════════ -->
 <div id="modal-cloud" class="modal">
@@ -1126,6 +1060,7 @@
     let playStartTime   = null;
     let playTimerInt    = null;
     let searchQuery     = '';
+    let launchedIdx     = null; // idx of game currently open in its own shell window
 
     /* ═══════════════════════════════════════════════
        UTILITIES
@@ -1141,12 +1076,6 @@
         const h = Math.floor(min / 60);
         const m = min % 60;
         return `${h}h ${m}m`;
-    }
-
-    function fmtSeconds(sec) {
-        const m = Math.floor(sec / 60).toString().padStart(2, '0');
-        const s = (sec % 60).toString().padStart(2, '0');
-        return `${m}:${s}`;
     }
 
     function showToast(msg, duration = 2800) {
@@ -1165,7 +1094,7 @@
     }
 
     /* ═══════════════════════════════════════════════
-       FULLSCREEN / WINDOW CONTROLS
+       FULLSCREEN / WINDOW CONTROLS (for the Steam app window itself)
     ═══════════════════════════════════════════════ */
     function toggleFullscreen() {
         if (!document.fullscreenElement) {
@@ -1175,10 +1104,6 @@
         } else {
             document.exitFullscreen();
         }
-    }
-
-    function toggleMinimize() {
-        showToast('Minimize is not available in the browser');
     }
 
     /* ═══════════════════════════════════════════════
@@ -1430,58 +1355,95 @@
 
     /* ═══════════════════════════════════════════════
        PLAYTIME
+       Since the game now runs in its own shell-managed window
+       (a sibling to this iframe, not inside it), we can't detect
+       when that window is closed. Tracking starts on launch and
+       stops when the person clicks "■ Stop Playing" in the toolbar,
+       switches to a different game, or leaves this game's page.
     ═══════════════════════════════════════════════ */
     function startPlaytimeTracking(idx) {
+        stopPlaytimeTracking(launchedIdx); // stop any previous session first
+        launchedIdx = idx;
         playStartTime = Date.now();
-        let elapsed = 0;
         clearInterval(playTimerInt);
         playTimerInt = setInterval(() => {
-            elapsed++;
-            document.getElementById('play-timer-tag').textContent =
-                `PLAYING • ${fmtSeconds(elapsed)}`;
+            if (activeIdx === idx) updatePlaytimeDisplay(idx, true);
         }, 1000);
+        updatePlayButton(idx);
     }
 
     function stopPlaytimeTracking(idx) {
+        if (idx === null || idx === undefined || playStartTime === null) return;
         clearInterval(playTimerInt);
         playTimerInt = null;
-        if (playStartTime === null || !myGames[idx]) return;
-        const elapsed = Date.now() - playStartTime;
-        myGames[idx].playtime = (myGames[idx].playtime || 0) + elapsed;
-        save();
+        if (myGames[idx]) {
+            const elapsed = Date.now() - playStartTime;
+            myGames[idx].playtime = (myGames[idx].playtime || 0) + elapsed;
+            save();
+        }
         playStartTime = null;
-        document.getElementById('play-timer-tag').textContent = 'PLAYING • 0:00';
-        updatePlaytimeDisplay(idx);
+        launchedIdx = null;
+        updatePlaytimeDisplay(idx, false);
+        updatePlayButton(idx);
     }
 
-    function updatePlaytimeDisplay(idx) {
+    function updatePlaytimeDisplay(idx, live) {
         if (!myGames[idx]) return;
-        document.getElementById('tb-playtime').textContent = fmtTime(myGames[idx].playtime || 0);
+        let total = myGames[idx].playtime || 0;
+        if (live && playStartTime) total += (Date.now() - playStartTime);
+        const el = document.getElementById('tb-playtime');
+        if (el) el.textContent = fmtTime(total);
+    }
+
+    function updatePlayButton(idx) {
+        const btn = document.getElementById('tb-play-btn');
+        if (!btn) return;
+        if (launchedIdx === idx && playStartTime !== null) {
+            btn.textContent = '■ Stop Playing';
+            btn.onclick = () => stopPlaytimeTracking(idx);
+        } else {
+            btn.textContent = '▶ Play';
+            btn.onclick = () => launchGame(idx);
+        }
     }
 
     /* ═══════════════════════════════════════════════
-       GAME OVERLAY
+       LAUNCH GAME — opens the game in its own new window
+       managed by the macOS shell (same pattern the Terminal's
+       "run"/"serve"/"preview" commands use), instead of an
+       in-app overlay. Falls back to a new browser tab if the
+       shell bridge isn't available (e.g. previewed standalone).
     ═══════════════════════════════════════════════ */
+    function openInShell(url, title, icon) {
+        try {
+            window.parent.postMessage({
+                type: 'openWindow',
+                url: url,
+                title: title || 'Game',
+                icon: icon || './images/Steam.png',
+                w: 1000,
+                h: 650
+            }, '*');
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
     function launchGame(idx) {
         const game = myGames[idx];
         if (!game) return;
-        activeIdx = idx;
         const url = resolveGameUrl(game.folder);
-        document.getElementById('active-game-title').textContent = game.name;
-        document.getElementById('game-frame').src = url;
-        const overlay = document.getElementById('game-overlay');
-        overlay.style.display = 'flex';
-        startPlaytimeTracking(idx);
-    }
+        if (!url) { showToast('This game has no URL or folder set'); return; }
 
-    function closeGame() {
-        const overlay = document.getElementById('game-overlay');
-        overlay.style.display = 'none';
-        document.getElementById('game-frame').src = '';
-        if (activeIdx >= 0) {
-            stopPlaytimeTracking(activeIdx);
-            renderLibNav();
+        const opened = openInShell(url, game.name, './images/Steam.png');
+        if (opened) {
+            showToast(`✓ Launching "${game.name}" in a new window`);
+        } else {
+            window.open(url, '_blank');
+            showToast(`✓ Opened "${game.name}" in a new tab`);
         }
+        startPlaytimeTracking(idx);
     }
 
     /* ═══════════════════════════════════════════════
@@ -1519,7 +1481,7 @@
         const toolbar = document.getElementById('view-toolbar');
         toolbar.style.display = 'flex';
 
-        document.getElementById('tb-play-btn').onclick   = () => launchGame(idx);
+        updatePlayButton(idx);
         document.getElementById('tb-edit-btn').onclick   = () => openEditModal(idx);
         document.getElementById('tb-store-btn').onclick  = () =>
             window.open(
@@ -1527,7 +1489,7 @@
                 '_blank'
             );
         document.getElementById('tb-remove-btn').onclick = () => removeGame(idx);
-        updatePlaytimeDisplay(idx);
+        updatePlaytimeDisplay(idx, launchedIdx === idx);
 
         const bannerStyle = game.banner
             ? `background-image:url('${game.banner}')`
@@ -1699,10 +1661,8 @@
        KEYBOARD SHORTCUTS
     ═══════════════════════════════════════════════ */
     document.addEventListener('keydown', e => {
-        const overlay = document.getElementById('game-overlay');
         if (e.key === 'Escape') {
-            if (overlay.style.display === 'flex') closeGame();
-            else closeModals();
+            closeModals();
         }
         if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
             e.preventDefault();
@@ -1713,7 +1673,7 @@
             document.getElementById('search-input').focus();
         }
         // Arrow keys to navigate library
-        if (overlay.style.display !== 'flex' && myGames.length > 0) {
+        if (myGames.length > 0) {
             if (e.key === 'ArrowDown' && activeFriendIdx === null) {
                 e.preventDefault();
                 selectGame(Math.min(activeIdx + 1, myGames.length - 1));
@@ -1733,6 +1693,11 @@
         modal.addEventListener('click', e => {
             if (e.target === modal) closeModals();
         });
+    });
+
+    /* Stop tracking playtime if this Steam window/tab is closed while a game is running */
+    window.addEventListener('beforeunload', () => {
+        if (launchedIdx !== null) stopPlaytimeTracking(launchedIdx);
     });
 
     /* ═══════════════════════════════════════════════
