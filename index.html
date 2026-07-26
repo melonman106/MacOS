@@ -46,7 +46,15 @@
   <div class="top-right">
     <div class="top-icon" id="spotBtn" title="Spotlight"><svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 105.3 14.7l4.2 4.2a1 1 0 001.4-1.4l-4.2-4.2A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/></svg></div>
     <div class="top-icon" id="ccBtn" title="Control Center"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
-    <div class="top-icon" id="battery" title="Battery"><svg viewBox="0 0 24 24"><rect x="1" y="7" width="19" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect id="battFill" x="3" y="9" width="14" height="6" fill="currentColor"/><rect x="21" y="9.5" width="2" height="5" rx="1" fill="currentColor"/></svg><span id="battPct" style="margin-left:4px">--%</span></div>
+    <div class="top-icon" id="battery" title="Battery">
+      <svg viewBox="0 0 26 13" width="24" height="13">
+        <rect x="0.75" y="0.75" width="21.5" height="11.5" rx="2.75" fill="none" stroke="currentColor" stroke-opacity=".55" stroke-width="1"/>
+        <rect id="battFill" x="2.25" y="2.25" width="17" height="8.5" rx="1.4" fill="currentColor"/>
+        <rect x="23.2" y="4" width="1.6" height="5" rx="0.8" fill="currentColor" fill-opacity=".55"/>
+        <path id="battBolt" d="M12.6 1.6 L7.4 7.4 L11 7.4 L9.6 11.4 L15.4 5.1 L11.6 5.1 Z" fill="#1c1c1e" style="display:none"/>
+      </svg>
+      <span id="battPct" style="margin-left:4px">--%</span>
+    </div>
     <div class="clock" id="clock">--:--</div>
   </div>
 </div>
@@ -164,11 +172,18 @@ function initBattery(){
     var wrap=$('#battery'); if(!wrap) return;
     if(!navigator.getBattery){ wrap.style.display='none'; return; }
     navigator.getBattery().then(function(bat){
+      var FULL_W=17, MIN_W=1.5;
       function render(){
         safe(function(){
-          var pct=Math.round(bat.level*100);
-          var pctEl=$('#battPct'); if(pctEl) pctEl.textContent=pct+'%'+(bat.charging?' (charging)':'');
-          var fill=$('#battFill'); if(fill) fill.setAttribute('width', Math.max(1, Math.round(14*bat.level)));
+          var level=bat.level, pct=Math.round(level*100);
+          var pctEl=$('#battPct'); if(pctEl) pctEl.textContent=pct+'%';
+          var fill=$('#battFill');
+          if(fill){
+            fill.setAttribute('width', Math.max(MIN_W, (FULL_W*level).toFixed(2)));
+            var color = bat.charging ? '#30d158' : (level<=0.1 ? '#ff453a' : (level<=0.2 ? '#febc2e' : 'currentColor'));
+            fill.setAttribute('fill', color);
+          }
+          var bolt=$('#battBolt'); if(bolt) bolt.style.display = bat.charging ? 'block' : 'none';
         }, null, 'battery-render');
       }
       render();
