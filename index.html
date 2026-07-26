@@ -11,8 +11,8 @@
 :root{--glass:rgba(255,255,255,.18);--glass-strong:rgba(255,255,255,.28);--dark:rgba(15,18,28,.72);--dark2:rgba(20,24,36,.86);--line:rgba(255,255,255,.18);--text:#f7f9ff;--muted:rgba(247,249,255,.68);--accent:#0a84ff;--purple:#8b5cf6;--pink:#ff5ea8;--green:#30d158;--red:#ff5f57;--yellow:#febc2e;--shadow:0 28px 80px rgba(0,0,0,.42)}
 *{box-sizing:border-box;margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden}body{font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;color:var(--text);user-select:none;-webkit-user-select:none;background:#121726;background-image:radial-gradient(circle at 18% 16%,rgba(255,199,93,.95) 0 10%,transparent 28%),radial-gradient(circle at 72% 22%,rgba(255,94,168,.82) 0 12%,transparent 32%),radial-gradient(circle at 47% 74%,rgba(10,132,255,.9) 0 16%,transparent 38%),linear-gradient(135deg,#20103b 0%,#10294d 45%,#073f58 100%);background-size:cover}.scrim{position:fixed;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.12));pointer-events:none}.safe-hide{display:none!important}
 #top-bar{position:fixed;top:0;left:0;right:0;height:30px;z-index:70000;display:flex;align-items:center;justify-content:space-between;padding:0 8px;background:rgba(18,20,30,.52);backdrop-filter:blur(34px) saturate(190%);-webkit-backdrop-filter:blur(34px) saturate(190%);border-bottom:1px solid rgba(255,255,255,.12)}.top-left,.top-right{display:flex;align-items:center;height:100%;gap:2px}.top-btn,.top-app,.top-icon,.clock{height:24px;display:flex;align-items:center;border-radius:7px;padding:0 9px;color:var(--text);font-size:13px;line-height:1;cursor:default}.top-btn:hover,.top-icon:hover,.clock:hover,.top-app:hover{background:rgba(255,255,255,.16)}.apple{width:30px;justify-content:center;padding:0;cursor:pointer}.apple img{width:14px;height:16px;filter:brightness(0) invert(1)}.top-app{font-weight:800}.top-btn{cursor:pointer}.top-icon{width:28px;justify-content:center;padding:0;cursor:pointer}.top-icon svg{width:15px;height:15px;fill:currentColor}.clock{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}.menu{position:fixed;top:29px;min-width:230px;padding:7px;background:rgba(28,31,43,.75);border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(48px) saturate(200%);display:none;z-index:70500}.menu.show{display:block}.mi{padding:8px 12px;border-radius:9px;font-size:13px;color:var(--text);display:flex;justify-content:space-between;gap:22px;cursor:pointer}.mi:hover{background:rgba(10,132,255,.9)}.sep{height:1px;background:rgba(255,255,255,.12);margin:6px 8px}
-#desktop{position:fixed;inset:30px 0 86px 0}.desktop-icon{position:absolute;width:94px;padding:9px 7px;border-radius:14px;text-align:center;cursor:default}.desktop-icon:hover,.desktop-icon.selected{background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}.desktop-icon img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 6px 12px rgba(0,0,0,.36))}.desktop-icon .fallback-tile{width:58px;height:58px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--purple));display:none;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;margin:0 auto}.desktop-icon span{display:block;margin-top:5px;font-size:11px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.8)}
-#dock{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:60000;display:flex;align-items:flex-end;gap:7px;padding:8px 11px;border-radius:26px;background:rgba(245,247,255,.18);border:1px solid rgba(255,255,255,.22);box-shadow:0 24px 70px rgba(0,0,0,.4);backdrop-filter:blur(34px) saturate(190%)}.dock-item{width:54px;height:54px;border-radius:16px;position:relative;display:grid;place-items:center;transition:transform .18s ease,margin .18s ease;cursor:pointer}.dock-item:hover{transform:scale(1.42) translateY(-13px);margin:0 8px}.dock-item img{width:52px;height:52px;object-fit:contain}.dock-item .fallback-tile{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--purple));display:none;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}.dock-tip{position:absolute;bottom:68px;left:50%;transform:translateX(-50%);padding:5px 10px;border-radius:9px;background:rgba(20,24,36,.82);border:1px solid rgba(255,255,255,.14);font-size:12px;white-space:nowrap;opacity:0;pointer-events:none}.dock-item:hover .dock-tip{opacity:1}.dot{position:absolute;bottom:-6px;width:5px;height:5px;border-radius:50%;background:#fff}
+#desktop{position:fixed;inset:30px 0 86px 0}.desktop-icon{position:absolute;width:94px;padding:9px 7px;border-radius:14px;text-align:center;cursor:default}.desktop-icon:hover,.desktop-icon.selected{background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}.desktop-icon img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 6px 12px rgba(0,0,0,.36))}.desktop-icon span{display:block;margin-top:5px;font-size:11px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.8)}
+#dock{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:60000;display:flex;align-items:flex-end;gap:7px;padding:8px 11px;border-radius:26px;background:rgba(245,247,255,.18);border:1px solid rgba(255,255,255,.22);box-shadow:0 24px 70px rgba(0,0,0,.4);backdrop-filter:blur(34px) saturate(190%)}.dock-item{width:54px;height:54px;border-radius:16px;position:relative;display:grid;place-items:center;transition:transform .18s ease,margin .18s ease;cursor:pointer}.dock-item:hover{transform:scale(1.42) translateY(-13px);margin:0 8px}.dock-item img{width:52px;height:52px;object-fit:contain}.dock-tip{position:absolute;bottom:68px;left:50%;transform:translateX(-50%);padding:5px 10px;border-radius:9px;background:rgba(20,24,36,.82);border:1px solid rgba(255,255,255,.14);font-size:12px;white-space:nowrap;opacity:0;pointer-events:none}.dock-item:hover .dock-tip{opacity:1}.dot{position:absolute;bottom:-6px;width:5px;height:5px;border-radius:50%;background:#fff}
 #win-layer{position:fixed;inset:0;pointer-events:none}.win{position:absolute;min-width:330px;min-height:230px;display:flex;flex-direction:column;overflow:hidden;border-radius:18px;background:rgba(244,247,255,.18);border:1px solid rgba(255,255,255,.2);box-shadow:var(--shadow);backdrop-filter:blur(44px) saturate(190%);pointer-events:auto}.win.active{border-color:rgba(255,255,255,.34)}.win.full{inset:30px 0 0 0!important;width:100%!important;height:calc(100% - 30px)!important;border-radius:0}.win.min{transform:scale(.08) translateY(600px);opacity:0;pointer-events:none}.winbar{height:42px;display:flex;align-items:center;padding:0 14px;background:rgba(18,20,30,.28);border-bottom:1px solid rgba(255,255,255,.12);cursor:move}.lights{display:flex;gap:8px}.lt{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2);cursor:pointer}.r{background:var(--red)}.y{background:var(--yellow)}.g{background:var(--green)}.title{flex:1;text-align:center;font-weight:700;font-size:13px;color:rgba(255,255,255,.9);pointer-events:none}.body{flex:1;overflow:hidden;background:rgba(8,10,18,.2)}iframe{width:100%;height:100%;border:0;background:white}.resize{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize}
 .panel{position:fixed;right:12px;top:38px;width:360px;z-index:70500;padding:14px;border-radius:24px;background:rgba(28,31,43,.74);border:1px solid rgba(255,255,255,.18);box-shadow:var(--shadow);backdrop-filter:blur(50px) saturate(200%);display:none}.panel.show{display:block}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{padding:13px;border-radius:18px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.1)}.tile b{display:block;font-size:13px}.tile small{color:var(--muted)}.slider{height:8px;border-radius:99px;background:linear-gradient(90deg,#fff 65%,rgba(255,255,255,.18) 65%);margin-top:12px}.widgets{position:fixed;right:14px;top:96px;width:310px;display:grid;gap:12px;z-index:100;transition:.25s}.widget{padding:15px;border-radius:24px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 40px rgba(0,0,0,.18);backdrop-filter:blur(36px)}.widget h3{font-size:13px;margin-bottom:8px}.widget .big{font-size:32px;font-weight:800}
 .spot{position:fixed;inset:0;z-index:71000;display:none;align-items:flex-start;justify-content:center;padding-top:16vh;background:rgba(0,0,0,.28);backdrop-filter:blur(10px)}.spot.show{display:flex}.spotbox{width:680px;max-width:92vw;max-height:66vh;border-radius:24px;overflow:hidden;background:rgba(28,31,43,.82);border:1px solid rgba(255,255,255,.18);box-shadow:var(--shadow);display:flex;flex-direction:column}#spotIn{width:100%;padding:20px 24px;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.12);outline:0;color:#fff;font-size:24px;flex-shrink:0}#spotOut{overflow-y:auto;flex:1;min-height:0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}#spotOut::-webkit-scrollbar{width:8px}#spotOut::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:99px}#spotOut::-webkit-scrollbar-track{background:transparent}
@@ -45,7 +45,8 @@
   </div>
   <div class="top-right">
     <div class="top-icon" id="spotBtn" title="Spotlight"><svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 105.3 14.7l4.2 4.2a1 1 0 001.4-1.4l-4.2-4.2A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/></svg></div>
-    <div class="top-icon" id="ccBtn" title="Control Center">☰</div>
+    <div class="top-icon" id="ccBtn" title="Control Center"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+    <div class="top-icon" id="battery" title="Battery"><svg viewBox="0 0 24 24"><rect x="1" y="7" width="19" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect id="battFill" x="3" y="9" width="14" height="6" fill="currentColor"/><rect x="21" y="9.5" width="2" height="5" rx="1" fill="currentColor"/></svg><span id="battPct" style="margin-left:4px">--%</span></div>
     <div class="clock" id="clock">--:--</div>
   </div>
 </div>
@@ -84,7 +85,6 @@
 </div>
 
 <div class="boot-fail" id="bootFail">
-  <div style="font-size:44px">⚠️</div>
   <div style="font-size:18px;font-weight:700">Desktop failed to start</div>
   <div style="font-size:13px;opacity:.7;max-width:360px" id="bootFailMsg">An error occurred while loading. Try reloading, or reset your saved layout below.</div>
   <button id="bootFailReload">Reload</button>
@@ -119,8 +119,8 @@ window.addEventListener('error', function(e){ console.error('[GoldenGate] global
 window.addEventListener('unhandledrejection', function(e){ console.error('[GoldenGate] promise error', e.reason); });
 
 var APPS=[
-  {name:'Finder',icon:'./images/Finder.png',internal:'finder',w:900,h:610},
-  {name:'Safari',icon:'./images/Safari.png',internal:'browser',w:1040,h:680},
+  {name:'Finder',icon:'./images/Finder.png',url:'./apps/Files/index.html',w:960,h:630},
+  {name:'Safari',icon:'./images/Safari.png',url:'./apps/Browser/index.html',w:1040,h:680},
   {name:'YouTube',icon:'./images/Youtube.png',url:'./apps/YouTube/yt.html',w:1000,h:650},
   {name:'ChatGPT',icon:'./images/ChatGPT.png',url:'./apps/AI/GPT.html',w:820,h:590},
   {name:'Settings',icon:'./images/Settings.png',url:'./apps/System/Settings.html',w:900,h:620},
@@ -129,7 +129,6 @@ var APPS=[
   {name:'Music',icon:'./images/Music.png',internal:'music',w:900,h:610},
   {name:'Ampler',icon:'./images/Ampler.png',url:'./apps/Ampler/index.html',w:990,h:650},
   {name:'App Tester',icon:'./images/AppTester.png',internal:'tester',w:760,h:520},
-  {name:'Finder',icon:'./images/Finder.png',url:'./apps/Finder/index.html',w:960,h:630,spotlightOnly:true},
   {name:'Gallery',icon:'./images/Gallery.png',url:'./apps/Gallery/index.html',w:1020,h:660,spotlightOnly:true},
   {name:'Text',icon:'./images/Text.png',url:'./apps/Text/index.html',w:820,h:600,spotlightOnly:true}
 ];
@@ -142,8 +141,7 @@ var iconPos = load('gg-icons', {}) || {};
 var drag=null, resize=null, spotIndex=0;
 
 function iconTile(app){
-  return '<img src="'+esc(app.icon)+'" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'+
-         '<div class="fallback-tile">'+esc((app.name||'?').charAt(0).toUpperCase())+'</div>';
+  return '<img src="'+esc(app.icon)+'" alt="" onerror="this.style.opacity=\'.25\'">';
 }
 
 function srcdoc(app){
@@ -160,6 +158,26 @@ function tick(){
   }, null, 'tick');
 }
 setInterval(tick,1000); tick();
+
+function initBattery(){
+  safe(function(){
+    var wrap=$('#battery'); if(!wrap) return;
+    if(!navigator.getBattery){ wrap.style.display='none'; return; }
+    navigator.getBattery().then(function(bat){
+      function render(){
+        safe(function(){
+          var pct=Math.round(bat.level*100);
+          var pctEl=$('#battPct'); if(pctEl) pctEl.textContent=pct+'%'+(bat.charging?' (charging)':'');
+          var fill=$('#battFill'); if(fill) fill.setAttribute('width', Math.max(1, Math.round(14*bat.level)));
+        }, null, 'battery-render');
+      }
+      render();
+      bat.addEventListener('levelchange', render);
+      bat.addEventListener('chargingchange', render);
+    }).catch(function(){ wrap.style.display='none'; });
+  }, null, 'initBattery');
+}
+initBattery();
 
 function buildDesktop(){
   safe(function(){
